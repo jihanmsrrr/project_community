@@ -102,5 +102,18 @@
         "nip_baru": "199708082017081008",
         "jabatan": "Fungsional Umum",
         "satker": "Badan Pusat Statistik"
+    },
+    {
+        "id": "9",
+        "username": "jihan",
+        "password": "user123",
+        "nama": "Jihan Cirebon",
+        "email": "user6@bps.go.id",
+        "role": "user",
+        "image": "https://i.pravatar.cc/150?u=user6",
+        "nip_lama": "199708081234561008",
+        "nip_baru": "199708082017081008",
+        "jabatan": "Fungsional Umum",
+        "satker": "Badan Pusat Statistik"
     }
 ]
