@@ -1,0 +1,206 @@
+.cardContainer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 3 columns for large screens */
+  grid-template-rows: repeat(4, auto); /* 3 rows for 9 cards */
+  padding: 10px;
+  gap: 16px; /* Fixed gap between cards */
+  box-sizing: border-box;
+  margin: 0 auto; /* Center the grid */
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 280px; /* Set the width to 380px */
+  height: 320px; /* Set the height to 440px */
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column; /* Use flexbox to arrange content */
+}
+
+.cardImage {
+  border-radius: 12px;
+  padding: 10px; /* Padding on all sides of the image container */
+  flex-shrink: 0; /* Prevent image from shrinking */
+}
+
+.cardImage img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.cardContent {
+  padding: 16px;
+  border-radius: 12px;
+  flex-grow: 1; /* Allow content to take up remaining space */
+  overflow: hidden;
+}
+
+.cardContent h3 {
+  font-size: 14px;
+  font-weight: semibold;
+  letter-spacing: 1px;
+  text-align: justify;
+  margin: 3;
+  margin-top: -20px; /* Adjusted margin to give space between image and title */
+  color: #070a0e;
+}
+
+.cardContent p {
+  font-size: 10px;
+  margin-top: -10px;
+  color: rgba(62, 50, 50, 0.75); /* Corrected color property */
+  text-align: justify;
+  line-height: 1.6;
+}
+.cardFooter {
+  border-radius: 12px;
+  padding: 12px; /* Increased padding for footer */
+  display: flex;
+  margin: 10px;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #ddd;
+  background-color: #f1f1f1; /* Different background color for footer */
+}
+
+.footerLeft {
+  display: flex;
+  align-items: center;
+}
+
+.author {
+  display: flex;
+  align-items: center;
+}
+
+.authorAvatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.authorInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.authorName {
+  font-size: 12px;
+  font-weight: semibold;
+  color: #333;
+}
+
+.date {
+  font-size: 10px;
+  color: #888;
+}
+
+.cardIcons {
+  display: flex;
+  gap: 12px;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  color: #666;
+}
+
+.icon:hover {
+  color: #007bff;
+}
+
+/* Carousel Styles */
+.carousel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.carouselButton {
+  background-color: #585c61;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  margin: 0 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.carouselButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.pageButton {
+  background-color: #f7f7f7;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  margin: 0 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.pageButton:hover {
+  background-color: var(--button);
+  color: white;
+}
+
+.pageButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pageNumber {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--secondary);
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.pageNumber:hover {
+  color: var(--primary);
+}
+
+.pageNumber.active {
+  color: #333;
+  cursor: default;
+}
+
+/* Responsive Layout */
+@media (max-width: 1024px) {
+  .cardContainer {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on tablets */
+  }
+}
+
+@media (max-width: 768px) {
+  .cardContainer {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .cardContainer {
+    grid-template-columns: 1fr; /* 1 column on small mobile */
+  }
+}

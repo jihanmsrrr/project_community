@@ -1,42 +1,562 @@
+/* styles/globals.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800&display=swap");
+
+/* :root mendefinisikan variabel untuk tema default (Light Normal) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Font Dasar & UI Global */
+  --font-body: "Poppins", sans-serif;
+  --ui-radius: 0.625rem;
+  --font-size-multiplier: 1; /* Untuk penyesuaian ukuran font aksesibilitas */
+
+  /* --- Warna Permukaan (Backgrounds) --- */
+  --surface-page: 238 240 242;
+  --surface-card: 245 245 245;
+  --surface-header: 1 43 106;
+  --surface-name-badge: 229 229 229;
+  --surface-button-transparent: 1 43 106 / 0.7;
+
+  /* --- Warna Teks/Foreground --- */
+  --text-on-header: 255 255 255;
+  --text-primary: 7 10 14;
+  --text-secondary: 107 114 128;
+  --text-on-brand: 255 255 255;
+  --text-on-accent: 255 255 255;
+  --text-placeholder: 156 163 175;
+
+  /* --- Warna Interaksi & Merek (Brand) --- */
+  --brand-primary: 1 43 106;
+  --brand-primary-hover: 0 33 84;
+  --brand-primary-active: 0 23 62;
+  --brand-secondary: 147 184 221;
+  --brand-secondary-hover: 120 160 200;
+  --brand-accent: 112 156 199;
+  --brand-accent-hover: 90 130 170;
+  --brand-button-solid-bg: 1 43 106;
+  --brand-button-solid-text: 255 255 255;
+
+  /* --- Warna Navigasi --- */
+  --nav-active-indicator: 230 172 120;
+
+  /* --- Warna Status/Semantik Tambahan --- */
+  --status-orange: 247 144 58;
+  --status-green: 104 185 46;
+  --status-blue: 0 147 221;
+
+  /* --- Elemen UI Lainnya --- */
+  --ui-border: 230 230 230;
+  --ui-border-input: 209 213 219;
+  --ui-focus-ring: 59 130 246;
+
+  /* --- Warna Feedback Error (Default/Light) --- */
+  --feedback-error-bg: 254 226 226;
+  --feedback-error-border: 248 113 113;
+  --feedback-error-text: 185 28 28;
+
+  --metric-card-bg-1-rgb: 79 70 229; /* indigo-600 */
+  --metric-card-text-1-rgb: 255 255 255;
+  --metric-card-bg-2-rgb: 29 78 216; /* blue-700 */
+  --metric-card-text-2-rgb: 255 255 255;
+  --metric-card-bg-3-rgb: 13 148 136; /* teal-600 */
+  --metric-card-text-3-rgb: 255 255 255;
+  --metric-card-bg-4-rgb: 126 34 206; /* purple-700 */
+  --metric-card-text-4-rgb: 255 255 255;
+
+  --color-scale-low: 224 231 255; /* Misal: indigo-100 */
+  --color-scale-mid: 165 180 252; /* Misal: indigo-300 */
+  --color-scale-high: 99 102 241; /* Misal: indigo-500 */
+  --page-title-bg-image: url("/titlebg.png");
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Tema Gelap (.dark) */
+.dark {
+  --surface-page: 18 18 18;
+  --surface-card: 30 30 30;
+  --surface-header: 30 30 30;
+  --text-on-header: 229 231 235;
+  --surface-name-badge: 42 42 42;
+  --surface-button-transparent: 138 180 248 / 0.7;
+  --text-primary: 245 245 245;
+  --text-secondary: 160 160 160;
+  --text-on-brand: 18 18 18;
+  --text-on-accent: 18 18 18;
+  --text-placeholder: 115 115 115;
+  --brand-primary: 138 180 248;
+  --brand-primary-hover: 108 150 228;
+  --brand-primary-active: 88 130 208;
+  --brand-secondary: 112 156 199;
+  --brand-secondary-hover: 90 130 170;
+  --brand-accent: 147 184 221;
+  --brand-accent-hover: 120 160 200;
+  --brand-button-solid-bg: 138 180 248;
+  --brand-button-solid-text: 18 18 18;
+  --nav-active-indicator: 230 172 120;
+  --status-orange: 253 185 106;
+  --status-green: 164 211 108;
+  --status-blue: 88 181 247;
+  --ui-border: 58 58 58;
+  --ui-border-input: 70 70 70;
+  --ui-focus-ring: 138 180 248;
+  --feedback-error-bg: 153 27 27;
+  --feedback-error-border: 220 38 38;
+  --feedback-error-text: 252 165 165;
+  --metric-card-bg-1-rgb: 99 102 241; /* indigo-500 */
+  --metric-card-text-1-rgb: 224 231 255; /* indigo-100 */
+  --metric-card-bg-2-rgb: 59 130 246; /* blue-500 */
+  --metric-card-text-2-rgb: 219 234 254; /* blue-100 */
+  --metric-card-bg-3-rgb: 20 184 166; /* teal-500 */
+  --metric-card-text-3-rgb: 204 251 241; /* teal-100 */
+  --metric-card-bg-4-rgb: 167 139 250; /* violet-400 */
+  --metric-card-text-4-rgb: 233 213 255; /* violet-100 */
+  --brand-primary: 138 180 248; /* Biru muda untuk dark mode */
+  --ui-border: 75 85 99; /* Abu-abu lebih terang untuk border di dark mode */
+  --text-primary: 229 231 235; /* Teks terang */
+  --color-scale-low: 30 64 175;
+  --color-scale-medium: 59 130 246;
+  --color-scale-high: 147 197 253;
+  --page-title-bg-image: url("/titlebg-dark.png");
 }
 
+/* Tema Pink (.theme-pink) */
+.theme-pink {
+  --surface-page: 253 242 248;
+  --surface-card: 255 255 255;
+  --surface-header: 252 232 242;
+  --surface-name-badge: 252 232 242;
+  --surface-button-transparent: 219 39 119 / 0.7;
+  --text-on-header: 131 24 67;
+  --text-primary: 131 24 67;
+  --text-secondary: 190 24 93;
+  --text-on-brand: 255 255 255;
+  --text-on-accent: 255 255 255;
+  --text-placeholder: 215 129 173;
+  --brand-primary: 219 39 119;
+  --brand-primary-hover: 190 24 93;
+  --brand-primary-active: 157 23 77;
+  --brand-secondary: 244 114 182;
+  --brand-secondary-hover: 236 72 153;
+  --brand-accent: 249 168 212;
+  --brand-accent-hover: 244 114 182;
+  --brand-button-solid-bg: 219 39 119;
+  --brand-button-solid-text: 255 255 255;
+  --nav-active-indicator: 157 23 77;
+  --status-orange: 251 146 60;
+  --status-green: 52 211 153;
+  --status-blue: 59 130 246;
+  --feedback-error-bg: 254 226 226;
+  --feedback-error-border: 248 113 113;
+  --feedback-error-text: 185 28 28;
+  --ui-border: 251 179 209;
+  --ui-border-input: 249 168 212;
+  --ui-focus-ring: 190 24 93;
+  --metric-card-bg-1-rgb: 190 24 93; /* pink-700 */
+  --metric-card-text-1-rgb: 255 255 255;
+  --metric-card-bg-2-rgb: 157 23 77; /* pink-800 */
+  --metric-card-text-2-rgb: 255 255 255;
+  --metric-card-bg-3-rgb: 219 39 119; /* pink-600 */
+  --metric-card-text-3-rgb: 255 255 255;
+  --metric-card-bg-4-rgb: 236 72 153; /* pink-500 */
+  --metric-card-text-4-rgb: 255 255 255;
+  --color-scale-low: 252 232 242;
+  --color-scale-medium: 249 168 212;
+  --color-scale-high: 236 72 153;
+  --page-title-bg-image: url("/titlebg-pink.png");
+}
+
+/* ================================================ */
+/* === BAGIAN BARU: Gaya untuk Aksesibilitas === */
+/* ================================================ */
+
+/* 1. Penyesuaian Ukuran Font Dasar melalui Variabel CSS */
+html {
+  /* Ukuran font dasar dikalikan dengan multiplier dari JavaScript */
+  /* Jika base font Anda bukan 16px, sesuaikan angka 16px di bawah ini */
+  font-size: calc(16px * var(--font-size-multiplier));
+}
+
+/* 2. Mode Kontras Tinggi */
+/* Menerapkan kelas ini ke <html> akan menimpa variabel warna tema */
+html.high-contrast-mode {
+  /* Anda perlu mendefinisikan ulang SEMUA variabel warna semantik di sini
+     dengan nilai yang memiliki kontras sangat tinggi. Contoh di bawah ini sangat dasar.
+     Idealnya, uji dengan color contrast checker. */
+
+  --surface-page: 0 0 0; /* Hitam Pekat */
+  --surface-card: 0 0 0; /* Hitam Pekat */
+  --surface-header: 0 0 0; /* Hitam Pekat */
+  --surface-name-badge: 0 0 0; /* Hitam Pekat */
+
+  --text-primary: 255 255 255; /* Putih Pekat */
+  --text-secondary: 220 220 220; /* Abu-abu sangat terang */
+  --text-on-brand: 0 0 0; /* Hitam Pekat (jika brand primary jadi terang) */
+  --text-on-accent: 0 0 0; /* Hitam Pekat (jika brand accent jadi terang) */
+  --text-placeholder: 180 180 180;
+
+  --brand-primary: 255 255 0; /* Kuning Terang (WCAG AAA: Yellow on Black) */
+  --brand-primary-hover: 230 230 0;
+  --brand-primary-active: 200 200 0;
+
+  --brand-secondary: 0 255 255; /* Cyan Terang */
+  --brand-secondary-hover: 0 230 230;
+
+  --brand-accent: 255 0 255; /* Magenta Terang */
+  --brand-accent-hover: 230 0 230;
+
+  --brand-button-solid-bg: 255 255 0;
+  --brand-button-solid-text: 0 0 0;
+
+  --nav-active-indicator: 255 255 0; /* Kuning Terang */
+
+  --status-orange: 255 165 0; /* Oranye Terang */
+  --status-green: 0 255 0; /* Hijau Terang */
+  --status-blue: 0 128 255; /* Biru Terang */
+
+  --ui-border: 255 255 255; /* Putih Pekat */
+  --ui-border-input: 255 255 255;
+  --ui-focus-ring: 255 255 0; /* Kuning Terang */
+
+  --feedback-error-bg: 0 0 0; /* Latar hitam */
+  --feedback-error-border: 255 0 0; /* Border merah terang */
+  --feedback-error-text: 255 255 255; /* Teks putih */
+
+  /* Atur agar gambar dan video juga lebih kontras jika perlu */
+  /* img, video, [style*="background-image"] {
+    filter: contrast(175%) grayscale(30%); 
+  } */
+}
+
+/* 3. Mode Skala Abu-abu (Grayscale) */
+html.grayscale-mode {
+  filter: grayscale(100%);
+  /* Jika ada elemen yang warnanya hilang atau sulit dibaca karena grayscale, 
+     Anda mungkin perlu menambahkan override khusus di sini.
+     Contoh: html.grayscale-mode .sesuatu-yang-penting { filter: grayscale(0%); } */
+}
+/* Pastikan gambar dan video juga menjadi grayscale */
+html.grayscale-mode img,
+html.grayscale-mode video,
+html.grayscale-mode [style*="background-image"] {
+  filter: grayscale(
+    100%
+  ) !important; /* !important mungkin diperlukan untuk menimpa filter lain */
+}
+
+/* 4. Nonaktifkan Animasi */
+html.animations-disabled *,
+html.animations-disabled *::before,
+html.animations-disabled *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important; /* Hanya jalankan sekali jika ada delay */
+  transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important; /* Hapus delay transisi */
+  scroll-behavior: auto !important; /* Matikan smooth scrolling */
+}
+
+/* Global reset dan body styles Anda */
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  /* Hati-hati dengan height: 100% jika Anda juga menggunakan min-h-screen secara ekstensif di Next.js.
+     Biasanya Next.js sudah mengatur ini dengan baik melalui #__next. */
+  /* height: 100%; */
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-body);
+  background: rgb(var(--surface-page));
+  color: rgb(var(--text-primary));
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+/* Wrapper .content Anda */
+.content {
+  width: 90%;
+  margin: 0 auto;
+  padding: 50px;
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+  @media (max-width: 768px) {
+    & {
+      /* & di sini merujuk ke .content */
+      width: 95%;
+      padding: 10px;
+    }
   }
 }
+
+/* Scrollbar utilities Anda */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Utility kelas vanilla-mu */
+.bg-card {
+  background-color: rgb(var(--surface-card));
+}
+
+.bg-name {
+  background-color: rgb(var(--surface-name-badge));
+}
+
+/* Typography */
+h1,
+.text-h1 {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: 0.5px;
+}
+
+h2,
+.text-h2 {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+h3,
+.text-h3 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* Body Text */
+.text-body1 {
+  font-size: 18px;
+  font-weight: 400;
+}
+.text-body1-semibold {
+  font-size: 18px;
+  font-weight: 600;
+}
+.text-body2 {
+  font-size: 16px;
+  font-weight: 400;
+}
+.text-body2-semibold {
+  font-size: 16px;
+  font-weight: 600;
+}
+.text-body3 {
+  font-size: 14px;
+  font-weight: 400;
+}
+.text-body3-semibold {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Captions */
+.text-caption1 {
+  font-size: 12px;
+  font-weight: 400;
+}
+.text-caption1-semibold {
+  font-size: 12px;
+  font-weight: 600;
+}
+.text-caption2 {
+  font-size: 10px;
+  font-weight: 400;
+}
+.text-caption2-semibold {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Small Text */
+.text-small {
+  font-size: 8px;
+  font-weight: 400;
+}
+.text-small-semibold {
+  font-size: 8px;
+  font-weight: 600;
+}
+/* ======================================================== */
+/* === TAMBAHAN: Styling Swiper.js yang Theme-Aware === */
+/* ======================================================== */
+/* Ini adalah styling dasar, Anda bisa kustomisasi lebih lanjut */
+.page-title-header-bg {
+  position: relative;
+  text-align: center;
+  /* Padding bisa Anda atur di sini atau menggunakan kelas Tailwind di JSX */
+  /* py-8 sm:py-10 akan tetap dari JSX jika Anda mau */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-bottom-width: 1px; /* Contoh jika ingin border bawah */
+  border-color: rgba(
+    var(--ui-border),
+    0.2
+  ); /* Contoh border dengan variabel tema */
+
+  /* Menggunakan variabel CSS untuk gambar latar */
+  background-image: var(--page-title-bg-image);
+}
+.page-title-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  /* Menggunakan variabel untuk warna overlay agar juga theme-aware */
+  background-color: rgba(var(--brand-primary), 0.8); /* Overlay default */
+  backdrop-filter: blur(2px); /* Efek blur, sesuaikan nilainya */
+}
+
+.dark .page-title-overlay {
+  background-color: rgba(0, 0, 0, 0.6); /* Overlay spesifik untuk dark mode */
+}
+
+.theme-pink .page-title-overlay {
+  /* Ambil warna --brand-primary dari tema pink, atau definisikan warna overlay khusus pink */
+  /* Jika --brand-primary di .theme-pink adalah pink tua (219 39 119), ini akan jadi overlay pink tua */
+  background-color: rgba(var(--brand-primary), 0.75);
+}
+/* Tombol Navigasi (Panah Kiri/Kanan) */
+.swiper-button-next,
+.swiper-button-prev {
+  color: rgb(
+    var(--brand-primary)
+  ) !important; /* Warna panah menggunakan !important untuk override default Swiper */
+  transition: color 0.2s ease-in-out;
+  width: calc(
+    var(--swiper-navigation-size) / 44 * 30
+  ) !important; /* Sedikit lebih kecil */
+  height: calc(var(--swiper-navigation-size) / 44 * 30) !important;
+  margin-top: calc(
+    0px - (var(--swiper-navigation-size) / 44 * 15)
+  ) !important; /* Menyesuaikan posisi vertikal */
+}
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  color: rgb(var(--brand-primary-hover)) !important;
+}
+/* Menghilangkan teks "next" dan "prev" jika hanya ingin ikon panah */
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 1.25rem !important; /* Ukuran ikon panah (default Swiper) */
+}
+
+/* Pagination Dots */
+.swiper-pagination-bullet {
+  background-color: rgb(
+    var(--ui-border)
+  ) !important; /* Warna bullet tidak aktif */
+  opacity: 0.7 !important;
+  transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  width: 8px !important;
+  height: 8px !important;
+}
+.swiper-pagination-bullet-active {
+  background-color: rgb(
+    var(--brand-primary)
+  ) !important; /* Warna bullet aktif */
+  opacity: 1 !important;
+}
+
+/* Jika menggunakan dynamic bullets, stylingnya bisa berbeda */
+.swiper-pagination-bullets.swiper-pagination-horizontal.swiper-pagination-bullets-dynamic {
+  /* Anda mungkin perlu styling tambahan untuk dynamic bullets jika defaultnya tidak pas */
+}
+
+/* Scrollbar Swiper (jika Anda menggunakannya) */
+.swiper-scrollbar-drag {
+  background: rgb(
+    var(--scrollbar-thumb)
+  ) !important; /* Warna drag handle scrollbar Swiper */
+}
+.swiper-scrollbar {
+  background: rgb(
+    var(--scrollbar-track)
+  ) !important; /* Warna track scrollbar Swiper */
+}
+
+/* Styling untuk elemen progress agar theme-aware */
+progress {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  border-radius: 0.375rem; /* rounded-md */
+  overflow: hidden; /* Pastikan warna tidak meluber dari radius */
+}
+
+/* Latar belakang (track) progress bar */
+progress::-webkit-progress-bar {
+  background-color: rgb(
+    var(--ui-border) / 0.5
+  ); /* Warna track, misal border dengan opacity */
+  border-radius: 0.375rem;
+}
+
+/* Indikator nilai progress bar */
+progress::-webkit-progress-value {
+  background-color: rgb(var(--brand-accent)); /* Warna utama progress bar */
+  border-radius: 0.375rem;
+  transition: background-color 0.3s ease;
+}
+
+/* Untuk Firefox */
+progress::-moz-progress-bar {
+  background-color: rgb(var(--brand-accent)); /* Warna utama progress bar */
+  border-radius: 0.375rem;
+  transition: background-color 0.3s ease;
+}
+
+.custom-leaflet-tooltip {
+  /* Menggunakan variabel CSS untuk warna dan radius */
+  background-color: rgb(var(--surface-card)) !important;
+  border: 1px solid rgba(var(--ui-border), 0.5) !important; /* Menggunakan rgba untuk opacity border */
+  border-radius: var(--ui-radius) !important;
+  box-shadow: 0 4px 12px rgba(var(--text-primary), 0.07) !important; /* Opacity shadow sedikit dikurangi agar lebih halus */
+  padding: 0.4rem 0.65rem !important; /* Sedikit penyesuaian padding jika perlu */
+  /* z-index mungkin diperlukan jika tertutup elemen lain, tapi biasanya Leaflet sudah menangani */
+  /* z-index: 1000; */
+}
+
+/* Anda menggunakan kelas .map-tooltip-title untuk <strong>, ini bagus! */
+.custom-leaflet-tooltip .map-tooltip-title {
+  color: rgb(var(--text-primary)) !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important; /* setara text-sm Tailwind */
+  line-height: 1.25rem !important; /* setara leading-tight atau leading-5 Tailwind */
+}
+
+/* Menghilangkan panah default dari Leaflet Tooltip jika tidak diinginkan */
+/* Ini akan membuat tooltip terlihat seperti kotak biasa tanpa panah penunjuk */
+.leaflet-tooltip-top::before,
+.leaflet-tooltip-bottom::before,
+.leaflet-tooltip-left::before,
+.leaflet-tooltip-right::before {
+  border: none !important;
+}
+
+/* Anda menambahkan .custom-leaflet-tooltip strong, 
+   namun Anda sudah menargetkan strong dengan .map-tooltip-title. 
+   Jadi, blok di bawah ini mungkin tidak diperlukan jika semua <strong> 
+   di dalam tooltip Anda sudah memiliki kelas .map-tooltip-title.
+   Jika ada <strong> lain tanpa kelas itu, maka ini bisa berguna.
+*/
+/*
+.custom-leaflet-tooltip strong {
+  // Styling tambahan untuk elemen <strong> umum di dalam tooltip jika ada dan belum ter-style.
+  // Misalnya, jika Anda tidak selalu membungkus nama provinsi dengan .map-tooltip-title.
+  // color: rgb(var(--text-primary)) !important;
+  // font-weight: 600 !important;
+}
+  
+*/

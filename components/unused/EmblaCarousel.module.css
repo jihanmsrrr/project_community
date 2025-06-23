@@ -1,0 +1,72 @@
+.embla {
+  max-width: 800px;
+  margin: 40px auto;
+  font-family: sans-serif;
+}
+
+.embla__viewport {
+  overflow: hidden;
+  border-radius: 10px;
+  height: 300px;
+}
+
+.embla__container {
+  display: flex;
+  height: 100%;
+  transition: transform 0.3s ease-in-out;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  position: relative;
+  min-width: 0;
+}
+
+.embla__slide__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.button {
+  padding: 8px 16px;
+  background-color: black;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-radius: 4px;
+}
+
+.button:hover {
+  background-color: #444;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  background-color: #bbb;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dotActive {
+  background-color: black;
+}

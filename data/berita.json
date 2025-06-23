@@ -1,0 +1,423 @@
+[
+  {
+    "id": 1750131465170,
+    "judul": "coba pake userckjasj",
+    "kategori": "Berita Daerah",
+    "kataKunci": [],
+    "abstrak": "coba pake user1coba pake user1coba pake user1coba pake user1coba pake user1",
+    "isiBerita": "<div>\r\n<div>// /pages/api/berita.ts</div>\r\n<br>\r\n<div>import type { NextApiRequest, NextApiResponse } from \"next\";</div>\r\n<div>import { IncomingForm, File as FormidableFile, Fields, Files } from \"formidable\";</div>\r\n<div>import fs from \"fs\";</div>\r\n<div>import path from \"path\";</div>\r\n<div>// --- PERBAIKAN KUNCI: Impor tipe data dari satu sumber terpusat ---</div>\r\n<div>import { ArtikelBerita } from \"@/types/varia\";</div>\r\n<br>\r\n<div>// Konfigurasi API Route</div>\r\n<div>export const config = {</div>\r\n<div>api: {</div>\r\n<div>bodyParser: false, // Wajib false agar formidable bisa mem-parse form-data</div>\r\n<div>},</div>\r\n<div>};</div>\r\n<br>\r\n<div>// --- PATH KONSTAN ---</div>\r\n<div>const DATA_DIR = path.join(process.cwd(), \"data\");</div>\r\n<div>const DATA_PATH = path.join(DATA_DIR, \"berita.json\");</div>\r\n<div>const UPLOAD_DIR = path.join(process.cwd(), \"public\", \"uploads\", \"berita\");</div>\r\n<br>\r\n<div>// --- DIHAPUS: Tipe 'Berita' lokal tidak lagi digunakan ---</div>\r\n<div>// interface Berita { ... }</div>\r\n<br>\r\n<div>// --- FUNGSI HELPER UNTUK MEMBACA/MENULIS DATABASE (berita.json) ---</div>\r\n<div>// --- PERBAIKAN: Fungsi sekarang menggunakan tipe 'ArtikelBerita' yang diimpor ---</div>\r\n<div>function readBeritaFile(): ArtikelBerita[] {</div>\r\n<div>try {</div>\r\n<div>if (!fs.existsSync(DATA_PATH)) {</div>\r\n<div>// Jika file tidak ada, buat file kosong dengan array di dalamnya</div>\r\n<div>fs.writeFileSync(DATA_PATH, \"[]\", \"utf-8\");</div>\r\n<div>return [];</div>\r\n<div>}</div>\r\n<div>const fileContents = fs.readFileSync(DATA_PATH, \"utf-8\");</div>\r\n<div>// Jika file kosong, kembalikan array kosong untuk menghindari error parse</div>\r\n<div>return fileContents ? JSON.parse(fileContents) : [];</div>\r\n<div>} catch (error) {</div>\r\n<div>console.error(\"Gagal membaca atau parse berita.json:\", error);</div>\r\n<div>return [];</div>\r\n<div>}</div>\r\n<div>}</div>\r\n<br>\r\n<div>function writeBeritaFile(data: ArtikelBerita[]) {</div>\r\n<div>try {</div>\r\n<div>// Pastikan direktori 'data' ada</div>\r\n<div>if (!fs.existsSync(DATA_DIR)) {</div>\r\n<div>fs.mkdirSync(DATA_DIR, { recursive: true });</div>\r\n<div>}</div>\r\n<div>// Tulis data ke file dengan format yang rapi (null, 2 untuk indentasi)</div>\r\n<div>fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));</div>\r\n<div>} catch (error) {</div>\r\n<div>console.error(\"Gagal menulis ke berita.json:\", error);</div>\r\n<div>}</div>\r\n<div>}</div>\r\n<br>\r\n<div>// Helper untuk mengambil nilai pertama dari form, karena formidable bisa mengembalikan array</div>\r\n<div>const getFirstValue = (value: string | string[] | undefined): string =&gt; {</div>\r\n<div>if (Array.isArray(value)) return value[0] || '';</div>\r\n<div>return value || '';</div>\r\n<div>};</div>\r\n<br>\r\n<div>// --- HANDLER UTAMA API ROUTE ---</div>\r\n<div>export default async function handler(</div>\r\n<div>req: NextApiRequest,</div>\r\n<div>res: NextApiResponse</div>\r\n<div>) {</div>\r\n<br>\r\n<div>// === Handler untuk GET (Untuk Halaman Admin) ===</div>\r\n<div>if (req.method === \"GET\") {</div>\r\n<div>try {</div>\r\n<div>const allBerita = readBeritaFile();</div>\r\n<div>// PERBAIKAN: Admin tidak perlu melihat 'draft' di tabel manajemen utama</div>\r\n<div>const dataForAdmin = allBerita.filter(p =&gt; p.status !== 'draft');</div>\r\n<div>return res.status(200).json(dataForAdmin);</div>\r\n<div>} catch (error) {</div>\r\n<div>console.error(\"API GET Error:\", error);</div>\r\n<div>return res.status(500).json({ message: \"Gagal mengambil data berita.\" });</div>\r\n<div>}</div>\r\n<div>}</div>\r\n<br>\r\n<div>// === Handler untuk POST (Membuat Artikel Baru) ===</div>\r\n<div>if (req.method === \"POST\") {</div>\r\n<div>// Pastikan folder upload ada</div>\r\n<div>if (!fs.existsSync(UPLOAD_DIR)) {</div>\r\n<div>fs.mkdirSync(UPLOAD_DIR, { recursive: true });</div>\r\n<div>}</div>\r\n<br>\r\n<div>const form = new IncomingForm({</div>\r\n<div>multiples: true,</div>\r\n<div>uploadDir: UPLOAD_DIR,</div>\r\n<div>keepExtensions: true,</div>\r\n<div>// Batasi ukuran file, contoh 5MB</div>\r\n<div>maxFileSize: 5 * 1024 * 1024,</div>\r\n<div>});</div>\r\n<br>\r\n<div>form.parse(req, (err: Error | null, fields: Fields, files: Files) =&gt; {</div>\r\n<div>if (err) {</div>\r\n<div>console.error(\"Form parsing error:\", err);</div>\r\n<div>return res.status(500).json({ message: \"Gagal memproses data form.\", error: err.message });</div>\r\n<div>}</div>\r\n<br>\r\n<div>const judul = getFirstValue(fields.judul);</div>\r\n<div>const kategori = getFirstValue(fields.kategori);</div>\r\n<div>const abstrak = getFirstValue(fields.abstrak);</div>\r\n<div>const isiBerita = getFirstValue(fields.isiBerita);</div>\r\n<div>const status = getFirstValue(fields.status) as ArtikelBerita['status'];</div>\r\n<div>// PERBAIKAN: Ambil nama penulis dari form, dengan nilai default</div>\r\n<div>const namaPenulis = getFirstValue(fields.namaPenulis) || \"Kontributor\";</div>\r\n<br>\r\n<div>if (!judul || !kategori || !abstrak || !isiBerita || !status) {</div>\r\n<div>return res.status(400).json({ message: \"Data wajib tidak lengkap.\" });</div>\r\n<div>}</div>\r\n<br>\r\n<div>const kataKunci = getFirstValue(fields.kataKunci).split(',').map(k =&gt; k.trim()).filter(Boolean);</div>\r\n<br>\r\n<div>let gambarFiles: ArtikelBerita['gambarFiles'] = [];</div>\r\n<div>if (files.gambarFiles) {</div>\r\n<div>const fileArray = Array.isArray(files.gambarFiles) ? files.gambarFiles : [files.gambarFiles];</div>\r\n<div>gambarFiles = fileArray.map((f: FormidableFile) =&gt; ({</div>\r\n<div>originalFilename: f.originalFilename ?? \"unknown_file\",</div>\r\n<div>mimetype: f.mimetype ?? undefined,</div>\r\n<div>size: f.size,</div>\r\n<div>url: `/uploads/berita/${path.basename(f.filepath)}`</div>\r\n<div>}));</div>\r\n<div>}</div>\r\n<br>\r\n<div>try {</div>\r\n<div>const existingBerita = readBeritaFile();</div>\r\n<div>const newBerita: ArtikelBerita = {</div>\r\n<div>id: Date.now(),</div>\r\n<div>judul, kategori, kataKunci, abstrak, isiBerita, status, namaPenulis,</div>\r\n<div>gambarFiles,</div>\r\n<div>savedAt: Date.now(),</div>\r\n<div>};</div>\r\n<br>\r\n<div>existingBerita.unshift(newBerita); // Tambahkan ke awal array</div>\r\n<div>writeBeritaFile(existingBerita);</div>\r\n<div>return res.status(201).json({ message: \"Berita berhasil disimpan!\", data: newBerita });</div>\r\n<div>} catch (error) {</div>\r\n<div>console.error(\"Gagal menyimpan data ke file:\", error);</div>\r\n<div>return res.status(500).json({ message: \"Gagal menyimpan data ke file.\" });</div>\r\n<div>}</div>\r\n<div>});</div>\r\n<div>return; // Wajib ada untuk menghentikan eksekusi karena form.parse async</div>\r\n<div>}</div>\r\n<br>\r\n<div>// === Handler untuk PATCH (Update Status: Approve/Revisi) ===</div>\r\n<div>if (req.method === \"PATCH\") {</div>\r\n<div>try {</div>\r\n<div>const { id, status } = req.query;</div>\r\n<br>\r\n<div>if (!id || !status || typeof status !== 'string' || !['published', 'revision', 'pending_review'].includes(status)) {</div>\r\n<div>return res.status(400).json({ message: \"Parameter 'id' dan 'status' yang valid diperlukan.\" });</div>\r\n<div>}</div>\r\n<br>\r\n<div>const beritaId = parseInt(id as string, 10);</div>\r\n<div>const allBerita = readBeritaFile();</div>\r\n<div>const beritaIndex = allBerita.findIndex(p =&gt; p.id === beritaId);</div>\r\n<br>\r\n<div>if (beritaIndex === -1) {</div>\r\n<div>return res.status(404).json({ message: \"Berita tidak ditemukan.\" });</div>\r\n<div>}</div>\r\n<br>\r\n<div>allBerita[beritaIndex].status = status as ArtikelBerita['status'];</div>\r\n<div>writeBeritaFile(allBerita);</div>\r\n<br>\r\n<div>return res.status(200).json({ message: \"Status berita berhasil diperbarui.\", data: allBerita[beritaIndex] });</div>\r\n<div>} catch (error) {</div>\r\n<div>console.error(\"API PATCH Error:\", error);</div>\r\n<div>return res.status(500).json({ message: \"Terjadi kesalahan pada server.\" });</div>\r\n<div>}</div>\r\n<div>}</div>\r\n<br>\r\n<div>// === Handler untuk DELETE (Menghapus Artikel) ===</div>\r\n<div>if (req.method === \"DELETE\") {</div>\r\n<div>try {</div>\r\n<div>const { id } = req.query;</div>\r\n<div>if (!id) return res.status(400).json({ message: \"Parameter 'id' diperlukan.\" });</div>\r\n<br>\r\n<div>const beritaId = parseInt(id as string, 10);</div>\r\n<div>const allBerita = readBeritaFile();</div>\r\n<div>const updatedBerita = allBerita.filter(p =&gt; p.id !== beritaId);</div>\r\n<br>\r\n<div>if (allBerita.length === updatedBerita.length) {</div>\r\n<div>return res.status(404).json({ message: \"Berita tidak ditemukan untuk dihapus.\" });</div>\r\n<div>}</div>\r\n<br>\r\n<div>writeBeritaFile(updatedBerita);</div>\r\n<div>return res.status(200).json({ message: \"Berita berhasil dihapus.\" });</div>\r\n<div>} catch (error) {</div>\r\n<div>console.error(\"API DELETE Error:\", error);</div>\r\n<div>return res.status(500).json({ message: \"Terjadi kesalahan pada server.\" });</div>\r\n<div>}</div>\r\n<div>}</div>\r\n<br>\r\n<div>// Jika method tidak diizinkan</div>\r\n<div>res.setHeader(\"Allow\", [\"GET\", \"POST\", \"PATCH\", \"DELETE\"]);</div>\r\n<div>res.status(405).end(`Method ${req.method} Not Allowed`);</div>\r\n<div>}</div>\r\n</div>",
+    "status": "pending_review",
+    "namaPenulis": "User Pertama",
+    "gambarFiles": [],
+    "savedAt": 1750131465170
+  },
+  {
+    "id": 1750089575502,
+    "judul": "lorem Ipsum is simply dummy",
+    "kategori": "Serba Serbi",
+    "kataKunci": [],
+    "abstrak": "lorem Ipsum is simply dummylorem Ipsum is simply dummy",
+    "isiBerita": "<p>lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>",
+    "status": "pending_review",
+    "namaPenulis": "Admin Utama",
+    "gambarFiles": [],
+    "savedAt": 1750089575502,
+    "penulisId": "1"
+  },
+  {
+    "id": 1747973892973,
+    "judul": "format upload berita",
+    "kategori": "Berita Daerah",
+    "kataKunci": [],
+    "abstrak": "gatau gatau gatau gatau. gatau gatau gatau gatau gaaa",
+    "isiBerita": "<p>if (files.gambarFiles) {<br>&nbsp; if (Array.isArray(files.gambarFiles)) {<br>&nbsp; &nbsp; gambarFiles = files.gambarFiles.map((f: FormidableFile) =&gt; ({<br>&nbsp; &nbsp; &nbsp; originalFilename: f.originalFilename ?? undefined,<br>&nbsp; &nbsp; &nbsp; mimetype: f.mimetype ?? undefined,<br>&nbsp; &nbsp; &nbsp; size: f.size,<br>&nbsp; &nbsp; }));<br>&nbsp; } else {<br>&nbsp; &nbsp; const f = files.gambarFiles as FormidableFile;<br>&nbsp; &nbsp; gambarFiles = [<br>&nbsp; &nbsp; &nbsp; {<br>&nbsp; &nbsp; &nbsp; &nbsp; originalFilename: f.originalFilename ?? undefined,<br>&nbsp; &nbsp; &nbsp; &nbsp; mimetype: f.mimetype ?? undefined,<br>&nbsp; &nbsp; &nbsp; &nbsp; size: f.size,<br>&nbsp; &nbsp; &nbsp; },<br>&nbsp; &nbsp; ];<br>&nbsp; }<br>}</p>",
+    "status": "pending_review",
+    "gambarFiles": [],
+    "savedAt": 1747973892973,
+    "namaPenulis": "User Pertama",
+    "penulisId": "3"
+  },
+  {
+    "id": 1748860800000,
+    "judul": "Rilis Indikator Strategis Juni 2025",
+    "kategori": "BPS Terkini",
+    "kataKunci": [
+      "inflasi",
+      "ekspor",
+      "impor",
+      "pertumbuhan"
+    ],
+    "abstrak": "BPS merilis data indikator strategis terbaru untuk bulan Juni 2025, mencakup inflasi, nilai tukar petani, dan pariwisata.",
+    "isiBerita": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "originalFilename": "bps-rilis-juni.jpg",
+        "mimetype": "image/jpeg",
+        "size": 120000,
+        "url": "https://placehold.co/1200x800/012B6A/FFFFFF?text=Rilis+BPS+Juni+2025"
+      }
+    ],
+    "savedAt": 1748860800000,
+    "namaPenulis": "Admin Satu",
+    "penulisId": "1"
+  },
+  {
+    "id": 1747974000001,
+    "judul": "Peluncuran Survei Ekonomi Nasional 2026",
+    "kategori": "BPS Terkini",
+    "kataKunci": [
+      "survei",
+      "ekonomi",
+      "nasional"
+    ],
+    "abstrak": "BPS secara resmi meluncurkan pelaksanaan Survei Ekonomi Nasional (SEN) 2026 untuk mendapatkan data ekonomi yang komprehensif.",
+    "isiBerita": "Informasi detail mengenai metodologi, cakupan, dan jadwal pelaksanaan SEN 2026.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/1200x800/0284C7/FFFFFF?text=SEN+2026",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1747974000001,
+    "namaPenulis": "Admin Dua",
+    "penulisId": "2"
+  },
+  {
+    "id": 1748774400000,
+    "judul": "Pertumbuhan Ekonomi Jawa Barat Triwulan II 2025",
+    "kategori": "Berita Daerah",
+    "kataKunci": [
+      "jawa barat",
+      "ekonomi",
+      "pertumbuhan"
+    ],
+    "abstrak": "Analisis pertumbuhan ekonomi Provinsi Jawa Barat pada triwulan kedua tahun 2025 menunjukkan tren positif.",
+    "isiBerita": "Detail data dan faktor-faktor yang mempengaruhi pertumbuhan ekonomi di Jawa Barat.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "originalFilename": "jabar-ekonomi.png",
+        "mimetype": "image/png",
+        "size": 95000,
+        "url": "https://placehold.co/800x500/10B981/FFFFFF?text=Ekonomi+Jawa+Barat"
+      }
+    ],
+    "savedAt": 1748774400000,
+    "namaPenulis": "User Kedua",
+    "penulisId": "4"
+  },
+  {
+    "id": 1748688000000,
+    "judul": "Indeks Pembangunan Manusia di Papua Meningkat",
+    "kategori": "Berita Daerah",
+    "kataKunci": [
+      "ipm",
+      "papua",
+      "pembangunan"
+    ],
+    "abstrak": "Laporan terkini menunjukkan adanya peningkatan signifikan pada Indeks Pembangunan Manusia (IPM) di Provinsi Papua.",
+    "isiBerita": "Data IPM terbaru Papua beserta analisis komponen pendidikan, kesehatan, dan standar hidup layak.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/600x400/059669/FFFFFF?text=IPM+Papua",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1748688000000,
+    "namaPenulis": "User Ketiga",
+    "penulisId": "5"
+  },
+  {
+    "id": 1748601600000,
+    "judul": "Produksi Padi Sumatera Utara Capai Target",
+    "kategori": "Berita Daerah",
+    "kataKunci": [
+      "sumut",
+      "pertanian",
+      "padi"
+    ],
+    "abstrak": "Petani di Sumatera Utara berhasil mencapai target produksi padi untuk musim tanam ini.",
+    "isiBerita": "Data produksi, tantangan, dan upaya pemerintah daerah dalam mendukung sektor pertanian.",
+    "status": "published",
+    "gambarFiles": [],
+    "savedAt": 1748601600000,
+    "namaPenulis": "User Keempat",
+    "penulisId": "6"
+  },
+  {
+    "id": 1748515200000,
+    "judul": "Serba Serbi: Sejarah Sensus Penduduk di Indonesia",
+    "kategori": "Serba Serbi",
+    "kataKunci": [
+      "sensus",
+      "sejarah",
+      "penduduk"
+    ],
+    "abstrak": "Menilik kembali perjalanan sensus penduduk di Indonesia dari masa ke masa.",
+    "isiBerita": "Fakta-fakta menarik dan perubahan metodologi sensus penduduk sepanjang sejarah.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/600x400/3B82F6/FFFFFF?text=Sejarah+Sensus",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1748515200000,
+    "namaPenulis": "User Kelima",
+    "penulisId": "7"
+  },
+  {
+    "id": 1748428800000,
+    "judul": "Infografis Unik: 10 Pekerjaan Paling Diminati",
+    "kategori": "Serba Serbi",
+    "kataKunci": [
+      "infografis",
+      "pekerjaan",
+      "karir"
+    ],
+    "abstrak": "Visualisasi data mengenai 10 jenis pekerjaan yang paling banyak diminati di Indonesia saat ini.",
+    "isiBerita": "Data dan analisis tren pasar kerja berdasarkan survei terbaru.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/600x400/2563EB/FFFFFF?text=Top+10+Pekerjaan",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1748428800000,
+    "namaPenulis": "User Keenam",
+    "penulisId": "8"
+  },
+  {
+    "id": 1748342400000,
+    "judul": "Quiz: Seberapa Paham Kamu Tentang Istilah Statistik?",
+    "kategori": "Serba Serbi",
+    "kataKunci": [
+      "quiz",
+      "statistik",
+      "istilah"
+    ],
+    "abstrak": "Uji pemahamanmu mengenai istilah-istilah dasar dalam dunia statistik melalui kuis interaktif ini.",
+    "isiBerita": "Kumpulan pertanyaan dan jawaban seputar statistik.",
+    "status": "published",
+    "gambarFiles": [],
+    "savedAt": 1748342400000,
+    "namaPenulis": "Admin Satu",
+    "penulisId": "1"
+  },
+  {
+    "id": 1748256000000,
+    "judul": "Fotogenik: Senyum Petugas Lapangan",
+    "kategori": "Fotogenik",
+    "kataKunci": [
+      "petugas",
+      "lapangan",
+      "senyum"
+    ],
+    "abstrak": "Potret-potret humanis petugas sensus dan survei BPS saat bertugas di berbagai pelosok negeri.",
+    "isiBerita": "Kumpulan foto inspiratif yang menangkap dedikasi para insan statistik.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "originalFilename": "petugas-lapangan.jpg",
+        "mimetype": "image/jpeg",
+        "size": 78000,
+        "url": "https://placehold.co/600x350/F59E0B/FFFFFF?text=Senyum+Petugas"
+      }
+    ],
+    "savedAt": 1748256000000,
+    "namaPenulis": "User Pertama",
+    "penulisId": "3"
+  },
+  {
+    "id": 1748169600000,
+    "judul": "Fotogenik: Pasar Tradisional Penuh Warna",
+    "kategori": "Fotogenik",
+    "kataKunci": [
+      "pasar",
+      "tradisional",
+      "warna"
+    ],
+    "abstrak": "Kehidupan pasar tradisional yang terekam dalam lensa, menampilkan keragaman dan dinamika ekonomi lokal.",
+    "isiBerita": "Foto-foto suasana pasar tradisional.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/600x350/D97706/FFFFFF?text=Pasar+Warna",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1748169600000,
+    "namaPenulis": "User Kedua",
+    "penulisId": "4"
+  },
+  {
+    "id": 1748083200000,
+    "judul": "Fotogenik: Landmark Kota dalam Angka",
+    "kategori": "Fotogenik",
+    "kataKunci": [
+      "landmark",
+      "kota",
+      "angka"
+    ],
+    "abstrak": "Visualisasi data yang disandingkan dengan foto-foto ikonik berbagai kota di Indonesia.",
+    "isiBerita": "Gabungan fotografi dan infografis.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/600x350/B45309/FFFFFF?text=Landmark+Data",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1748083200000,
+    "namaPenulis": "User Ketiga",
+    "penulisId": "5"
+  },
+  {
+    "id": 1747996800000,
+    "judul": "Wisata Statistik: Mengunjungi Museum BPS",
+    "kategori": "Wisata",
+    "kataKunci": [
+      "museum bps",
+      "edukasi",
+      "sejarah"
+    ],
+    "abstrak": "Panduan lengkap untuk berkunjung dan belajar di Museum BPS, mengenal sejarah statistik Indonesia.",
+    "isiBerita": "Informasi jam buka, koleksi, dan kegiatan menarik di Museum BPS.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/400x225/EC4899/FFFFFF?text=Museum+BPS",
+        "size": 80000
+      }
+    ],
+    "savedAt": 1747996800000,
+    "namaPenulis": "User Keempat",
+    "penulisId": "6"
+  },
+  {
+    "id": 1747910400000,
+    "judul": "Desa Cantik Statistik: Belajar Langsung dari Masyarakat",
+    "kategori": "Wisata",
+    "kataKunci": [
+      "desa cantik",
+      "komunitas",
+      "data"
+    ],
+    "abstrak": "Menelusuri Desa Cinta Statistik (Desa Cantik) dan melihat bagaimana data memberdayakan masyarakat.",
+    "isiBerita": "Profil desa-desa yang berhasil memanfaatkan data untuk pembangunan.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/400x225/DB2777/FFFFFF?text=Desa+Cantik",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1747910400000,
+    "namaPenulis": "User Kelima",
+    "penulisId": "7"
+  },
+  {
+    "id": 1747824000000,
+    "judul": "Wisata Data: Pameran Visualisasi Interaktif",
+    "kategori": "Wisata",
+    "kataKunci": [
+      "pameran",
+      "visualisasi",
+      "interaktif"
+    ],
+    "abstrak": "Jangan lewatkan pameran visualisasi data interaktif yang akan hadir di kota Anda!",
+    "isiBerita": "Jadwal, lokasi, dan highlight dari pameran data.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/400x225/BE185D/FFFFFF?text=Pameran+Data",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1747824000000,
+    "namaPenulis": "User Keenam",
+    "penulisId": "8"
+  },
+  {
+    "id": 1747737600000,
+    "judul": "Jelajah Kampus Statistik: STIS",
+    "kategori": "Wisata",
+    "kataKunci": [
+      "stis",
+      "kampus",
+      "pendidikan"
+    ],
+    "abstrak": "Mengenal lebih dekat Politeknik Statistika STIS, tempat lahirnya para ahli statistik handal.",
+    "isiBerita": "Profil kampus, program studi, dan kehidupan mahasiswa STIS.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/400x225/9D174D/FFFFFF?text=Kampus+STIS",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1747737600000,
+    "namaPenulis": "Admin Dua",
+    "penulisId": "2"
+  },
+  {
+    "id": 1747651200000,
+    "judul": "Opini: Pentingnya Literasi Data di Era Digital",
+    "kategori": "Opini",
+    "kataKunci": [
+      "literasi data",
+      "digital",
+      "pendidikan"
+    ],
+    "abstrak": "Mengapa kemampuan membaca dan memahami data menjadi krusial bagi setiap individu di era digital saat ini?",
+    "isiBerita": "Pembahasan mendalam mengenai urgensi literasi data dan cara meningkatkannya.",
+    "status": "published",
+    "gambarFiles": [],
+    "savedAt": 1747651200000,
+    "namaPenulis": "User Pertama",
+    "penulisId": "3"
+  },
+  {
+    "id": 1747564800000,
+    "judul": "Opini: Big Data untuk Kebijakan Publik yang Lebih Baik",
+    "kategori": "Opini",
+    "kataKunci": [
+      "big data",
+      "kebijakan publik",
+      "pemerintahan"
+    ],
+    "abstrak": "Bagaimana pemanfaatan big data dapat membantu pemerintah merumuskan kebijakan publik yang lebih efektif dan tepat sasaran?",
+    "isiBerita": "Studi kasus dan potensi penerapan big data dalam pemerintahan.",
+    "status": "published",
+    "gambarFiles": [
+      {
+        "url": "https://placehold.co/600x400/7E22CE/FFFFFF?text=Big+Data+Opini",
+        "size": 1000
+      }
+    ],
+    "savedAt": 1747564800000,
+    "namaPenulis": "User Kedua",
+    "penulisId": "4"
+  },
+  {
+    "id": 1747478400000,
+    "judul": "Opini: Etika dalam Penggunaan Artificial Intelligence",
+    "kategori": "Opini",
+    "kataKunci": [
+      "ai",
+      "etika",
+      "teknologi"
+    ],
+    "abstrak": "Menyoroti aspek etika yang perlu diperhatikan dalam pengembangan dan implementasi kecerdasan buatan (AI).",
+    "isiBerita": "Diskusi mengenai bias, privasi, dan tanggung jawab dalam penggunaan AI.",
+    "status": "published",
+    "gambarFiles": [],
+    "savedAt": 1747478400000,
+    "namaPenulis": "User Ketiga",
+    "penulisId": "5"
+  }
+]

@@ -1,0 +1,194 @@
+[
+    {
+        "commentId": "comment-1",
+        "articleId": 1750131725950,
+        "userId": "3",
+        "text": "Ini menarik!",
+        "timestamp": 1750224000000,
+        "username": "User Pertama"
+    },
+    {
+        "commentId": "comment-2",
+        "articleId": 1750131465170,
+        "userId": "1",
+        "text": "Sangat informatif.",
+        "timestamp": 1750224100000,
+        "username": "Admin Satu"
+    },
+    {
+        "commentId": "comment-3",
+        "articleId": 1750089575502,
+        "userId": "2",
+        "text": "Saya suka ini.",
+        "timestamp": 1750224200000,
+        "username": "Admin Dua"
+    },
+    {
+        "commentId": "comment-4",
+        "articleId": 1747973892973,
+        "userId": "4",
+        "text": "Terima kasih atas infonya.",
+        "timestamp": 1750224300000,
+        "username": "User Kedua"
+    },
+    {
+        "commentId": "comment-5",
+        "articleId": 1748860800000,
+        "userId": "1",
+        "text": "Bagus sekali.",
+        "timestamp": 1750224400000,
+        "username": "Admin Satu"
+    },
+    {
+        "commentId": "comment-6",
+        "articleId": 1747974000001,
+        "userId": "3",
+        "text": "Saya setuju.",
+        "timestamp": 1750224500000,
+        "username": "User Pertama"
+    },
+    {
+        "commentId": "comment-7",
+        "articleId": 1748774400000,
+        "userId": "2",
+        "text": "Penting untuk diketahui.",
+        "timestamp": 1750224600000,
+        "username": "Admin Dua"
+    },
+    {
+        "commentId": "comment-8",
+        "articleId": 1748688000000,
+        "userId": "1",
+        "text": "Layak dibaca.",
+        "timestamp": 1750224700000,
+        "username": "Admin Satu"
+    },
+    {
+        "commentId": "comment-9",
+        "articleId": 1748601600000,
+        "userId": "4",
+        "text": "Saya akan bagikan ini.",
+        "timestamp": 1750224800000,
+        "username": "User Kedua"
+    },
+    {
+        "commentId": "comment-10",
+        "articleId": 1748515200000,
+        "userId": "3",
+        "text": "Ini membantu sekali.",
+        "timestamp": 1750224900000,
+        "username": "User Pertama"
+    },
+    {
+        "commentId": "comment-11",
+        "articleId": 1748428800000,
+        "userId": "2",
+        "text": "Visualisasinya keren.",
+        "timestamp": 1750225000000,
+        "username": "Admin Dua"
+    },
+    {
+        "commentId": "comment-12",
+        "articleId": 1748342400000,
+        "userId": "1",
+        "text": "Saya jadi lebih paham.",
+        "timestamp": 1750225100000,
+        "username": "Admin Satu"
+    },
+    {
+        "commentId": "comment-13",
+        "articleId": 1748256000000,
+        "userId": "3",
+        "text": "Petugasnya semangat!",
+        "timestamp": 1750225200000,
+        "username": "User Pertama"
+    },
+    {
+        "commentId": "comment-14",
+        "articleId": 1748169600000,
+        "userId": "2",
+        "text": "Pasar yang ramai.",
+        "timestamp": 1750225300000,
+        "username": "Admin Dua"
+    },
+    {
+        "commentId": "comment-15",
+        "articleId": 1748083200000,
+        "userId": "1",
+        "text": "Data yang menarik.",
+        "timestamp": 1750225400000,
+        "username": "Admin Satu"
+    },
+    {
+        "commentId": "comment-16",
+        "articleId": 1747996800000,
+        "userId": "4",
+        "text": "Museumnya wajib dikunjungi.",
+        "timestamp": 1750225500000,
+        "username": "User Kedua"
+    },
+    {
+        "commentId": "comment-17",
+        "articleId": 1747910400000,
+        "userId": "3",
+        "text": "Desa yang inspiratif.",
+        "timestamp": 1750225600000,
+        "username": "User Pertama"
+    },
+    {
+        "commentId": "comment-18",
+        "articleId": 1747824000000,
+        "userId": "2",
+        "text": "Saya tidak sabar mengunjunginya.",
+        "timestamp": 1750225700000,
+        "username": "Admin Dua"
+    },
+    {
+        "commentId": "comment-19",
+        "articleId": 1747737600000,
+        "userId": "1",
+        "text": "Kampus yang bagus.",
+        "timestamp": 1750225800000,
+        "username": "Admin Satu"
+    },
+    {
+        "commentId": "comment-20",
+        "articleId": 1747651200000,
+        "userId": "3",
+        "text": "Literasi data itu penting.",
+        "timestamp": 1750225900000,
+        "username": "User Pertama"
+    },
+    {
+        "commentId": "comment-21",
+        "articleId": 1747564800000,
+        "userId": "2",
+        "text": "Kebijakan yang baik.",
+        "timestamp": 1750226000000,
+        "username": "Admin Dua"
+    },
+    {
+        "commentId": "comment-22",
+        "articleId": 1747478400000,
+        "userId": "1",
+        "text": "Etika dalam teknologi.",
+        "timestamp": 1750226100000,
+        "username": "Admin Satu"
+    },
+    {
+        "commentId": "comment-23",
+        "articleId": 1750131725950,
+        "userId": "4",
+        "text": "Komentar tambahan untuk artikel 1.",
+        "timestamp": 1750226200000,
+        "username": "User Kedua"
+    },
+    {
+        "commentId": "comment-24",
+        "articleId": 1750131465170,
+        "userId": "3",
+        "text": "Komentar tambahan untuk artikel 2.",
+        "timestamp": 1750226300000,
+        "username": "User Pertama"
+    }
+]

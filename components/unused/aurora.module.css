@@ -1,0 +1,26 @@
+/* components/aurora.module.css */
+.auroraBg {
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  background: radial-gradient(circle at 20% 30%, #4ade80 0%, transparent 70%),
+    radial-gradient(circle at 80% 70%, #60a5fa 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, #a78bfa 0%, transparent 60%);
+  filter: blur(100px);
+  animation: fadeIn 2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
