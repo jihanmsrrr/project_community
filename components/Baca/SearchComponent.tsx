@@ -1,4 +1,3 @@
-// components/Baca/SearchComponent.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -10,7 +9,13 @@ import {
   LoaderCircle,
   X,
 } from "lucide-react";
-import { modulData } from "@/data/modulData";
+import { PrismaClient } from "@prisma/client"; // Import PrismaClient
+
+// Hapus impor modulData
+// import { modulData } from "@/data/modulData";
+
+// Inisialisasi PrismaClient di luar komponen
+const prisma = new PrismaClient();
 
 export interface SearchParams {
   keyword: string;
@@ -34,24 +39,68 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   const [kategori, setKategori] = useState("");
   const [subKategori, setSubKategori] = useState("");
   const [urutkan, setUrutkan] = useState<"hits" | "judul">("hits");
-  const [availableSubKategori, setAvailableSubKategori] = useState<
-    { id: string; nama: string }[]
-  >([]);
 
+  // State baru untuk menyimpan kategori dan sub-kategori yang tersedia dari database
+  const [availableKategori, setAvailableKategori] = useState<string[]>([]);
+  const [availableSubKategori, setAvailableSubKategori] = useState<string[]>(
+    []
+  );
+  const [fetchingOptions, setFetchingOptions] = useState(true); // State untuk loading options
+
+  // Effect untuk mengambil daftar kategori unik saat komponen dimuat
   useEffect(() => {
-    if (kategori) {
-      const selectedKategoriData = modulData.find((k) => k.id === kategori);
-      setAvailableSubKategori(
-        selectedKategoriData?.subKategori.map((sub) => ({
-          id: sub.id,
-          nama: sub.nama,
-        })) || []
-      );
-    } else {
-      setAvailableSubKategori([]);
-    }
-    setSubKategori("");
-  }, [kategori]);
+    const fetchCategories = async () => {
+      setFetchingOptions(true);
+      try {
+        // Mengambil semua kategori unik dari tabel reading_materials
+        const result = await prisma.reading_materials.findMany({
+          distinct: ["kategori"], // Ambil nilai unik dari kolom kategori
+          select: { kategori: true },
+          where: { kategori: { not: null } }, // Hanya yang tidak null
+        });
+        const categories = result
+          .map((item) => item.kategori as string)
+          .filter(Boolean);
+        setAvailableKategori(categories);
+      } catch (error) {
+        console.error("Gagal mengambil kategori dari database:", error);
+      } finally {
+        setFetchingOptions(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Effect untuk mengambil daftar sub-kategori unik berdasarkan kategori yang dipilih
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      if (kategori) {
+        setFetchingOptions(true);
+        try {
+          const result = await prisma.reading_materials.findMany({
+            distinct: ["sub_kategori"], // Ambil nilai unik dari kolom sub_kategori
+            select: { sub_kategori: true },
+            where: {
+              kategori: kategori,
+              sub_kategori: { not: null }, // Hanya yang tidak null
+            },
+          });
+          const subCategories = result
+            .map((item) => item.sub_kategori as string)
+            .filter(Boolean);
+          setAvailableSubKategori(subCategories);
+        } catch (error) {
+          console.error("Gagal mengambil sub-kategori dari database:", error);
+        } finally {
+          setFetchingOptions(false);
+        }
+      } else {
+        setAvailableSubKategori([]); // Kosongkan jika tidak ada kategori yang dipilih
+      }
+      setSubKategori(""); // Reset sub-kategori saat kategori berubah
+    };
+    fetchSubCategories();
+  }, [kategori]); // Bergantung pada perubahan kategori
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,12 +115,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     onSearch({ keyword: "", kategori: "", subKategori: "", urutkan: "hits" });
   };
 
-  // PERBAIKAN: Kelas warna teks dibuat statis (tidak berubah di dark mode)
-  // Kelas untuk input dan select tetap theme-aware agar kontras dengan latar
   const inputBaseStyle =
     "w-full appearance-none bg-surface-input dark:bg-slate-700 border border-ui-border-input dark:border-slate-600 text-text-primary dark:text-text-primary-dark text-sm rounded-lg p-2.5 focus:ring-1 focus:ring-brand-primary focus:border-brand-primary dark:focus:ring-blue-500 dark:focus:border-blue-500 transition-colors placeholder:text-text-placeholder dark:placeholder:text-slate-400 focus:outline-none";
   const labelBaseStyle =
-    "block text-xs font-medium text-slate-600 dark:text-slate-500 mb-1.5"; // Contoh: abu-abu gelap yang tetap terlihat di latar gelap
+    "block text-xs font-medium text-slate-600 dark:text-slate-500 mb-1.5";
 
   const formElements = (
     <>
@@ -94,7 +141,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             aria-label="Kata kunci pencarian"
-            disabled={isLoading}
+            disabled={isLoading || fetchingOptions}
           />
         </div>
       </div>
@@ -112,12 +159,12 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             value={kategori}
             onChange={(e) => setKategori(e.target.value)}
             className={`${inputBaseStyle} pr-8`}
-            disabled={isLoading}
+            disabled={isLoading || fetchingOptions}
           >
             <option value="">Semua Kategori</option>
-            {modulData.map((kat) => (
-              <option key={kat.id} value={kat.id}>
-                {kat.namaTampil}
+            {availableKategori.map((kat) => (
+              <option key={kat} value={kat}>
+                {kat}
               </option>
             ))}
           </select>
@@ -142,13 +189,16 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             onChange={(e) => setSubKategori(e.target.value)}
             className={`${inputBaseStyle} pr-8 disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:cursor-not-allowed`}
             disabled={
-              !kategori || availableSubKategori.length === 0 || isLoading
+              !kategori ||
+              availableSubKategori.length === 0 ||
+              isLoading ||
+              fetchingOptions
             }
           >
             <option value="">Semua Topik</option>
             {availableSubKategori.map((sub) => (
-              <option key={sub.id} value={sub.id}>
-                {sub.nama}
+              <option key={sub} value={sub}>
+                {sub}
               </option>
             ))}
           </select>
@@ -189,7 +239,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                   }
                   className={`${inputBaseStyle} pr-8`}
                   aria-label="Urutkan hasil"
-                  disabled={isLoading}
+                  disabled={isLoading || fetchingOptions}
                 >
                   <option value="hits">Terpopuler</option>
                   <option value="judul">Judul A-Z</option>
@@ -202,10 +252,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             </div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || fetchingOptions}
               className="w-full bg-brand-primary hover:bg-brand-primary-hover text-text-on-brand font-semibold px-4 py-2.5 rounded-md text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
             >
-              {isLoading ? (
+              {isLoading || fetchingOptions ? (
                 <LoaderCircle size={16} className="animate-spin" />
               ) : (
                 <Search size={16} />
@@ -215,7 +265,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             <button
               type="button"
               onClick={handleReset}
-              disabled={isLoading}
+              disabled={isLoading || fetchingOptions}
               className="w-full bg-surface-button-secondary hover:bg-surface-button-secondary-hover text-text-on-button-secondary font-medium px-4 py-2.5 rounded-md text-sm transition-colors flex items-center justify-center gap-2 border border-ui-border disabled:opacity-70"
             >
               <X size={16} /> Reset
@@ -242,10 +292,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         <div className="sm:col-span-2 flex flex-col sm:flex-row-reverse gap-3 pt-2">
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || fetchingOptions}
             className="w-full sm:w-auto bg-brand-primary hover:bg-brand-primary-hover text-text-on-brand font-semibold px-8 py-2.5 rounded-full text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
           >
-            {isLoading ? (
+            {isLoading || fetchingOptions ? (
               <LoaderCircle size={18} className="animate-spin" />
             ) : (
               <Search size={18} />
@@ -255,7 +305,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
           <button
             type="button"
             onClick={handleReset}
-            disabled={isLoading}
+            disabled={isLoading || fetchingOptions}
             className="w-full sm:w-auto bg-transparent hover:bg-ui-border text-text-secondary font-medium px-8 py-2.5 rounded-full text-sm transition-colors disabled:opacity-70"
           >
             Reset Filter

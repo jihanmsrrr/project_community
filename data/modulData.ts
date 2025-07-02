@@ -31,14 +31,6 @@ const randomFloat = (min: number, max: number) => (Math.random() * (max - min) +
 
 // Helper untuk menghasilkan slug (ini harusnya ada di utilitas, tapi untuk konsistensi, saya sertakan di sini)
 // Jika Anda sudah punya fungsi generateSlug di utils, pastikan modulData Anda dibuat dengan slug yang benar menggunakan fungsi itu
-const generateSlug = (title: string): string => {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "") // Hapus karakter non-alphanumeric kecuali spasi dan strip
-    .trim() // Hapus spasi di awal/akhir
-    .replace(/\s+/g, "-") // Ganti spasi dengan strip
-    .replace(/-+/g, "-"); // Ganti beberapa strip berturut-turut dengan satu strip
-};
 
 
 // --- 2. DATA DUMMY LENGKAP UNTUK SEMUA KATEGORI ---
