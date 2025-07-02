@@ -3,52 +3,58 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  ChevronRight,
   Search,
   CheckCircle,
   AlertTriangle,
   LoaderCircle,
+  BookOpen, // Untuk ikon kategori umum
+  FolderKanban, // Contoh ikon untuk kategori
+  BarChart, // Contoh ikon untuk kategori
+  FileText, // Contoh ikon untuk kategori
+  Briefcase, // Contoh ikon untuk kategori
+  Megaphone, // Contoh ikon untuk kategori
+  Scale, // Contoh ikon untuk kategori
+  TrendingUp, // Contoh ikon untuk kategori
+  Lightbulb, // Contoh ikon untuk kategori
+  Users, // Contoh ikon untuk kategori
+  Code, // Contoh ikon untuk kategori
+  Book, // Contoh ikon untuk kategori
+  Gavel,
+  Eye, // Contoh ikon untuk kategori
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-// Hapus impor slick-carousel jika tidak digunakan
-// import "slick-carousel/slick/slick.css";
-// import "slick-carousel/slick/slick-theme.css";
 import PageTitle from "@/components/ui/PageTitle";
 import Link from "next/link";
 
-// --- IMPOR KOMPONEN ---
-import MateriCard from "@/components/Baca/MateriCard"; // Pastikan MateriCard sudah diperbarui
+import MateriCard from "@/components/Baca/MateriCard";
 
 // =======================================================================
 // === DEFINISI TIPE BARU UNTUK DATA API DAN GROUPING ===
 // =======================================================================
 
-// Tipe untuk data materi yang diterima langsung dari API
 interface ApiMaterial {
-  material_id: string; // BigInt diserialisasi jadi string
+  material_id: string;
   judul: string | null;
   kategori: string | null;
   sub_kategori: string | null;
   deskripsi: string | null;
   file_path: string | null;
-  uploader_id: string | null; // BigInt diserialisasi jadi string
-  tanggal_upload: string | null; // Date diserialisasi jadi string ISO
+  uploader_id: string | null;
+  tanggal_upload: string | null;
   hits: number;
   uploader?: {
-    // Relasi uploader jika di-include
     nama_lengkap: string | null;
   } | null;
 }
 
-// Tipe untuk struktur data setelah digruping (mirip Kategori yang lama)
 interface ModulGrouped {
   material_id: string;
-  judul: string | null; // Judul bisa null
-  deskripsi: string | null; // Deskripsi bisa null
+  judul: string | null;
+  deskripsi: string | null;
   hits: number;
   file_path: string | null;
-  kategori: string | null; // <<< PASTIKAN INI ADA DAN TIPE STRING
-  sub_kategori: string | null; // <<< PASTIKAN INI ADA DAN TIPE STRING
+  kategori: string | null;
+  sub_kategori: string | null;
   uploader?: { nama_lengkap: string | null } | null;
   uploader_id?: string | null;
   tanggal_upload?: string | null;
@@ -66,6 +72,27 @@ interface KategoriGrouped {
   tahun: number;
   subKategori: SubKategoriGrouped[];
 }
+
+// === Mapping Kategori ke Ikon dan Warna ===
+const kategoriDisplayMap: {
+  [key: string]: { icon: React.ElementType; colorClass: string };
+} = {
+  "pembinaan-statistik": { icon: FolderKanban, colorClass: "bg-blue-500" },
+  metodologi: { icon: BarChart, colorClass: "bg-green-500" },
+  "paparan-rilis": { icon: Megaphone, colorClass: "bg-purple-500" },
+  "kompetisi-inovasi": { icon: Lightbulb, colorClass: "bg-yellow-500" },
+  "monitoring-evaluasi": { icon: Eye, colorClass: "bg-red-500" },
+  "standar-biaya": { icon: Scale, colorClass: "bg-indigo-500" },
+  "akuntabilitas-sakip": { icon: CheckCircle, colorClass: "bg-teal-500" },
+  "diseminasi-statistik": { icon: TrendingUp, colorClass: "bg-orange-500" },
+  "leadership-manajemen": { icon: Users, colorClass: "bg-pink-500" },
+  "asistensi-teknis": { icon: Code, colorClass: "bg-cyan-500" },
+  "seminar-workshop": { icon: Book, colorClass: "bg-lime-500" },
+  "varia-statistik-bacaan": { icon: FileText, colorClass: "bg-fuchsia-500" },
+  "reformasi-birokrasi": { icon: Briefcase, colorClass: "bg-emerald-500" },
+  regulasi: { icon: Gavel, colorClass: "bg-gray-500" },
+  // Tambahkan kategori lain jika ada
+};
 
 // =======================================================================
 // === KOMPONEN UTAMA HALAMAN (RuangBacaPage) ===
@@ -183,16 +210,14 @@ export default function RuangBacaPage() {
         kategoriEntry.subKategori.push(subKategoriEntry);
       }
 
-      // Menambahkan modul ke dalam sub-kategori yang sesuai,
-      // memastikan tipe cocok untuk MateriCard
       subKategoriEntry.modul.push({
         material_id: material.material_id,
         judul: material.judul,
         deskripsi: material.deskripsi,
         hits: material.hits,
         file_path: material.file_path,
-        kategori: material.kategori, // <<< PERBAIKAN: Sertakan kategori
-        sub_kategori: material.sub_kategori, // <<< PERBAIKAN: Sertakan sub_kategori
+        kategori: material.kategori,
+        sub_kategori: material.sub_kategori,
         uploader: material.uploader,
         uploader_id: material.uploader_id,
         tanggal_upload: material.tanggal_upload,
@@ -274,6 +299,7 @@ export default function RuangBacaPage() {
       );
     }
 
+    // --- PERBAIKAN: Tampilan Awal Hanya Menampilkan Kategori Cards ---
     if (!searchQuery.trim() && !selectedKategori && !selectedSubKategori) {
       return (
         <motion.div
@@ -284,52 +310,39 @@ export default function RuangBacaPage() {
           className="space-y-10"
         >
           <h2 className="text-2xl font-bold text-text-primary mb-6 text-center">
-            Jelajahi Kategori Materi
+            Direktori Materi Berdasarkan Kategori
           </h2>
-          {filteredAndGroupedData.length > 0 ? (
-            filteredAndGroupedData.map((kategori) => (
-              <div key={kategori.id}>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl sm:text-2xl font-semibold text-text-primary capitalize">
-                    {kategori.namaTampil}
-                  </h3>
+          {availableCategoriesForDropdown.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {availableCategoriesForDropdown.map((kategori) => {
+                const categoryInfo = kategoriDisplayMap[kategori.id] || {
+                  icon: BookOpen,
+                  colorClass: "bg-gray-500",
+                };
+                const IconComponent = categoryInfo.icon;
+                return (
                   <Link
                     href={`/ruangbaca/kategori/${kategori.id}`}
-                    className="text-sm font-medium text-brand-primary hover:underline flex items-center gap-1"
+                    legacyBehavior
+                    key={kategori.id}
                   >
-                    <span>
-                      Lihat Semua <ChevronRight size={16} />
-                    </span>
+                    <a
+                      className={`flex flex-col items-center justify-center p-6 rounded-xl shadow-md text-white transition-all duration-300 transform hover:scale-105 ${categoryInfo.colorClass}`}
+                    >
+                      <IconComponent size={48} className="mb-4" />
+                      <h3 className="text-xl font-semibold text-center">
+                        {kategori.namaTampil}
+                      </h3>
+                      <p className="text-sm text-white/80 mt-1">
+                        {kategori.id
+                          .replace(/-/g, " ")
+                          .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </p>
+                    </a>
                   </Link>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {kategori.subKategori
-                    .flatMap((sub) => sub.modul)
-                    .slice(0, 4)
-                    .map((modulItem) => (
-                      <MateriCard
-                        key={modulItem.material_id}
-                        modul={{
-                          material_id: BigInt(modulItem.material_id),
-                          judul: modulItem.judul,
-                          kategori: modulItem.kategori, // <<< PERBAIKAN: Pastikan ini ada
-                          sub_kategori: modulItem.sub_kategori, // <<< PERBAIKAN: Pastikan ini ada
-                          deskripsi: modulItem.deskripsi,
-                          file_path: modulItem.file_path,
-                          hits: modulItem.hits,
-                          uploader: modulItem.uploader,
-                          uploader_id: modulItem.uploader_id
-                            ? BigInt(modulItem.uploader_id)
-                            : null,
-                          tanggal_upload: modulItem.tanggal_upload
-                            ? new Date(modulItem.tanggal_upload)
-                            : null,
-                        }}
-                      />
-                    ))}
-                </div>
-              </div>
-            ))
+                );
+              })}
+            </div>
           ) : (
             <div className="text-center py-16 bg-surface-card rounded-xl">
               <AlertTriangle
@@ -348,6 +361,7 @@ export default function RuangBacaPage() {
       );
     }
 
+    // Tampilan Hasil Pencarian (tetap sama)
     return (
       <motion.div
         key="search-results-view"
@@ -378,8 +392,8 @@ export default function RuangBacaPage() {
                           modul={{
                             material_id: BigInt(modulItem.material_id),
                             judul: modulItem.judul,
-                            kategori: modulItem.kategori, // <<< PERBAIKAN: Pastikan ini ada
-                            sub_kategori: modulItem.sub_kategori, // <<< PERBAIKAN: Pastikan ini ada
+                            kategori: modulItem.kategori,
+                            sub_kategori: modulItem.sub_kategori,
                             deskripsi: modulItem.deskripsi,
                             file_path: modulItem.file_path,
                             hits: modulItem.hits,
@@ -429,7 +443,7 @@ export default function RuangBacaPage() {
         <div className="absolute inset-0 bg-black opacity-50 md:opacity-60 z-0"></div>
         <div className="relative z-10"></div>
       </div>
-      <main className="max-w-screen-xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 flex-grow">
+      <main className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 flex-grow">
         {/* Search & Filter Form */}
         <section className="mb-8 p-6 bg-surface-card rounded-xl shadow-md">
           <h2 className="text-2xl font-bold text-text-primary mb-6 text-center">

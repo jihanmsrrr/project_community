@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // Serialisasi BigInt dan Date objects ke string karena tidak bisa langsung di-JSON-kan
-      const serializedMaterials = materials.map(material => ({
+      const serializedMaterials = materials.map((material: typeof materials[number]) => ({
         ...material,
         material_id: material.material_id.toString(),
         uploader_id: material.uploader_id?.toString() || null,
