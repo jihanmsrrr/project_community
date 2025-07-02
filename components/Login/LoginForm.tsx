@@ -1,6 +1,7 @@
 // components/Login/LoginForm.tsx
 import React, { useState } from "react";
 import { signIn } from "next-auth/react"; // <-- Mengimpor signIn dari next-auth
+import { useRouter } from "next/router"; // <-- Import useRouter untuk redirect manual jika diperlukan
 
 // Tidak perlu mendefinisikan Props jika tidak ada props yang diterima
 const LoginForm: React.FC = () => {
@@ -8,6 +9,7 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter(); // <-- Inisialisasi router
 
   // Definisi komponen Ikon (tetap dipertahankan dari kode lama)
   const EyeIcon = () => (
@@ -48,52 +50,50 @@ const LoginForm: React.FC = () => {
       />
     </svg>
   );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // Menggunakan fungsi signIn dari NextAuth
-    await signIn("credentials", {
-      // <-- Ganti const result dengan await saja
+    const result = (await signIn("credentials", {
       username: username,
       password: password,
-      redirect: true, // Biarkan NextAuth menangani redirect
-      callbackUrl: await new Promise<string | undefined>((resolve) => {
-        // Secara manual periksa role dari users.json (atau sumber data user Anda)
-        import("@/data/users.json")
-          .then((usersData) => {
-            const user = usersData.default.find(
-              (u: { username: string; password: string; role: string }) =>
-                u.username === username && u.password === password
-            );
-            resolve(user?.role === "admin" ? "/admin" : "/user");
-          })
-          .catch((error) => {
-            console.error("Gagal mengimpor data user:", error);
-            resolve("/user"); // Fallback ke halaman user jika gagal membaca data
-          });
-      }),
-    });
+      redirect: false,
+    })) as unknown as { error?: string; url?: string; ok?: boolean };
 
-    // Kita tidak perlu router.push lagi karena redirect ditangani oleh signIn
+    if (result?.error) {
+      // Periksa apakah result ada dan memiliki properti error
+      setError(result.error);
+    } else if (result?.ok && !result?.error) {
+      const session = (await signIn("credentials", {
+        // Lakukan signIn lagi untuk mendapatkan data sesi
+        username: username,
+        password: password,
+        redirect: false,
+      })) as unknown as { error?: string; url?: string; ok?: boolean } | null;
+      if (session?.url) {
+        const role = session.url.includes("/admin") ? "admin" : "user"; // Fallback jika role tidak ada
+        router.push(role === "admin" ? "/admin" : "/user");
+      } else {
+        router.push("/user"); // Redirect ke user jika tidak ada informasi role spesifik
+      }
+    }
   };
   // Fungsi untuk toggle password visibility (tetap dipertahankan)
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // --- UI LENGKAP DARI KODE LAMA ---
+  // --- UI LENGKAP DARI KODE LAMA DENGAN TAMBAHAN ---
   return (
     <div
-      className="w-full max-w-md mx-auto rounded-xl sm:rounded-2xl p-0.5 
-                 bg-gradient-to-br from-brand-primary via-brand-accent to-brand-secondary 
+      className="w-full max-w-md mx-auto rounded-xl sm:rounded-2xl p-0.5
+                 bg-gradient-to-br from-brand-primary via-brand-accent to-brand-secondary
                  hover:shadow-2xl transition-all duration-300 ease-in-out hover:-translate-y-1 group"
     >
       <form
         onSubmit={handleSubmit}
-        className="w-full p-8 sm:p-10 bg-surface-card bg-opacity-95 backdrop-blur-sm 
-                   rounded-[calc(0.75rem-2px)] sm:rounded-[calc(1rem-2px)] 
+        className="w-full p-8 sm:p-10 bg-surface-card bg-opacity-95 backdrop-blur-sm
+                   rounded-[calc(0.75rem-2px)] sm:rounded-[calc(1rem-2px)]
                    shadow-xl font-sans"
       >
         <div className="text-center mb-8">
@@ -170,6 +170,31 @@ const LoginForm: React.FC = () => {
           Masuk
         </button>
       </form>
+
+      <button onClick={() => signIn("bps-sso")}>Login dengan SSO BPS</button>
+      {/* Bagian untuk Login Evaluasi */}
+      <div className="mt-6 px-8 sm:px-10 text-center text-text-secondary">
+        <p className="italic mb-2">
+          Untuk kebutuhan evaluasi fitur dan keterbatasan waktu integrasi SSO,
+          Anda dapat menggunakan akun berikut:
+        </p>
+        <ul className="list-disc list-inside">
+          <li>
+            Username: <span className="font-mono">evaluator1</span>, Password:{" "}
+            <span className="font-mono">password123</span> (Role: user)
+          </li>
+          <li>
+            Username: <span className="font-mono">admin_test</span>, Password:{" "}
+            <span className="font-mono">secure456</span> (Role: admin)
+          </li>
+          {/* Tambahkan daftar akun evaluasi lainnya di sini */}
+        </ul>
+        <p className="mt-4">
+          <span className="font-semibold">Catatan:</span> Seharusnya Anda login
+          menggunakan SSO BPS. Akun-akun di atas hanya untuk keperluan evaluasi
+          pengembangan fitur.
+        </p>
+      </div>
     </div>
   );
 };

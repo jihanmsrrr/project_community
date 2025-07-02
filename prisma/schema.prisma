@@ -1,108 +1,101 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Mendefinisikan koneksi ke database Supabase (PostgreSQL)
+// Konfigurasi datasource untuk MySQL
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL") // URL database Anda dari Supabase
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-// Mendefinisikan generator untuk Prisma Client
+// Konfigurasi generator untuk Prisma Client
 generator client {
   provider = "prisma-client-js"
 }
 
-
-// ======================================================
-// MODEL-MODEL DATABASE
-// ======================================================
+// Definisi Model-model Database
 
 model organization_units {
-  org_unit_id         BigInt   @id @default(autoincrement())
-  nama_wilayah        String?  @db.VarChar(255)
-  kode_bps            String?  @db.VarChar(50)
-  nama_satker_bagian  String?  @db.VarChar(255)
-  alamat              String?
-  telepon             String?  @db.VarChar(50)
-  web                 String?  @db.VarChar(255)
+  org_unit_id         BigInt    @id @default(autoincrement())
+  nama_wilayah        String?   @db.VarChar(255)
+  kode_bps            String?   @db.VarChar(50)
+  nama_satker_bagian  String?   @db.VarChar(255)
+  alamat              String?   @db.Text
+  telepon             String?   @db.VarChar(50)
+  web                 String?   @db.VarChar(255)
   parent_unit_id      BigInt?
-  nama_wilayah_singkat String?  @db.VarChar(100)
-  kepala_id           BigInt?  @unique // Kepala unit hanya boleh satu
+  nama_wilayah_singkat String?   @db.VarChar(100)
+  kepala_id           BigInt?   @unique
 
-  // Relasi
-  kepala              users?   @relation("KepalaUnit", fields: [kepala_id], references: [user_id])
-  pegawai             users[]  @relation("PegawaiDiUnit")
-  parent              organization_units? @relation("HirarkiUnit", fields: [parent_unit_id], references: [org_unit_id])
-  children            organization_units[] @relation("HirarkiUnit")
+  kepala              users?                @relation("KepalaUnit", fields: [kepala_id], references: [user_id])
+  pegawai             users[]               @relation("PegawaiDiUnit")
+  parent              organization_units?   @relation("HirarkiUnit", fields: [parent_unit_id], references: [org_unit_id])
+  children            organization_units[]  @relation("HirarkiUnit")
   teams               teams[]
 }
 
 model users {
-  user_id                     BigInt   @id @default(autoincrement())
-  nama_lengkap                String?  @db.VarChar(255)
-  nip_baru                    String?  @unique @db.VarChar(20)
-  nip_lama                    String?  @db.VarChar(20)
-  email                       String?  @unique @db.VarChar(255)
-  unit_kerja_id               BigInt?
-  role                        String?  @db.VarChar(50)
-  sso_id                      String?  @unique @db.VarChar(255)
-  foto_url                    String?  @db.VarChar(255)
-  tempat_lahir                String?  @db.VarChar(100)
-  tanggal_lahir               DateTime? @db.Date
-  jenis_kelamin               String?  @db.VarChar(20)
-  status_kepegawaian          String?  @db.VarChar(50)
-  tmt_pns                     DateTime? @db.Date
-  pangkat_golongan            String?  @db.VarChar(50)
-  tmt_pangkat_golongan        DateTime? @db.Date
-  jabatan_struktural          String?  @db.VarChar(255)
-  jenjang_jabatan_fungsional  String?  @db.VarChar(255)
-  tmt_jabatan                 DateTime? @db.Date
-  pendidikan_terakhir         String?  @db.VarChar(255)
-  masa_kerja_golongan         String?  @db.VarChar(50)
-  masa_kerja_total            String?  @db.VarChar(50)
-  tanggal_pensiun             DateTime? @db.Date
-  sisa_masa_kerja             String?  @db.VarChar(50)
-  grade                       String?  @db.VarChar(10)
-  unit_kerja_eselon1          String?  @db.VarChar(255)
-  unit_kerja_eselon2          String?  @db.VarChar(255)
+  user_id                 BigInt    @id @default(autoincrement())
+  nama_lengkap            String?   @db.VarChar(255)
+  nip_baru                String?   @unique @db.VarChar(20)
+  nip_lama                String?   @db.VarChar(20)
+  email                   String?   @unique @db.VarChar(255)
+  unit_kerja_id           BigInt?
+  role                    String?   @db.VarChar(50)
+  sso_id                  String?   @unique @db.VarChar(255)
+  foto_url                String?   @db.VarChar(255)
+  tempat_lahir            String?   @db.VarChar(100)
+  tanggal_lahir           DateTime? @db.Date
+  jenis_kelamin           String?   @db.VarChar(20)
+  status_kepegawaian      String?   @db.VarChar(50)
+  tmt_pns                 DateTime? @db.Date
+  pangkat_golongan        String?   @db.VarChar(50)
+  tmt_pangkat_golongan    DateTime? @db.Date
+  jabatan_struktural      String?   @db.VarChar(255)
+  jenjang_jabatan_fungsional String?   @db.VarChar(255)
+  tmt_jabatan             DateTime? @db.Date
+  pendidikan_terakhir     String?   @db.VarChar(255)
+  masa_kerja_golongan     String?   @db.VarChar(50)
+  masa_kerja_total        String?   @db.VarChar(50)
+  tanggal_pensiun         DateTime? @db.Date
+  sisa_masa_kerja         String?   @db.VarChar(50)
+  grade                   String?   @db.VarChar(10)
+  unit_kerja_eselon1      String?   @db.VarChar(255)
+  unit_kerja_eselon2      String?   @db.VarChar(255)
+  username                String?   @unique @db.VarChar(255) // Tambahkan kolom username
+  password                String?   @db.VarChar(255)      // Tambahkan kolom password
 
-  // Relasi
-  unit_kerja                  organization_units?   @relation("PegawaiDiUnit", fields: [unit_kerja_id], references: [org_unit_id])
-  berita_ditulis              news[]
-  bahan_bacaan_diunggah       reading_materials[]
-  komentar                    comments[]
-  likes                       likes[]
-  bookmarks                   bookmarks[]
-  unit_kerja_dipimpin         organization_units[]  @relation("KepalaUnit")
-  tim_dipimpin                teams[]
-  keanggotaan_tim             team_memberships[]
-  riwayat_pendidikan          user_education_history[]
-  riwayat_jabatan             user_job_history[]
-  kompetensi                  user_competencies[]
-  prestasi                    user_achievements[]
+  unit_kerja              organization_units?   @relation("PegawaiDiUnit", fields: [unit_kerja_id], references: [org_unit_id])
+  berita_ditulis          news[]
+  bahan_bacaan_diunggah    reading_materials[]
+  komentar                comments[]
+  likes                   likes[]
+  bookmarks               bookmarks[]
+  unit_kerja_dipimpin     organization_units[] @relation("KepalaUnit")
+  tim_dipimpin            teams[]
+  keanggotaan_tim         team_memberships[]
+  riwayat_pendidikan      user_education_history[]
+  riwayat_jabatan         user_job_history[]
+  kompetensi              user_competencies[]
+  prestasi                user_achievements[]
 }
 
 model news {
-  news_id       BigInt     @id @default(autoincrement())
-  judul         String?    @db.VarChar(255)
-  kategori      String?    @db.VarChar(100)
-  kata_kunci    String?
-  abstrak       String?
-  isi_berita    String?
-  status        String?    @db.VarChar(50) @default("menunggu_verifikasi")
-  nama_penulis  String?    @db.VarChar(255)
-  penulis_id    BigInt?
-  gambar_urls   String[]   @db.Text
-  lampiran_urls String[]   @db.Text
-  created_at    DateTime?  @default(now()) @db.Timestamptz
-  updated_at    DateTime?  @updatedAt @db.Timestamptz
-  published_at  DateTime?  @db.Timestamptz
+  news_id         BigInt     @id @default(autoincrement())
+  judul           String?    @db.VarChar(255)
+  kategori        String?    @db.VarChar(100)
+  kata_kunci      String?    @db.Text
+  abstrak         String?    @db.Text
+  isi_berita      String?    @db.LongText
+  status          String?    @db.VarChar(50) @default("menunggu_verifikasi")
+  nama_penulis    String?    @db.VarChar(255)
+  penulis_id      BigInt?
+  gambar_urls     Json?      @db.Json
+  lampiran_urls   Json?      @db.Json
+  created_at      DateTime?  @default(now()) @db.DateTime(0)
+  updated_at      DateTime?  @updatedAt @db.DateTime(0)
+  published_at    DateTime?  @db.DateTime(0)
 
-  // Relasi
-  penulis       users?     @relation(fields: [penulis_id], references: [user_id])
-  komentar      comments[]
-  likes         likes[]
-  bookmarks     bookmarks[]
+  penulis         users?     @relation(fields: [penulis_id], references: [user_id])
+  komentar        comments[]
+  likes           likes[]
+  bookmarks       bookmarks[]
 }
 
 model reading_materials {
@@ -111,9 +104,8 @@ model reading_materials {
   kategori        String?   @db.VarChar(100)
   file_path       String?   @db.VarChar(255)
   uploader_id     BigInt?
-  tanggal_upload  DateTime? @db.Timestamptz
+  tanggal_upload  DateTime? @db.DateTime(0)
 
-  // Relasi
   uploader        users?    @relation(fields: [uploader_id], references: [user_id])
 }
 
@@ -121,12 +113,11 @@ model comments {
   comment_id        BigInt    @id @default(autoincrement())
   news_id           BigInt?
   user_id           BigInt?
-  username          String?   @db.VarChar
-  isi_komentar      String?
-  tanggal_komentar  DateTime? @db.Timestamptz
+  username          String?   @db.VarChar(255)
+  isi_komentar      String?   @db.Text
+  tanggal_komentar  DateTime? @db.DateTime(0)
   parent_id         BigInt?
 
-  // Relasi
   berita            news?     @relation(fields: [news_id], references: [news_id])
   pengguna          users?    @relation(fields: [user_id], references: [user_id])
   parent            comments? @relation("CommentReplies", fields: [parent_id], references: [comment_id])
@@ -135,13 +126,12 @@ model comments {
 
 model teams {
   team_id       BigInt    @id @default(autoincrement())
-  nama_tim      String?   @db.VarChar
-  singkatan     String?   @db.VarChar
-  deskripsi     String?
-  ketua_tim_id  BigInt?   @unique // Ketua tim hanya boleh satu
+  nama_tim      String?   @db.VarChar(255)
+  singkatan     String?   @db.VarChar(50)
+  deskripsi     String?   @db.Text
+  ketua_tim_id  BigInt?   @unique
   org_unit_id   BigInt?
 
-  // Relasi
   ketua_tim     users?    @relation(fields: [ketua_tim_id], references: [user_id])
   unit_kerja    organization_units? @relation(fields: [org_unit_id], references: [org_unit_id])
   anggota       team_memberships[]
@@ -151,20 +141,21 @@ model team_memberships {
   team_member_id  BigInt  @id @default(autoincrement())
   team_id         BigInt?
   user_id         BigInt?
-  posisi          String? @db.VarChar
+  posisi          String? @db.VarChar(100)
 
-  // Relasi
   tim             teams?  @relation(fields: [team_id], references: [team_id])
   pengguna        users?  @relation(fields: [user_id], references: [user_id])
+
+  // TAMBAHKAN BARIS INI
+  @@unique([team_id, user_id])
 }
 
 model likes {
   like_id     BigInt    @id @default(autoincrement())
   article_id  BigInt?
   user_id     BigInt?
-  timestamp   DateTime? @db.Timestamptz
+  timestamp   DateTime? @db.DateTime(0)
 
-  // Relasi
   berita      news?     @relation(fields: [article_id], references: [news_id])
   pengguna    users?    @relation(fields: [user_id], references: [user_id])
 }
@@ -173,41 +164,35 @@ model bookmarks {
   bookmark_id BigInt    @id @default(autoincrement())
   user_id     BigInt?
   article_id  BigInt?
-  timestamp   DateTime? @db.Timestamptz
+  timestamp   DateTime? @db.DateTime(0)
 
-  // Relasi
   pengguna    users?    @relation(fields: [user_id], references: [user_id])
   berita      news?     @relation(fields: [article_id], references: [news_id])
 }
 
-// Model untuk riwayat dan profil detail
 model user_education_history {
   education_id            BigInt    @id @default(autoincrement())
   user_id                 BigInt?
-  jenjang                 String?   @db.VarChar
-  nama_sekolah_institusi  String?   @db.VarChar
-  jurusan                 String?   @db.VarChar
-  pendidikan              String?   @db.VarChar
+  jenjang                 String?   @db.VarChar(50)
+  nama_sekolah_institusi  String?   @db.VarChar(255)
+  jurusan                 String?   @db.VarChar(255)
+  pendidikan              String?   @db.VarChar(255)
   tahun_lulus             Int?
   tanggal_ijazah          DateTime? @db.Date
 
-  // Relasi
   pengguna                users?    @relation(fields: [user_id], references: [user_id])
-
-  @@unique([user_id, jenjang]) 
-  }
+}
 
 model user_job_history {
   job_history_id  BigInt    @id @default(autoincrement())
   user_id         BigInt?
-  jabatan         String?   @db.VarChar
-  unit_kerja      String?   @db.VarChar
+  jabatan         String?   @db.VarChar(255)
+  unit_kerja      String?   @db.VarChar(255)
   periode_mulai   DateTime? @db.Date
-  periode_selesai String?   @db.VarChar
-  no_sk           String?   @db.VarChar
+  periode_selesai String?   @db.VarChar(50)
+  no_sk           String?   @db.VarChar(255)
   tmt             DateTime? @db.Date
 
-  // Relasi
   pengguna        users?    @relation(fields: [user_id], references: [user_id])
 }
 
@@ -215,12 +200,11 @@ model user_competencies {
   competency_id     BigInt    @id @default(autoincrement())
   user_id           BigInt?
   tanggal           DateTime? @db.Date
-  nama_kompetensi   String?   @db.VarChar
-  penyelenggara     String?   @db.VarChar
-  nomor_sertifikat  String?   @db.VarChar
+  nama_kompetensi   String?   @db.VarChar(255)
+  penyelenggara     String?   @db.VarChar(255)
+  nomor_sertifikat  String?   @db.VarChar(255)
   berlaku_sampai    DateTime? @db.Date
 
-  // Relasi
   pengguna          users?    @relation(fields: [user_id], references: [user_id])
 }
 
@@ -228,13 +212,9 @@ model user_achievements {
   achievement_id        BigInt    @id @default(autoincrement())
   user_id               BigInt?
   tahun                 Int?
-  nama_prestasi         String?   @db.VarChar
-  tingkat               String?   @db.VarChar
-  pemberi_penghargaan   String?   @db.VarChar
+  nama_prestasi         String?   @db.VarChar(255)
+  tingkat               String?   @db.VarChar(100)
+  pemberi_penghargaan   String?   @db.VarChar(255)
 
-  // Relasi
   pengguna              users?    @relation(fields: [user_id], references: [user_id])
-  
-  // TAMBAHKAN BARIS INI DI BAWAH
-  @@unique([user_id, nama_prestasi])
 }

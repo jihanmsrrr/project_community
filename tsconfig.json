@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
-    // Opsi-opsi dasar dari Next.js
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    // Opsi-opsi dasar dari Next.js (INI SEMUA TETAP SAMA)
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -22,24 +18,22 @@
         "name": "next"
       }
     ],
-    // --- INI BAGIAN PENTING YANG KITA PERBAIKI ---
-    // Mendefinisikan folder dasar untuk path alias
+
     "baseUrl": ".",
-    // Mendefinisikan shortcut '@/' agar bisa digunakan di seluruh proyek
+
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
     "target": "ES2017"
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"],
+  // ======================================================
+  // BAGIAN INI YANG DITAMBAHKAN DARI FILE KEDUA
+  // ======================================================
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  }
 }
