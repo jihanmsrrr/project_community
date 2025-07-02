@@ -77,22 +77,22 @@ model users {
 }
 
 model news {
-  news_id         BigInt     @id @default(autoincrement())
-  judul           String?    @db.VarChar(255)
-  kategori        String?    @db.VarChar(100)
-  kata_kunci      String?    @db.Text
-  abstrak         String?    @db.Text
-  isi_berita      String?    @db.LongText
-  status          String?    @db.VarChar(50) @default("menunggu_verifikasi")
-  nama_penulis    String?    @db.VarChar(255)
-  penulis_id      BigInt?
-  gambar_urls     Json?      @db.Json
-  lampiran_urls   Json?      @db.Json
-  created_at      DateTime?  @default(now()) @db.DateTime(0)
-  updated_at      DateTime?  @updatedAt @db.DateTime(0)
-  published_at    DateTime?  @db.DateTime(0)
+  news_id      BigInt    @id @unique // Pastikan ini BigInt
+  judul        String
+  abstrak      String 
+  kategori     String
+  kata_kunci   Json
+  isi_berita   String @db.Text
+  status       String
+  nama_penulis String
+  gambar_urls  Json      // <<< PENTING: Harus Json untuk array of objects
+  savedAt      DateTime  // <<< PENTING: Pastikan ada field ini
+  publishedAt  DateTime? // <<< PENTING: Pastikan ada '?' jika boleh null
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  penulisId    BigInt    // <<< PENTING: Pastikan tidak ada '?' jika mutlak
 
-  penulis         users?     @relation(fields: [penulis_id], references: [user_id])
+  penulis         users?     @relation(fields: [penulisId], references: [user_id])
   komentar        comments[]
   likes           likes[]
   bookmarks       bookmarks[]
@@ -102,9 +102,12 @@ model reading_materials {
   material_id     BigInt    @id @default(autoincrement())
   judul           String?   @db.VarChar(255)
   kategori        String?   @db.VarChar(100)
+  sub_kategori    String?   @db.VarChar(100) // <<< BARU: Untuk sub-kategori
+  deskripsi       String?   @db.Text         // <<< BARU: Untuk deskripsi panjang
   file_path       String?   @db.VarChar(255)
   uploader_id     BigInt?
   tanggal_upload  DateTime? @db.DateTime(0)
+  hits            Int       @default(0)      // <<< BARU: Untuk menghitung akses
 
   uploader        users?    @relation(fields: [uploader_id], references: [user_id])
 }

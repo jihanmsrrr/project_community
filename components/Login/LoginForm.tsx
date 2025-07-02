@@ -1,7 +1,7 @@
 // components/Login/LoginForm.tsx
 import React, { useState } from "react";
-import { signIn } from "next-auth/react"; // <-- Mengimpor signIn dari next-auth
-import { useRouter } from "next/router"; // <-- Import useRouter untuk redirect manual jika diperlukan
+import { signIn, getSession } from "next-auth/react"; // <-- Mengimpor getSession
+import { useRouter } from "next/router";
 
 // Tidak perlu mendefinisikan Props jika tidak ada props yang diterima
 const LoginForm: React.FC = () => {
@@ -9,7 +9,7 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter(); // <-- Inisialisasi router
+  const router = useRouter();
 
   // Definisi komponen Ikon (tetap dipertahankan dari kode lama)
   const EyeIcon = () => (
@@ -50,40 +50,48 @@ const LoginForm: React.FC = () => {
       />
     </svg>
   );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const result = (await signIn("credentials", {
+    const result = await signIn("credentials", {
       username: username,
       password: password,
-      redirect: false,
-    })) as unknown as { error?: string; url?: string; ok?: boolean };
+      redirect: false, // Penting: Jangan redirect otomatis
+    });
 
     if (result?.error) {
-      // Periksa apakah result ada dan memiliki properti error
+      // Jika ada error dari NextAuth (misal: kredensial salah)
       setError(result.error);
-    } else if (result?.ok && !result?.error) {
-      const session = (await signIn("credentials", {
-        // Lakukan signIn lagi untuk mendapatkan data sesi
-        username: username,
-        password: password,
-        redirect: false,
-      })) as unknown as { error?: string; url?: string; ok?: boolean } | null;
-      if (session?.url) {
-        const role = session.url.includes("/admin") ? "admin" : "user"; // Fallback jika role tidak ada
-        router.push(role === "admin" ? "/admin" : "/user");
+    } else if (result?.ok) {
+      // Jika login berhasil, ambil sesi pengguna
+      const session = await getSession();
+
+      if (session?.user?.role) {
+        // Asumsi role ada di session.user.role
+        const userRole = session.user.role;
+        if (userRole === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/user");
+        }
       } else {
-        router.push("/user"); // Redirect ke user jika tidak ada informasi role spesifik
+        // Fallback jika role tidak ditemukan di sesi (misal: sesi belum lengkap)
+        // Ini bisa terjadi jika konfigurasi NextAuth belum sempurna
+        console.warn(
+          "Role pengguna tidak ditemukan di sesi. Redirect ke /user sebagai default."
+        );
+        router.push("/user");
       }
     }
   };
+
   // Fungsi untuk toggle password visibility (tetap dipertahankan)
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // --- UI LENGKAP DARI KODE LAMA DENGAN TAMBAHAN ---
   return (
     <div
       className="w-full max-w-md mx-auto rounded-xl sm:rounded-2xl p-0.5

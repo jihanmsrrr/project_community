@@ -31,16 +31,15 @@ export default async function handler(
     case 'PUT':
       // Meng-update satu berita (gantungan PATCH)
       try {
-        const { judul, kategori, abstrak, isi_berita, status } = req.body;
+        const { judul, kategori, isi_berita, status } = req.body;
         const updatedBerita = await prisma.news.update({
           where: { news_id: newsId },
           data: {
             judul,
             kategori,
-            abstrak,
             isi_berita,
             status,
-            updated_at: new Date(), // Set waktu update
+            updatedAt: new Date(), // Set waktu update
           },
         });
         res.status(200).json({ message: 'Berita berhasil diupdate!', data: updatedBerita });
