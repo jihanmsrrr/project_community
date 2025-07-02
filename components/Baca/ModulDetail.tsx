@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react"; // Import useState dan useEffect
+import React from "react"; // Hapus useState dan useEffect karena tidak lagi diperlukan di sini
 import {
   ArrowLeft,
   HardDriveDownload,
@@ -20,7 +20,7 @@ interface ModulDetailProps {
     file_path: string | null;
     uploader_id: bigint | null;
     tanggal_upload: Date | null;
-    hits: number;
+    hits: number; // Ini adalah angka mentah dari server, sudah di-increment
     uploader?: {
       nama_lengkap: string | null;
     } | null;
@@ -29,15 +29,9 @@ interface ModulDetailProps {
 }
 
 const ModulDetail: React.FC<ModulDetailProps> = ({ modul, onBack }) => {
-  // State untuk menyimpan hits yang sudah diformat di sisi klien
-  const [formattedHits, setFormattedHits] = useState<string>("");
-
-  useEffect(() => {
-    // Pastikan kode ini hanya berjalan di sisi klien setelah hidrasi
-    if (modul && typeof modul.hits === "number") {
-      setFormattedHits(modul.hits.toLocaleString());
-    }
-  }, [modul]); // Bergantung pada perubahan modul
+  // Hapus state isClient dan useEffect yang terkait
+  // const [isClient, setIsClient] = useState(false);
+  // useEffect(() => { setIsClient(true); }, []);
 
   if (!modul) {
     return (
@@ -88,14 +82,15 @@ const ModulDetail: React.FC<ModulDetailProps> = ({ modul, onBack }) => {
           )}
           <div className="flex items-center gap-1.5">
             <Eye size={14} />
-            {/* Menggunakan state formattedHits yang diatur di sisi klien */}
-            <span>Dilihat {formattedHits} kali</span>
+            {/* Langsung tampilkan hits dari props dan format.
+                Nilai ini sudah dijamin konsisten dari server (karena di-increment di getServerSideProps). */}
+            <span>Dilihat {modul.hits.toLocaleString("en-US")} kali</span>
           </div>
         </div>
       </div>
 
       {/* --- Bagian Konten Utama --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:col-span-12 gap-8">
         {/* Kolom Kiri: Penampil File */}
         <div className="lg:col-span-8 xl:col-span-9">
           <div className="w-full h-[80vh] sm:h-[85vh] rounded-lg border-2 border-ui-border bg-black/5 flex items-center justify-center">

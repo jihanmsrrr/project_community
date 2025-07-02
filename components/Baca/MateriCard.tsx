@@ -5,23 +5,21 @@ import Link from "next/link";
 import { BookOpen, Download, Share2, Eye } from "lucide-react";
 
 // Definisikan interface MateriCardProps yang sesuai dengan model Prisma `reading_materials`
-// dan sertakan relasi yang akan di-include saat fetching data
+// Sekarang dengan 'kategori' dan 'sub_kategori' sebagai string langsung
 interface MateriCardProps {
   modul: {
     material_id: bigint;
     judul: string | null;
+    kategori: string | null; // <<< PASTIKAN INI ADA DAN TIPE STRING
+    sub_kategori: string | null; // <<< PASTIKAN INI ADA DAN TIPE STRING
     deskripsi: string | null;
     file_path: string | null;
+    uploader_id: bigint | null;
     tanggal_upload: Date | null;
     hits: number;
-    // Relasi ke Category dan SubCategory
-    category?: {
-      // Opsional, karena category_id di reading_materials bisa null
-      name: string;
-    } | null;
-    subCategory?: {
-      // Opsional, karena sub_category_id di reading_materials bisa null
-      name: string;
+    uploader?: {
+      // Relasi uploader jika di-include di query
+      nama_lengkap: string | null;
     } | null;
   };
 }
@@ -115,10 +113,10 @@ const MateriCard: React.FC<MateriCardProps> = ({ modul }) => {
         </p>
       </div>
       <div className="text-xs text-text-secondary/80 mt-3 pt-3 border-t border-ui-border/50 flex justify-between items-center">
-        {/* Menampilkan Kategori dan Sub-kategori dari relasi */}
+        {/* Menampilkan Kategori dan Sub-kategori dari properti langsung */}
         <span>
-          {modul.category?.name}
-          {modul.subCategory?.name && ` / ${modul.subCategory.name}`}
+          {modul.kategori}
+          {modul.sub_kategori && ` / ${modul.sub_kategori}`}
         </span>
         <span className="flex items-center gap-1">
           <Eye size={12} /> {modul.hits.toLocaleString()}

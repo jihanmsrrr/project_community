@@ -11,19 +11,21 @@ import PageTitle from "@/components/ui/PageTitle";
 
 const prisma = new PrismaClient();
 
+// Fungsi ini akan dijalankan di sisi server setiap kali ada request
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  // Akses material_id dengan aman, pastikan context.params tidak undefined
-  const material_id = context.params?.material_id;
+  const material_id_param = context.params?.material_id;
 
-  // Validasi material_id: harus ada dan bukan array
-  if (!material_id || Array.isArray(material_id)) {
+  if (!material_id_param || Array.isArray(material_id_param)) {
     return { notFound: true };
   }
 
+  const material_id = BigInt(material_id_param);
+
   try {
+    // 1. Ambil data modul saat ini
     const modulDariDatabase = await prisma.reading_materials.findUnique({
       where: {
-        material_id: BigInt(material_id), // material_id sekarang dijamin string
+        material_id: material_id,
       },
       include: {
         uploader: {
@@ -33,15 +35,40 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     });
 
     if (!modulDariDatabase) {
+      console.log(
+        `[SSR] Modul dengan ID ${material_id_param} tidak ditemukan.`
+      );
       return { notFound: true };
     }
 
-    // Konversi BigInt ke string untuk serialisasi JSON
+    // Log nilai hits sebelum di-increment
+    console.log(
+      `[SSR] Hits sebelum update untuk ID ${material_id_param}: ${modulDariDatabase.hits}`
+    );
+
+    // 2. Increment hits dan simpan kembali ke database
+    const updatedHits = modulDariDatabase.hits + 1;
+    const updatedModul = await prisma.reading_materials.update({
+      where: { material_id: material_id },
+      data: { hits: updatedHits },
+      include: {
+        uploader: {
+          select: { nama_lengkap: true },
+        },
+      },
+    });
+
+    // Log nilai hits setelah di-increment dan disimpan
+    console.log(
+      `[SSR] Hits setelah update untuk ID ${material_id_param}: ${updatedModul.hits}`
+    );
+
+    // Konversi BigInt ke string untuk menghindari masalah serialisasi JSON
     const serializedModul = {
-      ...modulDariDatabase,
-      material_id: modulDariDatabase.material_id.toString(),
-      uploader_id: modulDariDatabase.uploader_id?.toString() || null,
-      // Jika ada BigInt lain di modulDariDatabase, konversi juga di sini
+      ...updatedModul,
+      material_id: updatedModul.material_id.toString(),
+      uploader_id: updatedModul.uploader_id?.toString() || null,
+      tanggal_upload: updatedModul.tanggal_upload?.toISOString() || null,
     };
 
     return {
@@ -50,7 +77,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
-    console.error("Error fetching modul detail from database:", error);
+    console.error(
+      `[SSR] Error fetching or updating modul detail for ID ${material_id_param}:`,
+      error
+    );
     return {
       props: {
         modul: null,
@@ -128,8 +158,8 @@ const SingleModulPage: React.FC<RuangBacaDetailPageProps> = ({ modul }) => {
             tanggal_upload: modul.tanggal_upload
               ? new Date(modul.tanggal_upload)
               : null,
-            hits: modul.hits,
-            uploader: modul.uploader, // Meneruskan uploader jika di-include
+            hits: modul.hits, // Nilai hits sudah di-increment dan disimpan di DB oleh getServerSideProps
+            uploader: modul.uploader,
           }}
           onBack={handleBack}
         />

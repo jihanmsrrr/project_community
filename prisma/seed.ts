@@ -92,38 +92,32 @@ function generateUserData(id: number, namaLengkap: string, nipBaru: string, emai
 }
 
 // Data modul dari src/data/modulData.ts yang Anda berikan
-// --- 1. DEFINISI TIPE DATA ---
-interface ModulDataInterface { // Mengganti nama karena Modul di dalam Kategori
+interface ModulDataInterface {
   id: string;
   judul: string;
   deskripsi: string;
   ukuran: string;
   hits: number;
-  fileName: string;
+  fileName: string; // Ini yang akan kita sesuaikan
   slug: string;
 }
 
-interface SubKategoriInterface { // Mengganti nama
+interface SubKategoriInterface {
   id: string;
   nama: string;
   modul: ModulDataInterface[];
 }
 
-interface KategoriInterface { // Mengganti nama
+interface KategoriInterface {
   id: string;
   namaTampil: string;
   tahun: number;
   subKategori: SubKategoriInterface[];
 }
 
-// --- Fungsi Helper untuk membuat data lebih mudah dan konsisten ---
 const randomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 const randomFloat = (min: number, max: number) => (Math.random() * (max - min) + min).toFixed(2);
 
-// Helper untuk menghasilkan slug (jika diperlukan untuk pengujian)
-// (Fungsi generateSlug dihapus karena tidak digunakan)
-
-// --- 2. DATA DUMMY LENGKAP UNTUK SEMUA KATEGORI ---
 const modulData: KategoriInterface[] = [
   {
     id: "pembinaan-statistik",
@@ -134,8 +128,12 @@ const modulData: KategoriInterface[] = [
         id: "pembinaan-topik-1",
         nama: "Topik 1: Dasar Penyelenggaraan Statistik",
         modul: [
-          { id: "modul-tata-laksana", judul: "Tata Laksana Penyelenggaraan Statistik", deskripsi: "Panduan lengkap tata laksana penyelenggaraan statistik sesuai standar BPS.", ukuran: `${randomFloat(3, 7)} MB`, hits: randomInt(500, 1500), fileName: "modul_tata_laksana.pdf", slug: "tata-laksana-penyelenggaraan-statistik" },
-          { id: "modul-langkah-praktis", judul: "Langkah Praktis dalam Survei dan Kompromin", deskripsi: "Teknik praktis yang diterapkan dalam survei serta koordinasi pemasaran dan informasi.", ukuran: `${randomFloat(3, 7)} MB`, hits: randomInt(500, 1500), fileName: "modul_langkah_praktis.pdf", slug: "langkah-praktis-survei-kompromin" },
+          // FILE PDF DARI SCREENSHOT
+          { id: "modul-tata-laksana", judul: "Tata Laksana Penyelenggaraan Statistik", deskripsi: "Panduan lengkap tata laksana penyelenggaraan statistik sesuai standar BPS.", ukuran: `${randomFloat(3, 7)} MB`, hits: randomInt(500, 1500), fileName: "Modul 1. Tata Laksana Penyelenggaraan Statistik.pdf", slug: "tata-laksana-penyelenggaraan-statistik" },
+          { id: "modul-langkah-praktis", judul: "Langkah Praktis dalam Survei dan Kompromin", deskripsi: "Teknik praktis yang diterapkan dalam survei serta koordinasi pemasaran dan informasi.", ukuran: `${randomFloat(3, 7)} MB`, hits: randomInt(500, 1500), fileName: "Modul 2. Langkah Praktis dalam Survei dan Kompromin.pdf", slug: "langkah-praktis-survei-kompromin" },
+          // MODUL 3 & 4 DARI SCREENSHOT (Tambahan)
+          { id: "modul-aplikasi-statistik", judul: "Aplikasi Penyelenggaraan Statistik", deskripsi: "Modul tentang aplikasi yang digunakan dalam penyelenggaraan statistik.", ukuran: `${randomFloat(3, 7)} MB`, hits: randomInt(300, 1000), fileName: "Modul 3. Aplikasi Penyelenggaraan Statistik.pdf", slug: "aplikasi-penyelenggaraan-statistik" },
+          { id: "modul-dasar-statistik", judul: "Dasar-dasar Statistik", deskripsi: "Modul pengantar mengenai dasar-dasar ilmu statistik.", ukuran: `${randomFloat(3, 7)} MB`, hits: randomInt(700, 2000), fileName: "Modul 4. Dasar-dasar Statistik.pdf", slug: "dasar-dasar-statistik" },
         ],
       },
       {
@@ -172,6 +170,11 @@ const modulData: KategoriInterface[] = [
         nama: "Topik 1: Indikator Strategis",
         modul: [
           { id: "modul-paparan-hasil", judul: "Paparan Hasil Survei Nasional Triwulan I", deskripsi: "Paparan lengkap hasil survei nasional terbaru yang disampaikan oleh Kepala BPS.", ukuran: `${randomFloat(2, 5)} MB`, hits: randomInt(100, 400), fileName: "modul_paparan_hasil.pdf", slug: "paparan-hasil-survei-nasional" },
+          // FILE PPTX DARI SCREENSHOT
+          { id: "paparan-fdg-komisi-xi", judul: "20161004 FGD BPS dengan Komisi XI DPR RI", deskripsi: "Materi Fokus Group Discussion BPS dengan Komisi XI DPR RI.", ukuran: `${randomFloat(5, 10)} MB`, hits: randomInt(100, 300), fileName: "20161004 FGD BPS denganKomisi XI DPR RI.pptx", slug: "fgd-bps-komisi-xi-dpr-ri" },
+          { id: "paparan-ntt-satu-data", judul: "20161116 NTT Launching Satu Data Final", deskripsi: "Paparan final peluncuran Satu Data di NTT.", ukuran: `${randomFloat(5, 10)} MB`, hits: randomInt(100, 300), fileName: "20161116 NTT Launching Satu Data_Final.pptx", slug: "ntt-launching-satu-data-final" },
+          { id: "paparan-indikator-kalsel", judul: "Indikator Pembangunan Kalsel Nov 2016", deskripsi: "Indikator pembangunan Kalimantan Selatan per November 2016.", ukuran: `${randomFloat(5, 10)} MB`, hits: randomInt(100, 300), fileName: "Indikator Pembangunan Kalsel Nov 2016.pptx", slug: "indikator-pembangunan-kalsel-nov-2016" },
+          { id: "paparan-pulang-pisau-bpbd", judul: "Paparan BPS Pulang Pisau untuk BPBD Kab. Pulang Pisau", deskripsi: "Paparan BPS Kabupaten Pulang Pisau untuk BPBD.", ukuran: `${randomFloat(5, 10)} MB`, hits: randomInt(100, 300), fileName: "Paparan BPS Pulang Pisau untuk BPBD Kab. Pulang Pisau.pptx", slug: "paparan-bps-pulang-pisau-bpbd" },
         ],
       },
     ],
@@ -374,14 +377,14 @@ async function main() {
         status_kepegawaian: user.status_kepegawaian,
         tmt_pns: user.tmt_pns,
         pangkat_golongan: user.pangkat_golongan,
-        tmt_pangkat_golongan: user.tmt_pangkat_golongan,
+        tmt_pangkat_golongan: new Date(user.tmt_pangkat_golongan),
         jabatan_struktural: user.jabatan_struktural,
         jenjang_jabatan_fungsional: user.jenjang_jabatan_fungsional,
-        tmt_jabatan: user.tmt_jabatan,
+        tmt_jabatan: new Date(user.tmt_jabatan),
         pendidikan_terakhir: user.pendidikan_terakhir,
         masa_kerja_golongan: user.masa_kerja_golongan,
         masa_kerja_total: user.masa_kerja_total,
-        tanggal_pensiun: user.tanggal_pensiun,
+        tanggal_pensiun: new Date(user.tanggal_pensiun),
         sisa_masa_kerja: user.sisa_masa_kerja,
         grade: user.grade,
         unit_kerja_eselon1: user.unit_kerja_eselon1,
@@ -406,14 +409,14 @@ async function main() {
         status_kepegawaian: user.status_kepegawaian,
         tmt_pns: user.tmt_pns,
         pangkat_golongan: user.pangkat_golongan,
-        tmt_pangkat_golongan: user.tmt_pangkat_golongan,
+        tmt_pangkat_golongan: new Date(user.tmt_pangkat_golongan),
         jabatan_struktural: user.jabatan_struktural,
         jenjang_jabatan_fungsional: user.jenjang_jabatan_fungsional,
-        tmt_jabatan: user.tmt_jabatan,
+        tmt_jabatan: new Date(user.tmt_jabatan),
         pendidikan_terakhir: user.pendidikan_terakhir,
         masa_kerja_golongan: user.masa_kerja_golongan,
         masa_kerja_total: user.masa_kerja_total,
-        tanggal_pensiun: user.tanggal_pensiun,
+        tanggal_pensiun: new Date(user.tanggal_pensiun),
         sisa_masa_kerja: user.sisa_masa_kerja,
         grade: user.grade,
         unit_kerja_eselon1: user.unit_kerja_eselon1,
@@ -445,10 +448,9 @@ async function main() {
           kategori: kategori.namaTampil, // Nama kategori utama
           sub_kategori: subKategori.nama, // Nama sub-kategori
           deskripsi: modul.deskripsi,
-          file_path: modul.fileName,
+          file_path: modul.fileName, // Gunakan fileName yang sudah diperbarui
           uploader_id: randomUploaderId,
           // Tanggal upload diatur ke 15 hari setelah kategori.tahun
-          // atau tanggal_upload hari ini jika tahun tidak spesifik/masa lalu
           tanggal_upload: new Date(`${kategori.tahun}-01-15T10:00:00Z`),
           hits: modul.hits,
         });
@@ -462,6 +464,7 @@ async function main() {
       update: {
         judul: material.judul,
         kategori: material.kategori,
+        sub_kategori: material.sub_kategori, // Pastikan ini juga di-update
         deskripsi: material.deskripsi,
         file_path: material.file_path,
         uploader_id: BigInt(material.uploader_id),
@@ -472,6 +475,7 @@ async function main() {
         material_id: BigInt(material.material_id),
         judul: material.judul,
         kategori: material.kategori,
+        sub_kategori: material.sub_kategori, // Pastikan ini juga di-create
         deskripsi: material.deskripsi,
         file_path: material.file_path,
         uploader_id: BigInt(material.uploader_id),
