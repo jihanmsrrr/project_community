@@ -82,13 +82,10 @@ export default function Navbar() {
         {/* Menu item desktop sekarang me-render dari visibleMenuItems */}
         <ul className="hidden lg:flex space-x-6 lg:space-x-8 tracking-wide">
           {visibleMenuItems.map((item) => {
-            // Menggunakan visibleMenuItems
             const isActive =
               !item.external &&
-              (activePath === item.href || // Exact match
-                (item.href !== "/" && activePath.startsWith(item.href + "/"))); // Path starts with href (for sub-pages)
-              // Contoh: activePath = "/varia-statistik/artikel/123" dan item.href = "/varia-statistik"
-              // Maka activePath.startsWith(item.href + "/") akan menjadi "/varia-statistik/artikel/123".startsWith("/varia-statistik/")
+              (activePath === item.href ||
+                (item.href !== "/" && activePath.startsWith(item.href + "/")));
             return (
               <li key={item.href}>
                 {item.external ? (
@@ -96,20 +93,25 @@ export default function Navbar() {
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-normal text-text-on-header hover:text-opacity-75 transition-opacity duration-200 text-sm lg:text-base"
+                    className="font-normal text-text-on-header hover:text-opacity-75 transition-opacity duration-200 text-sm lg:text-base
+                       // PERUBAHAN OPSIONAL: Tambahkan ini
+                       hover:text-nav-active-indicator" // Tambahkan ini
                   >
                     {item.label}
                   </a>
                 ) : (
                   <Link href={item.href} legacyBehavior>
                     <a
-                      className={`cursor-pointer transition-opacity duration-200 text-sm lg:text-base ${
-                        isActive
-                          ? "font-semibold text-nav-active-indicator" // Asumsi kelas ini sudah ada
-                          : "font-normal text-text-on-header hover:text-opacity-75"
-                      }`}
+                      className={
+                        `cursor-pointer transition-opacity duration-200 text-sm lg:text-base ${
+                          isActive
+                            ? "font-semibold text-nav-active-indicator"
+                            : "font-normal text-text-on-header hover:text-opacity-75"
+                        }
+                // PERUBAHAN OPSIONAL: Tambahkan ini
+                ${!isActive && "hover:text-nav-active-indicator"}` // Tambahkan ini, hanya berlaku jika tidak aktif
+                      }
                     >
-                      {/* Ikon untuk menu Admin */}
                       {item.adminOnly && (
                         <ShieldCheck className="inline-block w-4 h-4 mr-1.5 text-status-blue" />
                       )}

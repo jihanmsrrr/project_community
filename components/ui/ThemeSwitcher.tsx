@@ -1,3 +1,4 @@
+// components/ui/ThemeSwitcher.tsx
 "use client";
 
 import { JSX, useEffect, useState } from "react";
@@ -112,19 +113,25 @@ export default function ThemeSwitcher() {
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
         aria-label="Pilih Tema"
-        className="flex items-center gap-2 p-2 rounded-lg bg-surface-card text-text-primary shadow-md hover:bg-surface-header transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page"
+        className="flex items-center gap-2 p-2 rounded-lg bg-surface-card text-text-primary shadow-md hover:bg-surface-header 
+                   transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary 
+                   focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page
+                   // PERUBAHAN: Tambahkan kelas ini untuk hover khusus di mode light
+                   group" // Tambahkan group agar bisa menggunakan group-hover pada ikon
       >
-        {getCurrentThemeIcon()}
+        {/* PERUBAHAN: Tambahkan group-hover pada ikon */}
+        <span className="group-hover:text-nav-active-indicator transition-colors duration-200">
+          {getCurrentThemeIcon()}
+        </span>
         <ChevronDown
           size={16}
           className={`transition-transform duration-200 ${
             dropdownOpen ? "rotate-180" : ""
-          }`}
+          } group-hover:text-nav-active-indicator`}
         />
       </button>
       {dropdownOpen && (
         <div
-          // --- PERUBAHAN PADA LATAR BELAKANG DROPDOWN ---
           className="absolute right-0 mt-2 w-40 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none py-1 z-50"
           role="menu"
           aria-orientation="vertical"
@@ -136,13 +143,12 @@ export default function ThemeSwitcher() {
               <button
                 key={option.value}
                 onClick={() => selectTheme(option.value)}
-                // --- PERUBAHAN PADA ITEM DI DALAM DROPDOWN ---
                 className={`flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left transition-colors duration-150
-                            ${
-                              isActive
-                                ? "font-semibold bg-gray-100 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400" // Warna untuk item aktif
-                                : "font-normal text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white" // Warna untuk item non-aktif dan hover
-                            }`}
+                             ${
+                               isActive
+                                 ? "font-semibold bg-gray-100 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400"
+                                 : "font-normal text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white"
+                             }`}
                 role="menuitem"
               >
                 {option.icon} {option.label}

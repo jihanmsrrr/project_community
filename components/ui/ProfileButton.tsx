@@ -1,13 +1,12 @@
+// components/ui/ProfileButton.tsx
 "use client";
 
 import React, { useState } from "react";
-// PERUBAHAN: Impor useRouter untuk navigasi
 import { useRouter } from "next/navigation";
 import { User, LogOut, ChevronDown } from "lucide-react";
 
 const ProfileButton: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // PERUBAHAN: Dapatkan instance router
   const router = useRouter();
 
   const handleMenuToggle = () => {
@@ -16,26 +15,16 @@ const ProfileButton: React.FC = () => {
 
   const handleLogout = () => {
     console.log("Logging out and ending session...");
-
-    // PERUBAHAN: Hapus token otentikasi dari localStorage
-    // Ganti 'authToken' dengan key yang Anda gunakan untuk menyimpan token.
     localStorage.removeItem("authToken");
-
-    // Anda mungkin juga ingin membersihkan data pengguna lain dari storage
     localStorage.removeItem("userData");
-
     setIsMenuOpen(false);
-
-    // PERUBAHAN: Arahkan pengguna ke halaman login
     router.push("/login");
   };
 
   const handleMyProfile = () => {
     console.log("Navigating to My Profile");
     setIsMenuOpen(false);
-
-    // PERUBAHAN: Arahkan pengguna ke halaman profil
-    router.push("/profil"); // Ganti '/profil' dengan rute halaman profil Anda
+    router.push("/profil");
   };
 
   return (
@@ -43,21 +32,32 @@ const ProfileButton: React.FC = () => {
       {/* Tombol Profile Utama */}
       <button
         onClick={handleMenuToggle}
-        className="flex items-center space-x-2 bg-surface-card text-text-primary font-semibold rounded-lg px-3 py-2 shadow-md hover:bg-surface-header transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page"
+        className="flex items-center space-x-2 bg-surface-card text-text-primary font-semibold rounded-lg px-3 py-2 shadow-md hover:bg-surface-header 
+                   transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary 
+                   focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page
+                   // PERUBAHAN: Tambahkan kelas ini untuk hover khusus di mode light
+                   group" // Tambahkan group agar bisa menggunakan group-hover pada teks dan ikon
         aria-haspopup="true"
         aria-expanded={isMenuOpen}
       >
-        <User size={20} />
-        <span>Profil</span>
+        <User
+          size={20}
+          className="group-hover:text-nav-active-indicator transition-colors duration-200"
+        />{" "}
+        {/* PERUBAHAN */}
+        <span className="group-hover:text-nav-active-indicator transition-colors duration-200">
+          Profil
+        </span>{" "}
+        {/* PERUBAHAN */}
         <ChevronDown
           size={16}
           className={`transition-transform duration-200 ${
             isMenuOpen ? "rotate-180" : ""
-          }`}
+          } group-hover:text-nav-active-indicator`} // PERUBAHAN
         />
       </button>
 
-      {/* Menu Dropdown */}
+      {/* Menu Dropdown (Tidak perlu diubah, karena hover di dalam dropdown sudah bagus) */}
       {isMenuOpen && (
         <div
           className="absolute right-0 mt-2 w-48 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none py-1 z-50"
