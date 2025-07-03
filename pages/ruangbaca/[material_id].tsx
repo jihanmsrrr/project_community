@@ -153,9 +153,19 @@ export const getServerSideProps: GetServerSideProps<
           tanggal_upload: true,
         },
       });
-      recommendedMaterials = mostPopularMaterials;
+      recommendedMaterials = mostPopularMaterials.map((material) => ({
+        ...material,
+        material_id: material.material_id.toString(),
+        uploader_id: material.uploader_id?.toString() || null,
+        tanggal_upload: material.tanggal_upload?.toString() || null,
+      }));
     } else {
-      recommendedMaterials = relatedOrPopularMaterials;
+      recommendedMaterials = relatedOrPopularMaterials.map((material) => ({
+        ...material,
+        material_id: material.material_id.toString(),
+        uploader_id: material.uploader_id?.toString() || null,
+        tanggal_upload: material.tanggal_upload?.toString() || null,
+      }));
     }
 
     // Konversi BigInt dan Date ke string untuk serialisasi JSON

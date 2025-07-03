@@ -63,7 +63,7 @@ model users {
 
   unit_kerja              organization_units?   @relation("PegawaiDiUnit", fields: [unit_kerja_id], references: [org_unit_id])
   berita_ditulis          news[]
-  bahan_bacaan_diunggah    reading_materials[]
+ bahan_bacaan_diunggah reading_materials[] @relation("UploaderToMaterials")
   komentar                comments[]
   likes                   likes[]
   bookmarks               bookmarks[]
@@ -99,17 +99,22 @@ model news {
 }
 
 model reading_materials {
-  material_id     BigInt    @id @default(autoincrement())
-  judul           String?   @db.VarChar(255)
-  kategori        String?   @db.VarChar(100)
-  sub_kategori    String?   @db.VarChar(100) // <<< BARU: Untuk sub-kategori
-  deskripsi       String?   @db.Text         // <<< BARU: Untuk deskripsi panjang
-  file_path       String?   @db.VarChar(255)
-  uploader_id     BigInt?
-  tanggal_upload  DateTime? @db.DateTime(0)
-  hits            Int       @default(0)      // <<< BARU: Untuk menghitung akses
-
-  uploader        users?    @relation(fields: [uploader_id], references: [user_id])
+  material_id      BigInt    @id @default(autoincrement())
+  judul            String?   @db.VarChar(255)
+  kategori         String?   @db.VarChar(100)
+  sub_kategori     String?   @db.VarChar(100)
+  deskripsi        String?   @db.Text
+  file_path        String?   @db.VarChar(255) // Akan kita gunakan untuk membuat URL
+  uploader_id      BigInt?
+  tanggal_upload   DateTime?
+  hits             Int
+  
+  // Kolom tambahan yang akan kita isi dari seed
+  slug             String   @unique
+  bacaUrl          String   @map("baca_url")
+  unduhUrl         String   @map("unduh_url")
+  
+ uploader      users?   @relation("UploaderToMaterials", fields: [uploader_id], references: [user_id], onDelete: SetNull)
 }
 
 model comments {

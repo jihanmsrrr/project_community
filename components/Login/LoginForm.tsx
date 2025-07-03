@@ -3,7 +3,8 @@
 
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/router"; // ✅ PERBAIKAN: Gunakan useRouter dari 'next/router'
+
 import { Eye, EyeOff, LoaderCircle, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -39,37 +40,35 @@ const LoginForm: React.FC = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // State untuk loading
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const router = useRouter(); // ✅ Gunakan useRouter dari 'next/router'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true); // Mulai loading
+    setIsLoading(true);
 
-    // Menggunakan NextAuth.js untuk login
-    const result = await signIn("credentials", {
-      username: username,
-      password: password,
-      redirect: false, // Kita handle redirect secara manual
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false, // Penting: Tetap false agar kita bisa handle error di sini
+        username: username,
+        password: password,
+      });
 
-    setIsLoading(false); // Selesai loading
-
-    if (result?.error) {
-      // Jika kredensial salah, NextAuth akan memberikan pesan error
-      setError(
-        "Username atau password yang Anda masukkan salah. Silakan coba lagi."
-      );
-    } else if (result?.ok) {
-      // Jika berhasil, NextAuth akan handle sesi, kita tinggal arahkan.
-      // Kita perlu cara untuk mendapatkan role setelah login untuk redirect.
-      // Untuk sementara, kita cek dari username. Di aplikasi nyata, ini dari callback session.
-      if (username.toLowerCase().includes("admin")) {
-        router.push("/admin");
-      } else {
-        router.push("/user");
+      if (result?.error) {
+        // NextAuth akan mengembalikan error jika authorize throw error
+        setError(result.error); // Tampilkan pesan error dari NextAuth
+        setIsLoading(false);
+      } else if (result?.ok) {
+        // Jika berhasil, arahkan ke halaman utama.
+        // AuthWrapper di _app.tsx akan menangani redirect sesuai peran.
+        router.push("/"); // ✅ Gunakan router.push dari next/router
       }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Terjadi kesalahan yang tidak terduga. Silakan coba lagi.");
+      setIsLoading(false);
     }
   };
 
@@ -87,12 +86,9 @@ const LoginForm: React.FC = () => {
             Silakan masuk untuk melanjutkan.
           </p>
         </div>
-
-        {/* Notifikasi Error dengan Animasi */}
         <AnimatePresence>
           {error && <ErrorAlert message={error} />}
         </AnimatePresence>
-        {/* Input Username */}
         <div className="relative mb-6">
           <input
             id="username"
@@ -112,8 +108,6 @@ const LoginForm: React.FC = () => {
             Username
           </label>
         </div>
-
-        {/* Input Password */}
         <div className="relative mb-8">
           <input
             id="password"
@@ -145,8 +139,6 @@ const LoginForm: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Tombol Masuk */}
         <button
           type="submit"
           disabled={isLoading}
@@ -161,8 +153,6 @@ const LoginForm: React.FC = () => {
             "Masuk"
           )}
         </button>
-
-        {/* Tombol Login dengan SSO */}
         <div className="relative flex py-5 items-center">
           <div className="flex-grow border-t border-ui-border"></div>
           <span className="flex-shrink mx-4 text-xs text-text-secondary">
@@ -170,14 +160,12 @@ const LoginForm: React.FC = () => {
           </span>
           <div className="flex-grow border-t border-ui-border"></div>
         </div>
-
         <button
           type="button"
-          onClick={() => signIn("bps-sso")} // Asumsi Anda punya provider 'bps-sso'
+          onClick={() => signIn("bps-sso")}
           disabled={isLoading}
           className="w-full flex items-center justify-center gap-2 bg-surface-button-secondary hover:bg-surface-button-secondary-hover text-text-on-button-secondary font-semibold py-3 rounded-lg transition-colors shadow-sm border border-ui-border disabled:opacity-70"
         >
-          {/* Anda bisa tambahkan logo BPS di sini */}
           Login dengan SSO BPS
         </button>
       </form>
