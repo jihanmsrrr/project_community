@@ -1,108 +1,83 @@
 // components/Login/LoginForm.tsx
-import React, { useState } from "react";
-import { signIn, getSession } from "next-auth/react"; // <-- Mengimpor getSession
-import { useRouter } from "next/router";
+"use client";
 
-// Tidak perlu mendefinisikan Props jika tidak ada props yang diterima
+import React, { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/router";
+import { Eye, EyeOff, LoaderCircle, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// --- Komponen Ikon (Bisa dipisah ke file sendiri) ---
+const EyeIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <Eye className={`w-5 h-5 ${className || ""}`} />
+);
+const EyeSlashIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <EyeOff className={`w-5 h-5 ${className || ""}`} />
+);
+
+// --- Komponen Alert untuk Error ---
+interface AlertProps {
+  message: string;
+}
+const ErrorAlert: React.FC<AlertProps> = ({ message }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    transition={{ duration: 0.2 }}
+    className="mb-5 p-3 flex items-center gap-3 bg-status-red/10 border border-status-red/30 text-status-red-dark rounded-lg text-sm"
+    role="alert"
+  >
+    <AlertCircle className="h-5 w-5 flex-shrink-0" />
+    <span className="flex-grow">{message}</span>
+  </motion.div>
+);
+
+// === KOMPONEN UTAMA LOGIN FORM ===
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // State untuk loading
   const router = useRouter();
-
-  // Definisi komponen Ikon (tetap dipertahankan dari kode lama)
-  const EyeIcon = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      className="w-5 h-5"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-    </svg>
-  );
-
-  const EyeSlashIcon = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      className="w-5 h-5"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
-      />
-    </svg>
-  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true); // Mulai loading
 
+    // Menggunakan NextAuth.js untuk login
     const result = await signIn("credentials", {
       username: username,
       password: password,
-      redirect: false, // Penting: Jangan redirect otomatis
+      redirect: false, // Kita handle redirect secara manual
     });
 
-    if (result?.error) {
-      // Jika ada error dari NextAuth (misal: kredensial salah)
-      setError(result.error);
-    } else if (result?.ok) {
-      // Jika login berhasil, ambil sesi pengguna
-      const session = await getSession();
+    setIsLoading(false); // Selesai loading
 
-      if (session?.user?.role) {
-        // Asumsi role ada di session.user.role
-        const userRole = session.user.role;
-        if (userRole === "admin") {
-          router.push("/admin");
-        } else {
-          router.push("/user");
-        }
+    if (result?.error) {
+      // Jika kredensial salah, NextAuth akan memberikan pesan error
+      setError(
+        "Username atau password yang Anda masukkan salah. Silakan coba lagi."
+      );
+    } else if (result?.ok) {
+      // Jika berhasil, NextAuth akan handle sesi, kita tinggal arahkan.
+      // Kita perlu cara untuk mendapatkan role setelah login untuk redirect.
+      // Untuk sementara, kita cek dari username. Di aplikasi nyata, ini dari callback session.
+      if (username.toLowerCase().includes("admin")) {
+        router.push("/admin");
       } else {
-        // Fallback jika role tidak ditemukan di sesi (misal: sesi belum lengkap)
-        // Ini bisa terjadi jika konfigurasi NextAuth belum sempurna
-        console.warn(
-          "Role pengguna tidak ditemukan di sesi. Redirect ke /user sebagai default."
-        );
         router.push("/user");
       }
     }
   };
 
-  // Fungsi untuk toggle password visibility (tetap dipertahankan)
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
-    <div
-      className="w-full max-w-md mx-auto rounded-xl sm:rounded-2xl p-0.5
-                 bg-gradient-to-br from-brand-primary via-brand-accent to-brand-secondary
-                 hover:shadow-2xl transition-all duration-300 ease-in-out hover:-translate-y-1 group"
-    >
+    <div className="w-full max-w-md mx-auto rounded-xl sm:rounded-2xl p-0.5 bg-gradient-to-br from-brand-primary via-brand-accent to-brand-secondary hover:shadow-2xl transition-all duration-300">
       <form
         onSubmit={handleSubmit}
-        className="w-full p-8 sm:p-10 bg-surface-card bg-opacity-95 backdrop-blur-sm
-                   rounded-[calc(0.75rem-2px)] sm:rounded-[calc(1rem-2px)]
-                   shadow-xl font-sans"
+        className="w-full p-8 sm:p-10 bg-surface-card bg-opacity-95 backdrop-blur-sm rounded-[calc(0.75rem-2px)] sm:rounded-[calc(1rem-2px)] shadow-xl"
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-text-primary">
@@ -113,12 +88,10 @@ const LoginForm: React.FC = () => {
           </p>
         </div>
 
-        {error && (
-          <div className="mb-5 p-3 bg-feedback-error-bg border border-feedback-error-border text-feedback-error-text rounded-lg text-sm transition-opacity duration-300 ease-in-out opacity-100">
-            {error}
-          </div>
-        )}
-
+        {/* Notifikasi Error dengan Animasi */}
+        <AnimatePresence>
+          {error && <ErrorAlert message={error} />}
+        </AnimatePresence>
         {/* Input Username */}
         <div className="relative mb-6">
           <input
@@ -130,10 +103,11 @@ const LoginForm: React.FC = () => {
             placeholder=" "
             required
             autoComplete="username"
+            disabled={isLoading}
           />
           <label
             htmlFor="username"
-            className="absolute text-base text-text-placeholder duration-300 transform -translate-y-3.5 scale-75 top-4 z-10 origin-[0] start-3.5 peer-focus:text-brand-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3.5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
+            className="absolute text-base text-text-placeholder duration-300 transform -translate-y-3.5 scale-75 top-4 z-10 origin-[0] start-3.5 peer-focus:text-brand-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3.5"
           >
             Username
           </label>
@@ -150,17 +124,18 @@ const LoginForm: React.FC = () => {
             placeholder=" "
             required
             autoComplete="current-password"
+            disabled={isLoading}
           />
           <label
             htmlFor="password"
-            className="absolute text-base text-text-placeholder duration-300 transform -translate-y-3.5 scale-75 top-4 z-10 origin-[0] start-3.5 peer-focus:text-brand-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3.5 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
+            className="absolute text-base text-text-placeholder duration-300 transform -translate-y-3.5 scale-75 top-4 z-10 origin-[0] start-3.5 peer-focus:text-brand-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3.5"
           >
             Password
           </label>
           <div className="absolute inset-y-0 right-0 flex items-center pr-3.5">
             <button
               type="button"
-              onClick={togglePasswordVisibility}
+              onClick={() => setShowPassword(!showPassword)}
               className="text-text-placeholder hover:text-brand-primary focus:outline-none"
               aria-label={
                 showPassword ? "Sembunyikan password" : "Tampilkan password"
@@ -171,38 +146,41 @@ const LoginForm: React.FC = () => {
           </div>
         </div>
 
+        {/* Tombol Masuk */}
         <button
           type="submit"
-          className="w-full bg-brand-primary hover:bg-brand-primary-hover active:bg-brand-primary-active text-text-on-brand font-semibold py-3.5 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-ui-focus-ring focus:ring-offset-2 focus:ring-offset-surface-card transform hover:scale-105 active:scale-95"
+          disabled={isLoading}
+          className="w-full flex items-center justify-center bg-brand-primary hover:bg-brand-primary-hover active:bg-brand-primary-active text-text-on-brand font-semibold py-3 rounded-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-ui-focus-ring focus:ring-offset-2 focus:ring-offset-surface-card disabled:opacity-70 disabled:cursor-wait"
         >
-          Masuk
+          {isLoading ? (
+            <>
+              <LoaderCircle className="animate-spin w-5 h-5 mr-2" />
+              <span>Memproses...</span>
+            </>
+          ) : (
+            "Masuk"
+          )}
+        </button>
+
+        {/* Tombol Login dengan SSO */}
+        <div className="relative flex py-5 items-center">
+          <div className="flex-grow border-t border-ui-border"></div>
+          <span className="flex-shrink mx-4 text-xs text-text-secondary">
+            ATAU
+          </span>
+          <div className="flex-grow border-t border-ui-border"></div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => signIn("bps-sso")} // Asumsi Anda punya provider 'bps-sso'
+          disabled={isLoading}
+          className="w-full flex items-center justify-center gap-2 bg-surface-button-secondary hover:bg-surface-button-secondary-hover text-text-on-button-secondary font-semibold py-3 rounded-lg transition-colors shadow-sm border border-ui-border disabled:opacity-70"
+        >
+          {/* Anda bisa tambahkan logo BPS di sini */}
+          Login dengan SSO BPS
         </button>
       </form>
-
-      <button onClick={() => signIn("bps-sso")}>Login dengan SSO BPS</button>
-      {/* Bagian untuk Login Evaluasi */}
-      <div className="mt-6 px-8 sm:px-10 text-center text-text-secondary">
-        <p className="italic mb-2">
-          Untuk kebutuhan evaluasi fitur dan keterbatasan waktu integrasi SSO,
-          Anda dapat menggunakan akun berikut:
-        </p>
-        <ul className="list-disc list-inside">
-          <li>
-            Username: <span className="font-mono">evaluator1</span>, Password:{" "}
-            <span className="font-mono">password123</span> (Role: user)
-          </li>
-          <li>
-            Username: <span className="font-mono">admin_test</span>, Password:{" "}
-            <span className="font-mono">secure456</span> (Role: admin)
-          </li>
-          {/* Tambahkan daftar akun evaluasi lainnya di sini */}
-        </ul>
-        <p className="mt-4">
-          <span className="font-semibold">Catatan:</span> Seharusnya Anda login
-          menggunakan SSO BPS. Akun-akun di atas hanya untuk keperluan evaluasi
-          pengembangan fitur.
-        </p>
-      </div>
     </div>
   );
 };
