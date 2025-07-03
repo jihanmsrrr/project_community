@@ -13,6 +13,21 @@ const config = {
   ],
   theme: {
     extend: {
+      backgroundColor: {
+        "kategori-1": "rgb(var(--kategori-warna-1))",
+        "kategori-2": "rgb(var(--kategori-warna-2))",
+        "kategori-3": "rgb(var(--kategori-warna-3))",
+        "kategori-4": "rgb(var(--kategori-warna-4))",
+        "kategori-5": "rgb(var(--kategori-warna-5))",
+        "kategori-6": "rgb(var(--kategori-warna-6))",
+        "kategori-7": "rgb(var(--kategori-warna-7))",
+        "kategori-8": "rgb(var(--kategori-warna-8))",
+        "kategori-9": "rgb(var(--kategori-warna-9))",
+        "kategori-10": "rgb(var(--kategori-warna-10))",
+        "kategori-11": "rgb(var(--kategori-warna-11))",
+        "kategori-12": "rgb(var(--kategori-warna-12))",
+        "kategori-default": "rgb(var(--kategori-warna-default))",
+      },
       screens: {
         xs: "480px", // Contoh breakpoint xs
         "mobile-L": "425px", // Sesuai kode Anda

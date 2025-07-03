@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 // Impor komponen-komponen yang sudah dipisah
-import type { NextPageWithLayout } from "../_app";
+import type { NextPageWithLayout } from "@/pages/_app";
 import AdminLayout from "@/components/ui/AdminLayout";
 // Kita akan buat komponen MateriTable yang baru dan spesifik
 // import MateriTable from "@/components/Admin/RuangBaca/MateriTable";

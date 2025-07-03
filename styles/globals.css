@@ -69,6 +69,19 @@
   --color-scale-mid: 165 180 252; /* Misal: indigo-300 */
   --color-scale-high: 99 102 241; /* Misal: indigo-500 */
   --page-title-bg-image: url("/titlebg.png");
+  --kategori-warna-1: 191 219 254; /* blue-200 */
+  --kategori-warna-2: 147 197 253; /* blue-300 */
+  --kategori-warna-3: 96 165 250; /* blue-400 */
+  --kategori-warna-4: 59 130 246; /* blue-500 */
+  --kategori-warna-5: 37 99 235; /* blue-600 */
+  --kategori-warna-6: 29 78 216; /* blue-700 */
+  --kategori-warna-7: 30 64 175; /* blue-800 */
+  --kategori-warna-8: 30 58 138; /* blue-900 */
+  --kategori-warna-9: 120 160 200; /* brand-secondary-hover */
+  --kategori-warna-10: 107 114 128; /* text-secondary */
+  --kategori-warna-11: 147 184 221; /* brand-secondary */
+  --kategori-warna-12: 112 156 199; /* brand-accent */
+  --kategori-warna-default: 156 163 175; /* placeholder */
 }
 
 /* Tema Gelap (.dark) */
@@ -118,6 +131,20 @@
   --color-scale-medium: 59 130 246;
   --color-scale-high: 147 197 253;
   --page-title-bg-image: url("/titlebg-dark.png");
+  /* .dark */
+  --kategori-warna-1: 30 58 138; /* blue-900 */
+  --kategori-warna-2: 30 64 175; /* blue-800 */
+  --kategori-warna-3: 29 78 216; /* blue-700 */
+  --kategori-warna-4: 37 99 235; /* blue-600 */
+  --kategori-warna-5: 59 130 246; /* blue-500 */
+  --kategori-warna-6: 96 165 250; /* blue-400 */
+  --kategori-warna-7: 147 197 253; /* blue-300 */
+  --kategori-warna-8: 191 219 254; /* blue-200 */
+  --kategori-warna-9: 90 130 170; /* brand-secondary-hover */
+  --kategori-warna-10: 160 160 160; /* text-secondary */
+  --kategori-warna-11: 112 156 199; /* brand-secondary */
+  --kategori-warna-12: 147 184 221; /* brand-accent */
+  --kategori-warna-default: 70 70 70; /* ui-border-input */
 }
 
 /* Tema Pink (.theme-pink) */
@@ -164,6 +191,20 @@
   --color-scale-medium: 249 168 212;
   --color-scale-high: 236 72 153;
   --page-title-bg-image: url("/titlebg-pink.png");
+  /* .theme-pink */
+  --kategori-warna-1: 254 229 238; /* pink-100 */
+  --kategori-warna-2: 252 211 228; /* pink-200 */
+  --kategori-warna-3: 249 168 212; /* pink-300 */
+  --kategori-warna-4: 244 114 182; /* pink-400 */
+  --kategori-warna-5: 236 72 153; /* pink-500 */
+  --kategori-warna-6: 219 39 119; /* pink-600 */
+  --kategori-warna-7: 190 24 93; /* pink-700 */
+  --kategori-warna-8: 157 23 77; /* pink-800 */
+  --kategori-warna-9: 244 114 182; /* brand-secondary */
+  --kategori-warna-10: 215 129 173; /* text-placeholder */
+  --kategori-warna-11: 249 168 212; /* brand-accent */
+  --kategori-warna-12: 190 24 93; /* brand-primary-hover */
+  --kategori-warna-default: 251 179 209; /* ui-border */
 }
 
 /* ================================================ */
