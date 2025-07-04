@@ -1,27 +1,18 @@
 // pages/varia-statistik/[kategori].tsx
-"use client";
-
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/router";
-
+import Link from "next/link";
 import type { ArtikelBerita, NewsCardItem } from "@/types/varia";
 import FilterSidebar, {
   FilterValues,
 } from "@/components/Berita/TampilBerita/FilterSidebar";
 import ResultsGrid from "@/components/Berita/TampilBerita/ResultsGrid";
-import VariaStatistikPageHeader from "@/components/Berita/Utama/VariaStatistikPageHeader";
-// PageTitle tidak perlu diimpor di sini lagi karena sudah dihandle oleh VariaStatistikPageHeader
+import PageTitle from "@/components/ui/PageTitle";
+import { ArrowLeft } from "lucide-react";
 
-// === FUNGSI UTILITAS (SALIN DARI index.tsx) ===
-// Penting: Pastikan fungsi ini konsisten di seluruh aplikasi atau pindahkan ke file utilitas terpusat.
-interface CategoryStyleProps {
-  categoryColor: string;
-  categoryBgColor: string;
-  categoryHoverColor: string;
-  placeholderTextColor: string;
-}
-
-const getCategoryColorClasses = (kategori: string): CategoryStyleProps => {
+// --- FUNGSI UTILITAS ---
+// Sebaiknya, pindahkan fungsi-fungsi ini ke file terpusat seperti `lib/utils.ts`
+const getCategoryColorClasses = (kategori: string) => {
   const kat = kategori.toLowerCase();
   if (kat.includes("bps terkini"))
     return {
@@ -37,35 +28,6 @@ const getCategoryColorClasses = (kategori: string): CategoryStyleProps => {
       categoryHoverColor: "hover:text-green-700",
       placeholderTextColor: "text-white",
     };
-  if (kat.includes("fotogenik"))
-    return {
-      categoryColor: "text-purple-600 dark:text-purple-400",
-      categoryBgColor: "bg-purple-500",
-      categoryHoverColor: "hover:text-purple-700",
-      placeholderTextColor: "text-white",
-    };
-  if (kat.includes("serba serbi"))
-    return {
-      categoryColor: "text-yellow-600 dark:text-yellow-400",
-      categoryBgColor: "bg-yellow-500",
-      categoryHoverColor: "hover:text-yellow-700",
-      placeholderTextColor: "text-white",
-    };
-  if (kat.includes("wisata"))
-    // Menggunakan 'wisata' karena URL slugnya 'wisata'
-    return {
-      categoryColor: "text-pink-600 dark:text-pink-400",
-      categoryBgColor: "bg-pink-500",
-      categoryHoverColor: "hover:text-pink-700",
-      placeholderTextColor: "text-white",
-    };
-  if (kat.includes("opini"))
-    return {
-      categoryColor: "text-red-600 dark:text-red-400",
-      categoryBgColor: "bg-red-500",
-      categoryHoverColor: "hover:text-red-700",
-      placeholderTextColor: "text-white",
-    };
   return {
     categoryColor: "text-indigo-600 dark:text-indigo-400",
     categoryBgColor: "bg-indigo-500",
@@ -76,35 +38,37 @@ const getCategoryColorClasses = (kategori: string): CategoryStyleProps => {
 
 const mapArtikelToNewsCardItem = (artikel: ArtikelBerita): NewsCardItem => {
   const originalDate = new Date(artikel.savedAt);
-
   const styles = getCategoryColorClasses(artikel.kategori);
   const safeBgColor = styles.categoryBgColor.replace("bg-", "");
   const safePlaceholderTextColor = styles.placeholderTextColor.replace(
     "text-",
     ""
   );
+
+  const gambarUrls = artikel.gambar_urls as { url: string }[] | null;
   const imageUrl =
-    artikel.gambarFiles.length > 0 && artikel.gambarFiles[0].url
-      ? artikel.gambarFiles[0].url
+    gambarUrls && gambarUrls.length > 0
+      ? gambarUrls[0].url
       : `https://placehold.co/800x500/${safeBgColor}/${safePlaceholderTextColor}?text=${encodeURIComponent(
           artikel.judul
         )}&font=Inter`;
+
   return {
-    id: artikel.id.toString(),
+    id: artikel.news_id.toString(),
     title: artikel.judul,
     excerpt: artikel.abstrak,
     category: artikel.kategori,
-    author: artikel.namaPenulis,
+    author: artikel.nama_penulis,
     date: originalDate,
     displayDate: originalDate.toLocaleDateString("id-ID", {
       day: "numeric",
       month: "long",
       year: "numeric",
     }),
-    link: `/varia-statistik/artikel/${artikel.id}`,
+    link: `/varia-statistik/artikel/${artikel.news_id}`,
     imageUrl: imageUrl,
     authorImageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      artikel.namaPenulis
+      artikel.nama_penulis
     )}&background=random&size=32&color=fff&font-size=0.45`,
     views: Math.floor(Math.random() * 250) + 20,
     comments: Math.floor(Math.random() * 30) + 5,
@@ -112,176 +76,101 @@ const mapArtikelToNewsCardItem = (artikel: ArtikelBerita): NewsCardItem => {
   };
 };
 
-// Fungsi utilitas untuk mengubah slug menjadi nama kategori yang lebih rapi
-// Ini juga ada di VariaStatistikPageHeader.tsx, pastikan konsisten.
 const slugToCategoryName = (slug: string): string => {
-  switch (slug) {
-    case "bps-terkini":
-      return "Berita Terkini";
-    case "berita-daerah":
-      return "Berita Daerah";
-    case "fotogenik":
-      return "Fotogenik";
-    case "serba-serbi":
-      return "Serba Serbi";
-    case "wisata":
-      return "Wisata Statistik"; // Sesuaikan dengan nama di header
-    case "opini":
-      return "Opini";
-    default:
-      return slug
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-  }
+  if (!slug) return "";
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 export default function KategoriPage() {
   const router = useRouter();
-  const { kategori: kategoriSlug } = router.query; // Ambil slug kategori dari URL
+  const { kategori: kategoriSlug } = router.query;
 
+  const [displayedArticles, setDisplayedArticles] = useState<NewsCardItem[]>(
+    []
+  );
+  const [allAuthors, setAllAuthors] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [allArticles, setAllArticles] = useState<NewsCardItem[]>([]);
   const [activeFilters, setActiveFilters] = useState<FilterValues>({
     keyword: "",
-    kategori: "", // Ini akan diisi dari URL saat komponen mount
+    kategori: "",
     penulis: "",
     urutkan: "terbaru",
     tanggalMulai: null,
     tanggalSelesai: null,
   });
 
-  // Effect untuk mengambil data artikel dari API
+  const categoryName = useMemo(
+    () => slugToCategoryName(kategoriSlug as string),
+    [kategoriSlug]
+  );
+
+  // Ambil daftar penulis & kategori sekali saja untuk dropdown
   useEffect(() => {
-    const fetchAllArticles = async () => {
-      setIsLoading(true);
+    const fetchDropdownData = async () => {
       try {
-        const response = await fetch("/api/berita");
-        if (!response.ok) throw new Error("Gagal mengambil data");
-        const data: ArtikelBerita[] = await response.json();
-        setAllArticles(data.map(mapArtikelToNewsCardItem));
+        const response = await fetch("/api/berita/meta");
+        if (!response.ok) throw new Error("Gagal mengambil data meta");
+        const { authors, categories } = await response.json();
+        setAllAuthors(authors);
+        setAllCategories(categories);
       } catch (error) {
-        console.error("Gagal mengambil data berita:", error);
+        console.error("Gagal mengambil data untuk filter:", error);
       }
-      setIsLoading(false);
     };
-    fetchAllArticles();
+    fetchDropdownData();
   }, []);
 
-  // Effect untuk mengatur filter awal berdasarkan URL kategori
+  // Fungsi utama untuk mengambil data yang sudah terfilter dari API
+  const runSearch = useCallback(async (filters: FilterValues) => {
+    setIsLoading(true);
+    const params = new URLSearchParams();
+    if (filters.keyword) params.append("search", filters.keyword);
+    if (filters.kategori) params.append("kategori", filters.kategori);
+    if (filters.penulis) params.append("penulis", filters.penulis);
+    if (filters.urutkan) params.append("urutkan", filters.urutkan);
+    if (filters.tanggalMulai)
+      params.append("tanggalMulai", filters.tanggalMulai.toISOString());
+    if (filters.tanggalSelesai)
+      params.append("tanggalSelesai", filters.tanggalSelesai.toISOString());
+
+    try {
+      const response = await fetch(`/api/berita?${params.toString()}`);
+      if (!response.ok) throw new Error("Gagal melakukan pencarian");
+      const data: ArtikelBerita[] = await response.json();
+      setDisplayedArticles(data.map(mapArtikelToNewsCardItem));
+    } catch (error) {
+      console.error("Gagal mencari berita:", error);
+      setDisplayedArticles([]);
+    }
+    setIsLoading(false);
+  }, []);
+
+  // Atur filter awal berdasarkan URL saat halaman dimuat
   useEffect(() => {
     if (router.isReady && kategoriSlug) {
-      const categoryName = slugToCategoryName(kategoriSlug as string); // Ubah slug menjadi nama kategori yang benar
-      setActiveFilters((prev) => ({
-        ...prev,
+      const newFilters: FilterValues = {
+        ...activeFilters,
         kategori: categoryName,
-        // Set keyword dari URL jika ada
-        keyword: (router.query.keyword as string) || "",
-      }));
-    } else if (router.isReady && !kategoriSlug) {
-      // Ini penting jika pengguna menghapus kategori dari URL secara manual
-      // atau jika kita ingin halaman ini bisa berfungsi tanpa kategori spesifik
-      setActiveFilters((prev) => ({
-        ...prev,
-        kategori: "",
-        keyword: (router.query.keyword as string) || "",
-      }));
+      };
+      setActiveFilters(newFilters);
+      runSearch(newFilters);
     }
-  }, [router.isReady, kategoriSlug, router.query.keyword]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, kategoriSlug, categoryName]);
 
-  const uniqueCategories = useMemo(() => {
-    const categoriesSet = new Set(allArticles.map((a) => a.category));
-    return Array.from(categoriesSet);
-  }, [allArticles]);
-
-  const uniqueAuthors = useMemo(() => {
-    const authorsSet = new Set(allArticles.map((a) => a.author));
-    return Array.from(authorsSet);
-  }, [allArticles]);
-
-  const filteredArticles = useMemo(() => {
-    let results = [...allArticles];
-    const {
-      keyword,
-      kategori, // Kategori ini sudah merupakan nama yang benar dari `activeFilters`
-      penulis,
-      urutkan,
-      tanggalMulai,
-      tanggalSelesai,
-    } = activeFilters;
-
-    // Filter berdasarkan kategori yang aktif
-    if (kategori) {
-      results = results.filter((a) => a.category === kategori);
-    }
-
-    // Filter berdasarkan kata kunci
-    if (keyword) {
-      const lowerKeyword = keyword.toLowerCase();
-      results = results.filter(
-        (a) =>
-          a.title.toLowerCase().includes(lowerKeyword) ||
-          a.excerpt.toLowerCase().includes(lowerKeyword)
-      );
-    }
-
-    // Filter berdasarkan penulis
-    if (penulis) {
-      results = results.filter((a) => a.author === penulis);
-    }
-
-    // Filter berdasarkan rentang tanggal
-    if (tanggalMulai && tanggalSelesai) {
-      const startTime = new Date(tanggalMulai).setHours(0, 0, 0, 0);
-      const endTime = new Date(tanggalSelesai).setHours(23, 59, 59, 999);
-      results = results.filter((a) => {
-        const articleTime = a.date.getTime();
-        return articleTime >= startTime && articleTime <= endTime;
-      });
-    }
-
-    // Urutkan hasil
-    results.sort((a, b) => {
-      if (urutkan === "judul") return a.title.localeCompare(b.title);
-      return b.date.getTime() - a.date.getTime();
-    });
-
-    return results;
-  }, [allArticles, activeFilters]);
-
-  // Fungsi untuk menangani perubahan filter dari sidebar
+  // Handler saat filter di sidebar diubah
   const handleFilterChange = (newFilters: FilterValues) => {
     setActiveFilters(newFilters);
-
-    // Update URL berdasarkan perubahan filter
-    const newQuery: { [key: string]: string | undefined } = {};
-    if (newFilters.keyword) {
-      newQuery.keyword = newFilters.keyword;
-    }
-
-    let targetPath = `/varia-statistik`;
-
-    if (newFilters.kategori) {
-      // Jika kategori dipilih, arahkan ke URL kategori baru
-      targetPath = `/varia-statistik/${newFilters.kategori
-        .toLowerCase()
-        .replace(/\s/g, "-")}`;
-    }
-
-    // Push ke URL baru dengan query yang diperbarui
-    router.push(
-      {
-        pathname: targetPath,
-        query: newQuery,
-      },
-      undefined,
-      { shallow: true }
-    );
+    runSearch(newFilters);
   };
 
-  // Fungsi untuk mereset semua filter
+  // Handler saat filter direset
   const handleReset = () => {
-    const resetFilters: FilterValues = {
+    const initialFilters: FilterValues = {
       keyword: "",
       kategori: "",
       penulis: "",
@@ -289,37 +178,46 @@ export default function KategoriPage() {
       tanggalMulai: null,
       tanggalSelesai: null,
     };
-    setActiveFilters(resetFilters);
-    router.push("/varia-statistik"); // Kembali ke halaman utama varia statistik
+    setActiveFilters(initialFilters);
+    router.push("/varia-statistik");
   };
 
   return (
     <div className="bg-surface-page flex flex-col min-h-screen">
-      {/* VariaStatistikPageHeader akan menangani tampilan header atas (judul, menu kategori, dan background) */}
-      <VariaStatistikPageHeader
-        // onSearch di sini tidak digunakan karena FilterSidebar yang menangani perubahan keyword
-        // Parameter 'query' dihapus karena tidak digunakan.
-        onSearch={() => {
-          /* no-op */
-        }}
-        hideSearchBar={true} // Sembunyikan search bar di header karena FilterSidebar akan menampilkannya
-      />
+      {/* Header sederhana khusus untuk halaman ini */}
+      <div className="page-title-header-bg py-10 sm:py-12 md:py-16">
+        <div className="relative z-10 max-w-screen-md mx-auto px-4 text-center">
+          <PageTitle
+            title={`Kategori: ${categoryName}`}
+            backgroundImage="/title.png"
+          />
+        </div>
+        <div className="absolute inset-0 bg-black opacity-50 md:opacity-60 z-0"></div>
+      </div>
 
-      <main className="max-w-screen-xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <main className="max-w-screen-2xl w-full mx-auto px-4 sm:px-6 py-8 md:py-12">
+        <div className="mb-8">
+          <Link href="/varia-statistik" legacyBehavior>
+            <a className="inline-flex items-center gap-2 text-brand-primary hover:text-brand-primary-hover font-semibold transition-colors">
+              <ArrowLeft size={20} />
+              Kembali ke Varia Statistik
+            </a>
+          </Link>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
           <FilterSidebar
             onFilterChange={handleFilterChange}
             onReset={handleReset}
             initialKeyword={activeFilters.keyword}
-            categories={uniqueCategories}
-            authors={uniqueAuthors}
-            initialCategory={activeFilters.kategori} // Set initial category filter
+            categories={allCategories}
+            authors={allAuthors}
+            initialCategory={activeFilters.kategori}
           />
           <ResultsGrid
-            articles={filteredArticles}
+            articles={displayedArticles}
             isLoading={isLoading}
             keyword={activeFilters.keyword}
-            category={activeFilters.kategori} // Pass active category to ResultsGrid for display
+            category={activeFilters.kategori}
           />
         </div>
       </main>

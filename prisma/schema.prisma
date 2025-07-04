@@ -77,25 +77,29 @@ model users {
 }
 
 model news {
-  news_id      BigInt    @id @unique // Pastikan ini BigInt
-  judul        String
-  abstrak      String 
-  kategori     String
-  kata_kunci   Json
-  isi_berita   String @db.Text
-  status       String
+  // --- PERBAIKAN: Menggunakan auto-increment untuk ID ---
+  // Ini adalah cara terbaik dan paling aman untuk menangani ID.
+  // Database akan secara otomatis memberikan nomor unik setiap kali ada berita baru.
+  news_id     BigInt   @id @default(autoincrement())
+  
+  judul       String
+  abstrak     String
+  kategori    String
+  kata_kunci  Json
+  isi_berita  String   @db.Text
+  status      String
   nama_penulis String
-  gambar_urls  Json      // <<< PENTING: Harus Json untuk array of objects
-  savedAt      DateTime  // <<< PENTING: Pastikan ada field ini
-  publishedAt  DateTime? // <<< PENTING: Pastikan ada '?' jika boleh null
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  penulisId    BigInt    // <<< PENTING: Pastikan tidak ada '?' jika mutlak
+  gambar_urls Json     // Tetap Json untuk fleksibilitas
+  savedAt     DateTime
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  penulisId   BigInt
 
-  penulis         users?     @relation(fields: [penulisId], references: [user_id])
-  komentar        comments[]
-  likes           likes[]
-  bookmarks       bookmarks[]
+  penulis     users?     @relation(fields: [penulisId], references: [user_id])
+  komentar    comments[]
+  likes       likes[]
+  bookmarks   bookmarks[]
 }
 
 model reading_materials {

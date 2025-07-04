@@ -1,49 +1,37 @@
 // pages/varia-statistik/tambahberita.tsx
-"use client";
-
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/router";
-
-// Impor komponen-komponen yang dibutuhkan
-import { useAuth } from "@/contexts/AuthContext";
+import type { NextPageWithLayout } from "../_app";
 import BuatBerita from "@/components/Berita/BuatBerita/BuatBerita";
-import PageTitle from "@/components/ui/PageTitle"; // Gunakan header standar yang reusable
+import { useSession } from "next-auth/react";
+import { LoaderCircle } from "lucide-react";
+import PageTitle from "@/components/ui/PageTitle"; // Impor PageTitle untuk header
 
-const TambahBeritaPage: React.FC = () => {
+const TambahBeritaPage: NextPageWithLayout = () => {
   const router = useRouter();
-  const { currentUser, loading: authLoading } = useAuth();
+  const { status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.push(`/login?callbackUrl=${router.asPath}`);
+    },
+  });
 
-  // Cek apakah ada 'id' di URL untuk menentukan mode edit
   const { id: beritaId } = router.query;
   const isEditMode = !!beritaId;
 
-  // Proteksi Halaman: Hanya user yang login yang bisa akses
-  useEffect(() => {
-    // Jangan lakukan apa-apa jika AuthContext masih loading
-    if (authLoading) {
-      return;
-    }
-    // Jika loading selesai dan tidak ada user, tendang ke halaman login
-    if (!currentUser) {
-      alert("Anda harus login terlebih dahulu untuk mengakses halaman ini.");
-      router.push("/login");
-    }
-  }, [currentUser, authLoading, router]);
-
-  // Tampilkan pesan loading selagi AuthContext memeriksa sesi
-  if (authLoading || !currentUser) {
+  if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-page">
-        <p className="text-text-secondary animate-pulse">
-          Memuat dan memverifikasi sesi...
-        </p>
+      <div className="flex items-center justify-center min-h-screen bg-surface-page">
+        <div className="text-center">
+          <LoaderCircle className="w-12 h-12 mx-auto animate-spin text-brand-primary" />
+          <p className="mt-4 text-text-secondary">Memverifikasi sesi Anda...</p>
+        </div>
       </div>
     );
   }
 
-  // Jika sudah lolos verifikasi, render halaman
   return (
-    // Div terluar dengan latar belakang dari tema
+    // --- PERBAIKAN: Menggunakan layout standar, bukan AdminLayout ---
     <div className="bg-surface-page min-h-screen">
       <div className="page-title-header-bg py-10 sm:py-12 md:py-16">
         <div className="relative z-10 max-w-screen-md mx-auto px-4">
@@ -53,13 +41,9 @@ const TambahBeritaPage: React.FC = () => {
           />
         </div>
         <div className="absolute inset-0 bg-black opacity-50 md:opacity-60 z-0"></div>
-        <div className="relative z-10"></div>
       </div>
 
-      {/* Konten utama halaman */}
       <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {/* Komponen form utama diletakkan di sini */}
-        {/* Kita teruskan 'articleId' agar komponen BuatBerita tahu jika ini mode edit */}
         <BuatBerita articleId={beritaId as string | undefined} />
       </main>
     </div>

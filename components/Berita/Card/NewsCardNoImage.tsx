@@ -12,7 +12,7 @@ const NewsCardNoImage: React.FC<{ newsItem: NewsCardItem }> = ({
   return (
     <Link
       href={newsItem.link}
-      className="block bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out group flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 p-5" // Added padding here
+      className="block bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out group flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:focus-visible:ring-blue-400 p-5" // Added padding here
       style={{ height: "100%" }}
     >
       <div className="flex flex-col flex-grow">

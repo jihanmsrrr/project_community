@@ -1,0 +1,35 @@
+// pages/api/berita/meta.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', ['GET']);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+
+  try {
+    const categoryResult = await prisma.news.findMany({
+      where: { status: 'published', kategori: { not: null } },
+      distinct: ['kategori'],
+      select: { kategori: true },
+      orderBy: { kategori: 'asc' },
+    });
+    const categories = categoryResult.map(item => item.kategori);
+
+    // Anda bisa menambahkan pengambilan data penulis di sini jika diperlukan
+    // const authorResult = await prisma.news.findMany(...)
+    // const authors = authorResult.map(...)
+
+    res.status(200).json({ categories }); // Kirim hanya kategori untuk saat ini
+
+  } catch (error) {
+    console.error("API Error fetching meta data:", error);
+    res.status(500).json({ message: 'Gagal mengambil data meta untuk filter.' });
+  }
+}
