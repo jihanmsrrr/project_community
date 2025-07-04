@@ -1,4 +1,4 @@
-// pages/api/berita/[id].ts
+// pages/api/berita/[id]/inde.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient, Prisma } from '@prisma/client';
 import formidable from 'formidable';
@@ -44,6 +44,8 @@ export default async function handler(
         if (!berita) return res.status(404).json({ message: 'Berita tidak ditemukan.' });
         return res.status(200).setHeader('Content-Type', 'application/json').send(JSON.stringify(berita, jsonReplacer));
       } catch (error) {
+        // --- PERBAIKAN: Menggunakan variabel 'error' untuk logging ---
+        console.error(`API Error GET /api/berita/${id}:`, error);
         return res.status(500).json({ message: 'Gagal mengambil data berita.' });
       }
 
@@ -73,10 +75,7 @@ export default async function handler(
         };
 
         const gambarFiles = files.gambar as formidable.File[] | formidable.File | undefined;
-        // --- PERBAIKAN LOGIKA GAMBAR ---
-        // Hanya proses gambar jika ada file baru yang diunggah
         if (gambarFiles && ( (Array.isArray(gambarFiles) && gambarFiles.length > 0) || (!Array.isArray(gambarFiles) && gambarFiles.size > 0) ) ) {
-            // Hapus gambar lama jika ada
             const oldImages = existingNews.gambar_urls as { url: string }[] | null;
             if (oldImages) {
                 oldImages.forEach(img => {
@@ -84,7 +83,6 @@ export default async function handler(
                     if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
                 });
             }
-            // Tambahkan gambar baru
             const fileArray = Array.isArray(gambarFiles) ? gambarFiles : [gambarFiles];
             dataToUpdate.gambar_urls = fileArray.map(file => ({ url: `/files/berita/${file.newFilename}` }));
         }
@@ -115,7 +113,6 @@ export default async function handler(
                     });
                 }
             }
-            // Hapus semua relasi sebelum menghapus berita
             await prisma.likes.deleteMany({ where: { article_id: newsId } });
             await prisma.comments.deleteMany({ where: { news_id: newsId } });
             await prisma.bookmarks.deleteMany({ where: { article_id: newsId } });
@@ -123,6 +120,7 @@ export default async function handler(
             await prisma.news.delete({ where: { news_id: newsId } });
             return res.status(204).end();
         } catch (error) {
+            console.error("API DELETE Error:", error);
             return res.status(500).json({ message: 'Gagal menghapus berita.', error: (error as Error).message });
         }
 

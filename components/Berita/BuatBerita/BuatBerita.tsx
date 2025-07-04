@@ -82,7 +82,7 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
             gambarFiles: (dataToEdit.gambar_urls as { url: string }[]) || [],
           });
         } catch (error) {
-          // --- PERBAIKAN: Menggunakan variabel 'error' ---
+          // --- PERBAIKAN: Menggunakan variabel 'error' di console.error ---
           console.error("Fetch error:", (error as Error).message);
           alert("Gagal memuat data artikel.");
           router.push("/admin/varia-statistik");
@@ -212,6 +212,15 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
         onSubmit={(e) => e.preventDefault()}
         noValidate
       >
+        {/* --- PERBAIKAN: Menampilkan nama penulis dari sesi --- */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-surface-page border border-ui-border">
+          <div>
+            <p className="text-xs text-text-secondary">Penulis</p>
+            <p className="font-semibold text-text-primary">
+              {session?.user?.name || "Memuat..."}
+            </p>
+          </div>
+        </div>
         <div>
           <label
             htmlFor="judul"
