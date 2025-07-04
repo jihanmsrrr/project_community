@@ -1,11 +1,11 @@
 // FILE: components/ui/AdminLayout.tsx
 "use client";
 
-// --- PERUBAHAN KUNCI: Impor hook yang kita butuhkan ---
-import React, { useState, SVGProps } from "react";
+import React, { useState, SVGProps, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useAuth } from "@/contexts/AuthContext"; // Impor useAuth sebagai sumber data utama
+// --- PERUBAHAN KUNCI: Impor hook dari NextAuth ---
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Newspaper,
@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronDown,
   ShieldCheck,
+  LoaderCircle,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -69,19 +70,37 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const router = useRouter();
-
-  // --- PERUBAHAN KUNCI: Gunakan state dari AuthContext, bukan state lokal ---
-  const { currentUser, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // --- DIHAPUS ---
-  // State dan useEffect untuk verifikasi manual tidak lagi ada di sini.
-  // Ini mencegah redirect yang salah dan menyederhanakan komponen.
+  // --- PERUBAHAN KUNCI: Gunakan useSession dari NextAuth ---
+  const { data: session, status } = useSession();
 
-  // --- PERUBAHAN KUNCI: Fungsi logout sekarang memanggil fungsi dari context ---
+  // --- PERUBAHAN KUNCI: Proteksi Rute ---
+  // Efek ini akan memeriksa status login. Jika belum login, akan diarahkan ke halaman login.
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  // --- PERUBAHAN KUNCI: Fungsi logout sekarang memanggil signOut dari NextAuth ---
   const handleLogout = () => {
-    logout(); // Fungsi ini sudah menangani clear session dan redirect ke /login
+    signOut({ callbackUrl: "/login" }); // Arahkan ke halaman login setelah logout
   };
+
+  // Tampilkan loader saat sesi sedang diverifikasi untuk mencegah kedipan konten
+  if (status === "loading") {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-surface-background">
+        <LoaderCircle className="w-12 h-12 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  // Jika sudah diverifikasi tapi tidak ada sesi, jangan render apapun (karena akan di-redirect)
+  if (status === "unauthenticated") {
+    return null;
+  }
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-surface-card rounded-xl shadow-sm border border-ui-border/50">
@@ -114,14 +133,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       <div className="p-4 border-t border-ui-border/50">
         <div className="flex items-center mb-4">
           <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center text-text-on-brand font-bold text-lg">
-            {/* PERUBAHAN KUNCI: Ambil data dari currentUser yang disediakan context */}
-            {currentUser?.nama?.charAt(0).toUpperCase() || "A"}
+            {/* PERUBAHAN KUNCI: Ambil data dari 'session' yang disediakan NextAuth */}
+            {session?.user?.name?.charAt(0).toUpperCase() || "A"}
           </div>
           <div className="ml-3">
             <p className="text-sm font-semibold text-text-primary">
-              {currentUser?.nama || "Admin"}
+              {session?.user?.name || "Admin"}
             </p>
-            <p className="text-xs text-text-secondary">Administrator</p>
+            <p className="text-xs text-text-secondary capitalize">
+              {session?.user?.role || "Administrator"}
+            </p>
           </div>
         </div>
         <button
@@ -135,10 +156,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     </div>
   );
 
-  // --- PERUBAHAN KUNCI ---
-  // Tidak ada lagi logika "isVerifying" atau "if(!username)".
-  // Komponen ini sekarang selalu me-render layout, dan menyerahkan
-  // urusan proteksi rute kepada komponen `children` (halaman).
   return (
     <div className="bg-surface-background min-h-screen">
       <div className="max-w-screen-2xl mx-auto w-full px-4 sm:px-6 lg:px-8">

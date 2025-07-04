@@ -1,80 +1,48 @@
+// components/ui/Breadcrumb.tsx
 import React from "react";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
-interface BreadcrumbProps {
-  kategori?: string;
-  subKategori?: string;
-  modul?: string;
-  onNavigate?: (level: "kategori" | "subKategori" | "modul") => void;
+// Tipe data untuk setiap item di breadcrumb
+export interface Crumb {
+  label: string;
+  href: string;
+  isCurrent?: boolean;
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({
-  kategori,
-  subKategori,
-  modul,
-  onNavigate,
-}) => {
+interface BreadcrumbProps {
+  crumbs: Crumb[];
+}
+
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ crumbs }) => {
   return (
-    <nav
-      className="text-sm mb-6 px-4 sm:px-0"
-      aria-label="Breadcrumb"
-    >
-      <ol className="list-none flex flex-wrap items-center space-x-2 text-blue-600">
-        {/* Home / Beranda */}
-        <li>
-          <button
-            onClick={() => onNavigate && onNavigate("kategori")}
-            className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-            aria-current={!(kategori && subKategori && modul) ? "page" : undefined}
-          >
-            Beranda
-          </button>
-        </li>
+    <nav aria-label="Breadcrumb" className="mb-6">
+      <ol className="list-none flex flex-wrap items-center gap-2 text-sm">
+        {crumbs.map((crumb, index) => (
+          <li key={index} className="flex items-center gap-2">
+            {/* Tampilkan separator jika bukan item pertama */}
+            {index > 0 && (
+              <ChevronRight size={16} className="text-text-placeholder" />
+            )}
 
-        {/* Separator */}
-        {kategori && <li aria-hidden="true">/</li>}
-
-        {/* Kategori */}
-        {kategori && (
-          <li>
-            <button
-              onClick={() => onNavigate && onNavigate("kategori")}
-              className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-              aria-current={!(subKategori && modul) ? "page" : undefined}
-            >
-              {kategori}
-            </button>
+            {/* Jika ini adalah halaman saat ini, tampilkan sebagai teks biasa */}
+            {crumb.isCurrent ? (
+              <span
+                className="font-semibold text-text-primary"
+                aria-current="page"
+              >
+                {crumb.label}
+              </span>
+            ) : (
+              // Jika bukan, tampilkan sebagai link
+              <Link href={crumb.href} legacyBehavior>
+                <a className="font-medium text-text-secondary hover:text-brand-primary transition-colors">
+                  {crumb.label}
+                </a>
+              </Link>
+            )}
           </li>
-        )}
-
-        {/* Separator */}
-        {subKategori && <li aria-hidden="true">/</li>}
-
-        {/* Subkategori */}
-        {subKategori && (
-          <li>
-            <button
-              onClick={() => onNavigate && onNavigate("subKategori")}
-              className="hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-              aria-current={!modul ? "page" : undefined}
-            >
-              {subKategori}
-            </button>
-          </li>
-        )}
-
-        {/* Separator */}
-        {modul && <li aria-hidden="true">/</li>}
-
-        {/* Modul (current page, no button) */}
-        {modul && (
-          <li
-            aria-current="page"
-            className="text-gray-700 font-semibold truncate max-w-xs"
-            title={modul}
-          >
-            {modul}
-          </li>
-        )}
+        ))}
       </ol>
     </nav>
   );

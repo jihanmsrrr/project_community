@@ -1,463 +1,294 @@
 // app/ruangbaca/page.tsx
-
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search,
-  CheckCircle,
-  AlertTriangle,
   LoaderCircle,
+  AlertTriangle,
   BookOpen,
-  FolderKanban,
-  BarChart,
-  FileText,
-  Briefcase,
-  Megaphone,
-  Scale,
-  Users,
+  CheckCircle,
   Code,
-  Book,
-  Gavel,
+  Megaphone,
+  FileText,
+  Users,
+  BarChart,
   Eye,
+  FolderKanban,
+  Briefcase,
+  Gavel,
+  Scale,
+  Book,
 } from "lucide-react";
 
 import PageTitle from "@/components/ui/PageTitle";
 import MateriCard from "@/components/Baca/MateriCard";
-import { useDebounce } from "@/pages/hooks/useDebounce"; // Pastikan Anda sudah membuat hook ini
-
-// --- Definisi Tipe Data ---
+import SearchComponent, {
+  SearchParams,
+} from "@/components/Baca/SearchComponent";
+import Breadcrumb, { Crumb } from "@/components/Baca/Breadcrumb"; // Impor Breadcrumb dan tipenya
 
 interface ApiMaterial {
-  // --- PERBAIKAN DI SINI ---
-  material_id: string; // Pastikan ini string
-  uploader_id: string | null; // Pastikan ini string | null
-  // -------------------------
-
+  material_id: string;
+  uploader_id: string | null;
   judul: string | null;
   kategori: string | null;
   sub_kategori: string | null;
   deskripsi: string | null;
   file_path: string | null;
-  tanggal_upload: string | null; // Data dari JSON adalah string, akan diubah jadi Date nanti
+  tanggal_upload: string | null;
   hits: number;
   uploader?: { nama_lengkap: string | null } | null;
 }
-interface KategoriGrouped {
-  id: string;
-
-  namaTampil: string;
-
-  subKategori: {
-    id: string;
-
-    nama: string;
-
-    modul: ApiMaterial[];
-  }[];
-}
-
-// --- Mapping Tampilan Kategori ---
 
 const kategoriDisplayMap: {
   [key: string]: { icon: React.ElementType; colorClass: string };
 } = {
-  "Akuntabilitas Kinerja": { icon: CheckCircle, colorClass: "bg-kategori-1" },
-
-  "Asistensi Teknis": { icon: Code, colorClass: "bg-kategori-2" },
-
-  "Diseminasi Statistik": { icon: Megaphone, colorClass: "bg-kategori-3" },
-
-  "Dokumentasi Paparan": { icon: FileText, colorClass: "bg-kategori-4" },
-
-  "Leadership & Manajemen": { icon: Users, colorClass: "bg-kategori-5" },
-
-  "Metodologi Sensus & Survei": { icon: BarChart, colorClass: "bg-kategori-6" },
-
-  "Monitoring & Evaluasi": { icon: Eye, colorClass: "bg-kategori-7" },
-
-  "Pembinaan Statistik": { icon: FolderKanban, colorClass: "bg-kategori-8" },
-
-  "Reformasi Birokrasi": { icon: Briefcase, colorClass: "bg-kategori-9" },
-
-  Regulasi: { icon: Gavel, colorClass: "bg-kategori-10" },
-
-  "Seminar & Workshop": { icon: Book, colorClass: "bg-kategori-11" },
-
-  "Standar Biaya": { icon: Scale, colorClass: "bg-kategori-12" },
-
-  default: { icon: BookOpen, colorClass: "bg-kategori-default" },
+  "Asistensi Teknis": {
+    icon: Code,
+    colorClass: "bg-gradient-to-br from-sky-500 to-indigo-600",
+  },
+  "Reformasi Birokrasi": {
+    icon: Briefcase,
+    colorClass: "bg-gradient-to-br from-blue-500 to-violet-600",
+  },
+  "Leadership & Manajemen": {
+    icon: Users,
+    colorClass: "bg-gradient-to-br from-purple-500 to-fuchsia-600",
+  },
+  "Akuntabilitas Kinerja": {
+    icon: CheckCircle,
+    colorClass: "bg-gradient-to-br from-emerald-500 to-green-600",
+  },
+  "Pembinaan Statistik": {
+    icon: FolderKanban,
+    colorClass: "bg-gradient-to-br from-teal-500 to-cyan-600",
+  },
+  "Metodologi Sensus & Survei": {
+    icon: BarChart,
+    colorClass: "bg-gradient-to-br from-lime-500 to-emerald-600",
+  },
+  "Diseminasi Statistik": {
+    icon: Megaphone,
+    colorClass: "bg-gradient-to-br from-amber-500 to-orange-600",
+  },
+  "Seminar & Workshop": {
+    icon: Book,
+    colorClass: "bg-gradient-to-br from-orange-500 to-rose-500",
+  },
+  "Monitoring & Evaluasi": {
+    icon: Eye,
+    colorClass: "bg-gradient-to-br from-yellow-400 to-amber-500",
+  },
+  "Dokumentasi Paparan": {
+    icon: FileText,
+    colorClass: "bg-gradient-to-br from-slate-500 to-gray-600",
+  },
+  Regulasi: {
+    icon: Gavel,
+    colorClass: "bg-gradient-to-br from-gray-600 to-slate-800",
+  },
+  "Standar Biaya": {
+    icon: Scale,
+    colorClass: "bg-gradient-to-br from-stone-500 to-neutral-600",
+  },
+  default: {
+    icon: BookOpen,
+    colorClass: "bg-gradient-to-br from-gray-400 to-gray-500",
+  },
 };
 
-// === Komponen Utama Halaman ===
-
 export default function RuangBacaPage() {
-  // --- State Management ---
-
-  const [masterList, setMasterList] = useState<ApiMaterial[]>([]); // Menyimpan semua data asli untuk dropdown
-
+  const [masterList, setMasterList] = useState<ApiMaterial[]>([]);
   const [displayedMaterials, setDisplayedMaterials] = useState<ApiMaterial[]>(
     []
-  ); // Data yang akan ditampilkan, bisa terfilter
-
-  const [isLoading, setIsLoading] = useState(true); // Loading untuk setiap fetch
-
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // Loading untuk pertama kali halaman dibuka
-
+  );
+  const [isLoadingInitialData, setIsLoadingInitialData] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const [hasError, setHasError] = useState(false);
-
-  // State untuk filter
-
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const [selectedKategori, setSelectedKategori] = useState("");
-
-  const [selectedSubKategori, setSelectedSubKategori] = useState("");
-
-  const [sortOrder, setSortOrder] = useState<"hits" | "judul">("hits");
-
-  // Terapkan debounce pada input pencarian
-
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
-
-  // --- Logika Data Fetching ---
-
-  // 1. Fetch data awal sekali saja untuk mengisi 'masterList'
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchParams, setSearchParams] = useState<SearchParams>({
+    keyword: "",
+    kategori: "",
+    subKategori: "",
+    urutkan: "hits",
+  });
 
   useEffect(() => {
     const fetchInitialData = async () => {
+      setIsLoadingInitialData(true);
       try {
         const response = await fetch("/api/ruangbaca/materials");
-
         if (!response.ok) throw new Error("Gagal mengambil data awal");
-
         const data: ApiMaterial[] = await response.json();
-
         setMasterList(data);
-
-        setDisplayedMaterials(data); // Awalnya, tampilkan semua materi
       } catch (err) {
         console.error("Error fetching initial data:", err);
-
-        setHasError(true);
       } finally {
-        setIsLoading(false);
-
-        setIsInitialLoading(false);
+        setIsLoadingInitialData(false);
       }
     };
-
     fetchInitialData();
-  }, []); // Dependensi kosong, hanya jalan sekali
+  }, []);
 
-  // 2. Fetch data terfilter setiap kali filter berubah
+  const runSearch = useCallback(async (paramsToSearch: SearchParams) => {
+    if (!paramsToSearch.keyword && !paramsToSearch.kategori) return;
+    setIsSearching(true);
+    try {
+      const query = new URLSearchParams();
+      if (paramsToSearch.keyword)
+        query.append("search", paramsToSearch.keyword);
+      if (paramsToSearch.kategori)
+        query.append("kategori", paramsToSearch.kategori);
+      if (paramsToSearch.subKategori)
+        query.append("sub_kategori", paramsToSearch.subKategori);
 
-  useEffect(() => {
-    // Jangan jalankan fetch ini saat halaman pertama kali dimuat
+      const response = await fetch(
+        `/api/ruangbaca/materials?${query.toString()}`
+      );
+      if (!response.ok) throw new Error("Gagal mengambil data terfilter");
+      const data: ApiMaterial[] = await response.json();
 
-    if (isInitialLoading) return;
+      data.sort((a, b) => {
+        if (paramsToSearch.urutkan === "judul")
+          return (a.judul || "").localeCompare(b.judul || "");
+        return b.hits - a.hits;
+      });
+      setDisplayedMaterials(data);
+    } catch (err) {
+      console.error("Error fetching filtered materials:", err);
+      setHasError(true);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
-    const fetchFilteredMaterials = async () => {
-      setIsLoading(true);
+  const handleSearchTrigger = () => {
+    if (!isSearchActive) setIsSearchActive(true);
+    runSearch(searchParams);
+  };
 
-      setHasError(false);
-
-      try {
-        const params = new URLSearchParams();
-
-        if (debouncedSearchQuery) params.append("search", debouncedSearchQuery);
-
-        if (selectedKategori) params.append("kategori", selectedKategori);
-
-        if (selectedSubKategori)
-          params.append("sub_kategori", selectedSubKategori);
-
-        // Hanya fetch jika ada filter yang aktif
-
-        if (params.toString()) {
-          const response = await fetch(
-            `/api/ruangbaca/materials?${params.toString()}`
-          );
-
-          if (!response.ok) throw new Error("Gagal mengambil data terfilter");
-
-          const data: ApiMaterial[] = await response.json();
-
-          setDisplayedMaterials(data);
-        } else {
-          // Jika tidak ada filter, kembalikan ke master list
-
-          setDisplayedMaterials(masterList);
-        }
-      } catch (err) {
-        console.error("Error fetching filtered materials:", err);
-
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
+  const handleResetAndExitSearch = () => {
+    setIsSearchActive(false);
+    const initialParams = {
+      keyword: "",
+      kategori: "",
+      subKategori: "",
+      urutkan: "hits" as "hits" | "judul",
     };
+    setSearchParams(initialParams);
+    setDisplayedMaterials([]);
+  };
 
-    fetchFilteredMaterials();
-  }, [
-    debouncedSearchQuery,
-
-    selectedKategori,
-
-    selectedSubKategori,
-
-    isInitialLoading,
-
-    masterList,
-  ]);
-
-  // --- Logika untuk Dropdown & Tampilan ---
-
-  // Dropdown kategori dibuat dari masterList agar selalu lengkap
-
-  const availableCategoriesForDropdown = useMemo(() => {
+  const availableCategories = useMemo(() => {
     const categories = new Set<string>();
-
     masterList.forEach((m) => {
       if (m.kategori) categories.add(m.kategori);
     });
-
-    return Array.from(categories)
-
-      .sort()
-
-      .map((cat) => ({ id: cat, namaTampil: cat }));
+    return Array.from(categories).sort();
   }, [masterList]);
 
-  // Dropdown sub-kategori juga dari masterList agar akurat
-
-  const availableSubCategoriesForDropdown = useMemo(() => {
-    if (!selectedKategori) return [];
-
+  const availableSubCategories = useMemo(() => {
+    if (!searchParams.kategori) return [];
     const subCategories = new Set<string>();
-
     masterList.forEach((m) => {
-      if (m.kategori === selectedKategori && m.sub_kategori) {
+      if (m.kategori === searchParams.kategori && m.sub_kategori) {
         subCategories.add(m.sub_kategori);
       }
     });
+    return Array.from(subCategories).sort();
+  }, [searchParams.kategori, masterList]);
 
-    return Array.from(subCategories)
-
-      .sort()
-
-      .map((sub) => ({ id: sub, nama: sub }));
-  }, [selectedKategori, masterList]);
-
-  // Grouping dan Sorting data yang akan ditampilkan
-
-  const groupedData = useMemo(() => {
-    const materialsToProcess = [...displayedMaterials];
-
-    materialsToProcess.sort((a, b) => {
-      if (sortOrder === "judul")
-        return (a.judul || "").localeCompare(b.judul || "");
-
-      return b.hits - a.hits;
-    });
-
-    const kategoriMap = new Map<string, KategoriGrouped>();
-
-    materialsToProcess.forEach((material) => {
-      if (!material.kategori) return;
-
-      let kategoriEntry = kategoriMap.get(material.kategori);
-
-      if (!kategoriEntry) {
-        kategoriEntry = {
-          id: material.kategori,
-
-          namaTampil: material.kategori,
-
-          subKategori: [],
-        };
-
-        kategoriMap.set(material.kategori, kategoriEntry);
+  // --- PERBAIKAN: Fungsi untuk membuat data breadcrumb secara dinamis ---
+  const generateBreadcrumbs = (): Crumb[] => {
+    const crumbs: Crumb[] = [{ label: "Ruang Baca", href: "/ruangbaca" }];
+    if (searchParams.keyword) {
+      crumbs.push({
+        label: `Hasil untuk "${searchParams.keyword}"`,
+        href: "#",
+        isCurrent: true,
+      });
+    } else if (searchParams.kategori) {
+      crumbs.push({
+        label: searchParams.kategori,
+        href: `/ruangbaca/kategori/${searchParams.kategori}`,
+        isCurrent: !searchParams.subKategori,
+      });
+      if (searchParams.subKategori) {
+        crumbs.push({
+          label: searchParams.subKategori,
+          href: "#",
+          isCurrent: true,
+        });
       }
-
-      let subKategoriEntry = kategoriEntry.subKategori.find(
-        (sk) => sk.id === (material.sub_kategori || "tanpa-sub-kategori")
-      );
-
-      if (!subKategoriEntry) {
-        subKategoriEntry = {
-          id: material.sub_kategori || "tanpa-sub-kategori",
-
-          nama: material.sub_kategori || "Tanpa Sub-Kategori",
-
-          modul: [],
-        };
-
-        kategoriEntry.subKategori.push(subKategoriEntry);
-      }
-
-      subKategoriEntry.modul.push(material);
-    });
-
-    return Array.from(kategoriMap.values()).sort((a, b) =>
-      a.namaTampil.localeCompare(b.namaTampil)
-    );
-  }, [displayedMaterials, sortOrder]);
-
-  const handleResetFilters = () => {
-    setSearchQuery("");
-
-    setSelectedKategori("");
-
-    setSelectedSubKategori("");
-
-    setSortOrder("hits");
-
-    setDisplayedMaterials(masterList); // Kembalikan ke daftar lengkap
+    }
+    return crumbs;
   };
 
-  const renderContent = () => {
-    if (isInitialLoading) {
-      return (
+  const renderInitialView = () => (
+    <div className="space-y-10">
+      <h2 className="text-2xl font-bold text-center">
+        Direktori Materi Berdasarkan Kategori
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {availableCategories.map((kategori) => {
+          const categoryInfo =
+            kategoriDisplayMap[kategori] || kategoriDisplayMap["default"];
+          const IconComponent = categoryInfo.icon;
+          return (
+            <Link
+              href={`/ruangbaca/kategori/${encodeURIComponent(kategori)}`}
+              key={kategori}
+              className={`flex flex-col items-center justify-center p-6 rounded-xl shadow-lg text-white transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${categoryInfo.colorClass}`}
+            >
+              <IconComponent size={48} className="mb-4 drop-shadow-lg" />
+              <h3 className="text-xl font-semibold text-center drop-shadow-lg">
+                {kategori}
+              </h3>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const renderSearchResults = () => (
+    <>
+      {isSearching ? (
         <div className="text-center py-10">
           <LoaderCircle className="mx-auto h-12 w-12 text-brand-primary animate-spin" />
         </div>
-      );
-    }
-
-    if (hasError) {
-      return (
+      ) : hasError ? (
         <div className="text-center py-10 bg-red-50 text-red-700 rounded-lg">
           <AlertTriangle className="mx-auto h-12 w-12 mb-4" />
-
           <h3 className="text-xl font-semibold">Gagal Memuat Data</h3>
         </div>
-      );
-    }
-
-    const isFilterActive =
-      searchQuery.trim() || selectedKategori || selectedSubKategori;
-
-    if (!isFilterActive) {
-      // Tampilan Awal: Kartu Kategori
-
-      return (
-        <motion.div
-          key="initial-view"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="space-y-10"
-        >
-          <h2 className="text-2xl font-bold text-center">
-            Direktori Materi Berdasarkan Kategori
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {availableCategoriesForDropdown.map((kategori) => {
-              const categoryInfo =
-                kategoriDisplayMap[kategori.namaTampil] ||
-                kategoriDisplayMap["default"];
-
-              const IconComponent = categoryInfo.icon;
-
-              return (
-                <Link
-                  href={`/ruangbaca/kategori/${encodeURIComponent(
-                    kategori.id
-                  )}`}
-                  key={kategori.id}
-                  className={`flex flex-col items-center justify-center p-6 rounded-xl shadow-md text-white transition-all duration-300 transform hover:scale-105 ${categoryInfo.colorClass}`}
-                >
-                  <IconComponent size={48} className="mb-4" />
-
-                  <h3 className="text-xl font-semibold text-center">
-                    {kategori.namaTampil}
-                  </h3>
-                </Link>
-              );
-            })}
-          </div>
-        </motion.div>
-      );
-    }
-
-    // Tampilan Hasil Pencarian/Filter
-
-    return (
-      <motion.div
-        key="search-results-view"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
-        <h2 className="text-2xl font-bold text-center mb-10">
-          Hasil Pencarian
-        </h2>
-
-        {isLoading ? (
-          <div className="text-center py-10">
-            <LoaderCircle className="mx-auto h-12 w-12 text-brand-primary animate-spin" />
-          </div>
-        ) : groupedData.length > 0 ? (
-          <div className="space-y-12">
-            {groupedData.map((kategori) => (
-              <section key={kategori.id}>
-                <h3 className="text-xl sm:text-2xl font-semibold border-b pb-3 mb-6">
-                  {kategori.namaTampil}
-                </h3>
-
-                <div className="space-y-8">
-                  {kategori.subKategori.map((sub) => (
-                    <div key={sub.id}>
-                      <h4 className="text-lg font-medium mb-4">{sub.nama}</h4>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {sub.modul.map((modulItem) => (
-                          <MateriCard
-                            key={modulItem.material_id}
-                            modul={{
-                              // Tidak ada lagi konversi BigInt, properti langsung diteruskan
-                              material_id: modulItem.material_id,
-                              uploader_id: modulItem.uploader_id,
-
-                              // Konversi tanggal tetap diperlukan
-                              tanggal_upload: modulItem.tanggal_upload
-                                ? new Date(modulItem.tanggal_upload)
-                                : null,
-
-                              // Properti lainnya
-                              judul: modulItem.judul,
-                              kategori: modulItem.kategori,
-                              sub_kategori: modulItem.sub_kategori,
-                              deskripsi: modulItem.deskripsi,
-                              file_path: modulItem.file_path,
-                              hits: modulItem.hits,
-                              uploader: modulItem.uploader,
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <AlertTriangle size={48} className="mx-auto text-gray-400" />
-
-            <h3 className="mt-4 text-xl font-semibold">Tidak Ada Hasil</h3>
-
-            <p className="mt-1 text-gray-500">
-              Coba sesuaikan filter atau kata kunci Anda.
-            </p>
-          </div>
-        )}
-      </motion.div>
-    );
-  };
+      ) : displayedMaterials.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayedMaterials.map((modulItem) => (
+            <MateriCard
+              key={modulItem.material_id}
+              modul={{
+                ...modulItem,
+                tanggal_upload: modulItem.tanggal_upload
+                  ? new Date(modulItem.tanggal_upload)
+                  : null,
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16">
+          <AlertTriangle size={48} className="mx-auto text-gray-400" />
+          <h3 className="mt-4 text-xl font-semibold">Tidak Ada Hasil</h3>
+          <p className="mt-1 text-gray-500">
+            Coba sesuaikan filter atau kata kunci Anda.
+          </p>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="bg-surface-page min-h-screen flex flex-col">
@@ -468,94 +299,66 @@ export default function RuangBacaPage() {
             backgroundImage="/title.png"
           />
         </div>
-
         <div className="absolute inset-0 bg-black opacity-50 md:opacity-60 z-0"></div>
-
-        <div className="relative z-10"></div>
       </div>
-      <main className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 flex-grow">
-        {/* Form Filter */}
 
-        <section className="mb-8 p-6 bg-surface-card rounded-xl shadow-md">
-          <h2 className="text-2xl font-bold text-text-primary mb-6 text-center">
-            Cari Materi Ruang Baca
-          </h2>
-
-          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
-            {/* Input Search */}
-
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search className="h-5 w-5 text-gray-400" />
-              </span>
-
-              <input
-                type="text"
-                id="search-keyword"
-                className="w-full pl-10 pr-4 py-2.5 border rounded-lg"
-                placeholder="Cari judul, deskripsi..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            {/* Dropdowns */}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <select
-                id="kategori-select"
-                className="w-full py-2.5 px-3 border rounded-lg"
-                value={selectedKategori}
-                onChange={(e) => {
-                  setSelectedKategori(e.target.value);
-
-                  setSelectedSubKategori("");
-                }}
-              >
-                <option value="">Semua Kategori</option>
-
-                {availableCategoriesForDropdown.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.namaTampil}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                id="subkategori-select"
-                className="w-full py-2.5 px-3 border rounded-lg"
-                value={selectedSubKategori}
-                onChange={(e) => setSelectedSubKategori(e.target.value)}
-                disabled={
-                  !selectedKategori ||
-                  availableSubCategoriesForDropdown.length === 0
-                }
-              >
-                <option value="">Semua Topik</option>
-
-                {availableSubCategoriesForDropdown.map((subCat) => (
-                  <option key={subCat.id} value={subCat.id}>
-                    {subCat.nama}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Tombol Reset */}
-
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300"
-              >
-                Reset Filter
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
+      <main className="w-full mx-auto py-8 md:py-10 flex-grow">
+        <AnimatePresence mode="wait">
+          {!isSearchActive ? (
+            <motion.div
+              key="initial-layout"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <section className="mb-12">
+                <SearchComponent
+                  params={searchParams}
+                  onParamsChange={setSearchParams}
+                  onSearch={handleSearchTrigger}
+                  availableKategori={availableCategories}
+                  availableSubKategori={availableSubCategories}
+                  isLoading={isLoadingInitialData}
+                />
+              </section>
+              <div className="px-4 sm:px-6 lg:px-8">
+                {isLoadingInitialData ? (
+                  <div className="text-center py-10">
+                    <LoaderCircle className="mx-auto h-8 w-8 text-brand-primary animate-spin" />
+                  </div>
+                ) : (
+                  renderInitialView()
+                )}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="search-layout"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-8"
+            >
+              <div className="md:col-span-4 lg:col-span-3">
+                <SearchComponent
+                  isSidebar={true}
+                  params={searchParams}
+                  onParamsChange={setSearchParams}
+                  onSearch={() => runSearch(searchParams)}
+                  onReset={handleResetAndExitSearch}
+                  availableKategori={availableCategories}
+                  availableSubKategori={availableSubCategories}
+                  isLoading={isSearching}
+                />
+              </div>
+              <div className="md:col-span-8 lg:col-span-9">
+                {/* --- PERBAIKAN: Menggunakan Breadcrumb dinamis --- */}
+                <Breadcrumb crumbs={generateBreadcrumbs()} />
+                {renderSearchResults()}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );

@@ -345,7 +345,7 @@ const SingleModulPage: React.FC<RuangBacaDetailPageProps> = ({
                       <MateriCard
                         key={recModul.material_id}
                         modul={{
-                          material_id: BigInt(recModul.material_id),
+                          material_id: recModul.material_id,
                           judul: recModul.judul,
                           kategori: recModul.kategori,
                           sub_kategori: recModul.sub_kategori,
@@ -354,7 +354,7 @@ const SingleModulPage: React.FC<RuangBacaDetailPageProps> = ({
                           hits: recModul.hits,
                           uploader: recModul.uploader,
                           uploader_id: recModul.uploader_id
-                            ? BigInt(recModul.uploader_id)
+                            ? recModul.uploader_id.toString()
                             : null,
                           tanggal_upload: recModul.tanggal_upload
                             ? new Date(recModul.tanggal_upload)
