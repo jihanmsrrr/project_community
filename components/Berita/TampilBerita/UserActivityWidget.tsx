@@ -27,9 +27,9 @@ const UserActivityWidget: React.FC<UserActivityWidgetProps> = ({
             (
               artikel // Hanya tampilkan 5 teratas
             ) => (
-              <li key={artikel.id}>
+              <li key={artikel.news_id}>
                 <Link
-                  href={`/varia-statistik/artikel/${artikel.id}`}
+                  href={`/varia-statistik/artikel/${artikel.news_id}`}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-start group"
                 >
                   <ChevronRight

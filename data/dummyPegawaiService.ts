@@ -396,9 +396,9 @@ const generateFullDummyPegawaiList = (
       const pegawaiData: DetailPegawaiData = {
         id: nip,
         nama: namaFinalPejabat,
-        nipLama: `NIPLAMA-P-${nip.substring(nip.length - 7, nip.length -3)}`,
+        nipLama: `NIPLAMA-P-${nip.substring(nip.length - 7, nip.length - 3)}`,
         nipBaru: nip,
-        email: `${namaFinalPejabat.split(" ")[1]?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'pejabat'}.${namaFinalPejabat.split(" ")[0]?.toLowerCase().replace(/[^a-z0-9.,]/g,'')}@bps.go.id`.substring(0,40),
+        email: `${namaFinalPejabat.split(" ")[1]?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'pejabat'}.${namaFinalPejabat.split(" ")[0]?.toLowerCase().replace(/[^a-z0-9.,]/g, '')}@bps.go.id`.substring(0, 40),
         fotoUrl: pejabat.fotoUrl || getAvatar(namaFinalPejabat),
         tempatLahir: randomElement(kotaLahirOptionsGlobal),
         tanggalLahir: formatDate(tanggalLahir),
@@ -406,11 +406,11 @@ const generateFullDummyPegawaiList = (
         statusKepegawaian: "PNS",
         TMT_PNS: formatDate(tmtPns),
         pangkatGolongan: `${pangkatInfo.pangkat} (${pangkatInfo.golongan})`,
-        tmtPangkatGolongan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(3,10) , Math.max(tmtPns.getFullYear() + 3, new Date().getFullYear() - 1))),
+        tmtPangkatGolongan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(3, 10), Math.max(tmtPns.getFullYear() + 3, new Date().getFullYear() - 1))),
         jabatanStruktural: pejabat.jabatan,
         jenjangJabatanFungsional: jenjangFungsionalPejabat,
-        tmtJabatan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(1, usiaPejabat - 25 > 0 ? usiaPejabat - 25 : 1) , Math.max(tmtPns.getFullYear()+1, new Date().getFullYear()))),
-        
+        tmtJabatan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(1, usiaPejabat - 25 > 0 ? usiaPejabat - 25 : 1), Math.max(tmtPns.getFullYear() + 1, new Date().getFullYear()))),
+
         satuanKerjaId: infoSatker.satuanKerjaId || infoSatker.id,
         satuanKerjaNama: infoSatker.namaWilayahAsli,
         namaSatkerLengkap: infoSatker.namaSatkerLengkap,
@@ -421,18 +421,19 @@ const generateFullDummyPegawaiList = (
         teleponKantor: infoSatker.teleponKantor,
         homepageSatker: infoSatker.homepageSatker,
         pendidikanTerakhir: pendidikanTerakhirText,
-        masaKerjaGolongan: `${randomInt(1,10)} thn ${randomInt(0,11)} bln`,
-        masaKerjaTotal: `${Math.max(0, new Date().getFullYear() - tmtPns.getFullYear())} thn ${randomInt(0,11)} bln`,
+        masaKerjaGolongan: `${randomInt(1, 10)} thn ${randomInt(0, 11)} bln`,
+        masaKerjaTotal: `${Math.max(0, new Date().getFullYear() - tmtPns.getFullYear())} thn ${randomInt(0, 11)} bln`,
         tanggalPensiun: formatDate(new Date(tahunLahir + 60, tanggalLahir.getMonth(), tanggalLahir.getDate())),
-        sisaMasaKerja: `${Math.max(0, (tahunLahir + 60) - new Date().getFullYear() -1)} thn`,
-        grade: `GR-${randomInt(13,17)}`, // Grade pejabat biasanya lebih tinggi
-        bmnDipegang: randomInt(0,1) ? ["Mobil Dinas Jabatan", "Laptop Inventaris"] : ["Laptop Inventaris"],
+        sisaMasaKerja: `${Math.max(0, (tahunLahir + 60) - new Date().getFullYear() - 1)} thn`,
+        grade: `GR-${randomInt(13, 17)}`, // Grade pejabat biasanya lebih tinggi
+        bmnDipegang: randomInt(0, 1) ? ["Mobil Dinas Jabatan", "Laptop Inventaris"] : ["Laptop Inventaris"],
         namaWilayahAsli: infoSatker.namaWilayahAsli,
 
         riwayatPendidikan,
         riwayatJabatan: generateRiwayatJabatan(nip, tmtPns.getFullYear(), infoSatker.namaSatkerLengkap, pejabat.jabatan, jenjangFungsionalPejabat),
-        kompetensi: generateKompetensi(nip, randomInt(2,4)),
-        prestasi: generatePrestasi(nip, randomInt(1,2)),
+        kompetensi: generateKompetensi(nip, randomInt(2, 4)),
+        prestasi: generatePrestasi(nip, randomInt(1, 2)),
+        role: ''
       };
       generatedPegawaiList.push(pegawaiData);
     });
@@ -491,9 +492,9 @@ const generateFullDummyPegawaiList = (
     const pegawaiData: DetailPegawaiData = {
       id: nip,
       nama: namaLengkap,
-      nipLama: `NIPLAMA-S-${nip.substring(nip.length - 7, nip.length -3)}`,
+      nipLama: `NIPLAMA-S-${nip.substring(nip.length - 7, nip.length - 3)}`,
       nipBaru: nip,
-      email: `${fn.toLowerCase().replace(/[^a-z0-9]/g, '')}.${ln.toLowerCase().replace(/[^a-z0-9]/g, '')}${randomInt(1,99)}@bps.go.id`.substring(0,40),
+      email: `${fn.toLowerCase().replace(/[^a-z0-9]/g, '')}.${ln.toLowerCase().replace(/[^a-z0-9]/g, '')}${randomInt(1, 99)}@bps.go.id`.substring(0, 40),
       fotoUrl: getAvatar(namaLengkap),
       tempatLahir: randomElement(kotaLahirOptionsGlobal),
       tanggalLahir: formatDate(tanggalLahir),
@@ -501,10 +502,10 @@ const generateFullDummyPegawaiList = (
       statusKepegawaian: statusKepegawaian,
       TMT_PNS: formatDate(tmtPns),
       pangkatGolongan: `${pangkatInfo.pangkat} (${pangkatInfo.golongan})`,
-      tmtPangkatGolongan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(1,5) , Math.max(tmtPns.getFullYear()+1, new Date().getFullYear() -1))),
+      tmtPangkatGolongan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(1, 5), Math.max(tmtPns.getFullYear() + 1, new Date().getFullYear() - 1))),
       jenjangJabatanFungsional: jenjangFungsional,
-      tmtJabatan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(1, (new Date().getFullYear() - tmtPns.getFullYear())) , new Date().getFullYear())),
-      
+      tmtJabatan: formatDate(randomDate(tmtPns.getFullYear() + randomInt(1, (new Date().getFullYear() - tmtPns.getFullYear())), new Date().getFullYear())),
+
       satuanKerjaId: infoSatkerPegawai.satuanKerjaId || infoSatkerPegawai.id,
       satuanKerjaNama: infoSatkerPegawai.namaWilayahAsli,
       namaSatkerLengkap: infoSatkerPegawai.namaSatkerLengkap,
@@ -515,18 +516,19 @@ const generateFullDummyPegawaiList = (
       teleponKantor: infoSatkerPegawai.teleponKantor,
       homepageSatker: infoSatkerPegawai.homepageSatker,
       pendidikanTerakhir: pendidikanTerakhirText,
-      masaKerjaGolongan: `${randomInt(0, Math.max(0, new Date().getFullYear() - (tmtPns.getFullYear() + randomInt(1,5))))} thn ${randomInt(0,11)} bln`,
-      masaKerjaTotal: `${Math.max(0,new Date().getFullYear() - tmtPns.getFullYear())} thn ${randomInt(0,11)} bln`,
-      tanggalPensiun: formatDate(new Date(tahunLahir + usiaPensiun , tanggalLahir.getMonth(), tanggalLahir.getDate())),
-      sisaMasaKerja: `${Math.max(0,usiaPensiun - usiaStaf -1)} thn`,
-      grade: `GR-${randomInt(5,12)}`,
-      bmnDipegang: randomInt(0,1) ? ["Laptop Inventaris"] : undefined,
+      masaKerjaGolongan: `${randomInt(0, Math.max(0, new Date().getFullYear() - (tmtPns.getFullYear() + randomInt(1, 5))))} thn ${randomInt(0, 11)} bln`,
+      masaKerjaTotal: `${Math.max(0, new Date().getFullYear() - tmtPns.getFullYear())} thn ${randomInt(0, 11)} bln`,
+      tanggalPensiun: formatDate(new Date(tahunLahir + usiaPensiun, tanggalLahir.getMonth(), tanggalLahir.getDate())),
+      sisaMasaKerja: `${Math.max(0, usiaPensiun - usiaStaf - 1)} thn`,
+      grade: `GR-${randomInt(5, 12)}`,
+      bmnDipegang: randomInt(0, 1) ? ["Laptop Inventaris"] : undefined,
       namaWilayahAsli: infoSatkerPegawai.namaWilayahAsli, // Diambil dari satker tempat dia ditugaskan
-      
+
       riwayatPendidikan,
       riwayatJabatan: generateRiwayatJabatan(nip, tmtPns.getFullYear(), infoSatkerPegawai.namaSatkerLengkap, undefined, jenjangFungsional),
-      kompetensi: generateKompetensi(nip, randomInt(0,3)),
-      prestasi: generatePrestasi(nip, randomInt(0,1)),
+      kompetensi: generateKompetensi(nip, randomInt(0, 3)),
+      prestasi: generatePrestasi(nip, randomInt(0, 1)),
+      role: ''
     };
     generatedPegawaiList.push(pegawaiData);
   }

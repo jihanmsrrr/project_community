@@ -1,6 +1,8 @@
 // pages/login.tsx (atau file halaman login utama Anda)
 
 import React from "react";
+// --- PERUBAHAN: Impor komponen Image dari Next.js ---
+import Image from "next/image";
 import LoginForm from "@/components/Login/LoginForm";
 import ThemeSwitcher from "@/components/ui/ThemeSwitcher";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -101,11 +103,15 @@ const LoginPage = () => {
           >
             {slideImages.map((image, index) => (
               <SwiperSlide key={index}>
-                <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                  <img
+                <div className="w-full h-full flex items-center justify-center bg-gray-700 p-4">
+                  {/* --- PERUBAHAN: Menggunakan komponen Image dari Next.js --- */}
+                  <Image
                     src={image.src}
                     alt={image.alt}
-                    className="max-w-full max-h-full object-contain p-4"
+                    fill
+                    style={{ objectFit: "contain" }}
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    priority={index === 0} // Prioritaskan gambar pertama untuk LCP
                   />
                 </div>
               </SwiperSlide>
@@ -113,7 +119,6 @@ const LoginPage = () => {
           </Swiper>
           <div className="absolute inset-0 bg-black bg-opacity-30"></div>
           <div className="absolute inset-x-0 bottom-0 mb-10 z-10 flex flex-col items-center justify-end text-center p-8 sm:p-12 pointer-events-none">
-            {/* --- PERUBAHAN REDAKSI --- */}
             <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white drop-shadow-lg">
               Selamat Datang di BPS Community
             </h1>
@@ -134,11 +139,9 @@ const LoginPage = () => {
         </div>
       </section>
 
-      {/* --- Bagian Bawah: Informasi Keunggulan (Direvisi Total) --- */}
-      {/* --- PERUBAHAN: Latar belakang kembali ke biru (`bg-surface-header`) --- */}
+      {/* Bagian Bawah: Informasi Keunggulan */}
       <section className="py-16 sm:py-24 px-6 bg-surface-header">
         <div className="container mx-auto text-center max-w-6xl">
-          {/* --- PERUBAHAN: Warna teks diubah menjadi terang & redaksi baru --- */}
           <h2 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-10 text-text-on-header">
             Fitur Unggulan BPS Community
           </h2>
@@ -147,8 +150,6 @@ const LoginPage = () => {
             Temukan berbagai fitur yang akan menunjang pekerjaan dan wawasan
             Anda sebagai insan statistik.
           </p>
-
-          {/* --- PERUBAHAN: Redaksi pada InfoCard menjadi lebih realistis --- */}
           <div className="grid md:grid-cols-3 gap-8 sm:gap-10 text-left">
             <InfoCard
               title="Menu Organisasi"
@@ -169,7 +170,6 @@ const LoginPage = () => {
         </div>
       </section>
 
-      {/* --- PERUBAHAN REDAKSI --- */}
       <footer className="py-8 text-center text-text-secondary text-sm bg-surface-card border-t border-ui-border">
         &copy; {new Date().getFullYear()} BPS Community. Hak Cipta Dilindungi.
       </footer>

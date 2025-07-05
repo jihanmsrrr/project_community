@@ -1,15 +1,48 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
+import Image from "next/image"; // Import the Image component
 
 const contributors = [
-  { name: "Fanni Budi Darmawan SST", imgUrl: "https://i.pravatar.cc/150?img=5", email: "fanni.darmawan@bps.go.id" },
-  { name: "Rina Fitriani", imgUrl: "https://i.pravatar.cc/150?img=6", email: "rina.fitriani@bps.go.id" },
-  { name: "Adi Kurniawan", imgUrl: "https://i.pravatar.cc/150?img=7", email: "adi.kurniawan@bps.go.id" },
-  { name: "Budi Santoso", imgUrl: "https://i.pravatar.cc/150?img=8", email: "budi.santoso@bps.go.id" },
-  { name: "Dewi Amalia", imgUrl: "https://i.pravatar.cc/150?img=9", email: "dewi.amalia@bps.go.id" },
-  { name: "Eka Pratama", imgUrl: "https://i.pravatar.cc/150?img=10", email: "eka.pratama@bps.go.id" },
-  { name: "Hadi Prasetyo", imgUrl: "https://i.pravatar.cc/150?img=11", email: "hadi.prasetyo@bps.go.id" },
-  { name: "Kurniawan Dwi", imgUrl: "https://i.pravatar.cc/150?img=12", email: "kurniawan.dwi@bps.go.id" },
+  {
+    name: "Fanni Budi Darmawan SST",
+    imgUrl: "https://i.pravatar.cc/150?img=5",
+    email: "fanni.darmawan@bps.go.id",
+  },
+  {
+    name: "Rina Fitriani",
+    imgUrl: "https://i.pravatar.cc/150?img=6",
+    email: "rina.fitriani@bps.go.id",
+  },
+  {
+    name: "Adi Kurniawan",
+    imgUrl: "https://i.pravatar.cc/150?img=7",
+    email: "adi.kurniawan@bps.go.id",
+  },
+  {
+    name: "Budi Santoso",
+    imgUrl: "https://i.pravatar.cc/150?img=8",
+    email: "budi.santoso@bps.go.id",
+  },
+  {
+    name: "Dewi Amalia",
+    imgUrl: "https://i.pravatar.cc/150?img=9",
+    email: "dewi.amalia@bps.go.id",
+  },
+  {
+    name: "Eka Pratama",
+    imgUrl: "https://i.pravatar.cc/150?img=10",
+    email: "eka.pratama@bps.go.id",
+  },
+  {
+    name: "Hadi Prasetyo",
+    imgUrl: "https://i.pravatar.cc/150?img=11",
+    email: "hadi.prasetyo@bps.go.id",
+  },
+  {
+    name: "Kurniawan Dwi",
+    imgUrl: "https://i.pravatar.cc/150?img=12",
+    email: "kurniawan.dwi@bps.go.id",
+  },
 ];
 
 const TopKontributor: React.FC = () => {
@@ -51,7 +84,9 @@ const TopKontributor: React.FC = () => {
         {contributors.map((c, i) => (
           <div
             key={i}
-            ref={(el) => { avatarsRef.current[i] = el; }}
+            ref={(el) => {
+              avatarsRef.current[i] = el;
+            }}
             className={`relative cursor-pointer rounded-full transition-transform duration-300 ${
               activeIndex === i
                 ? "scale-110 ring-4 ring-blue-500 shadow-lg z-20"
@@ -62,12 +97,17 @@ const TopKontributor: React.FC = () => {
             onFocus={() => setActiveIndex(i)}
             onBlur={() => setActiveIndex(null)}
             tabIndex={0}
-            aria-describedby={activeIndex === i ? "contributor-popup" : undefined}
+            aria-describedby={
+              activeIndex === i ? "contributor-popup" : undefined
+            }
           >
-            <img
+            {/* Replace img tag with Image component */}
+            <Image
               src={c.imgUrl}
               alt={c.name}
-              className="w-16 h-16 rounded-full object-cover border border-gray-300"
+              width={64} // Assuming w-16 in Tailwind corresponds to 64px (16 * 4)
+              height={64} // Assuming h-16 in Tailwind corresponds to 64px (16 * 4)
+              className="rounded-full object-cover border border-gray-300"
             />
 
             {activeIndex === i && (
@@ -111,7 +151,10 @@ const TopKontributor: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-gray-700 mb-2">
                   <span className="font-semibold">Email</span>
-                  <a href={`mailto:${c.email}`} className="text-blue-600 hover:underline">
+                  <a
+                    href={`mailto:${c.email}`}
+                    className="text-blue-600 hover:underline"
+                  >
                     {c.email}
                   </a>
                 </div>

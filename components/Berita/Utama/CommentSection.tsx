@@ -1,4 +1,6 @@
+// components/Berita/Utama/CommentSection.tsx
 import React, { useState } from "react";
+import Image from "next/image"; // Import the Image component
 
 const CommentSection = () => {
   const [commentText, setCommentText] = useState("");
@@ -32,10 +34,13 @@ const CommentSection = () => {
       <div className="space-y-6 mb-12">
         <article className="flex items-start bg-white p-5 rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300">
           <div className="flex-shrink-0">
-            <img
-              src="path_to_avatar_image"
+            {/* Replace img tag with Image component */}
+            <Image
+              src="/path_to_avatar_image" // Make sure the path is correct
               alt="User Avatar"
-              className="w-14 h-14 rounded-full object-cover"
+              width={56} // Assuming w-14 in Tailwind corresponds to 56px (14 * 4)
+              height={56} // Assuming h-14 in Tailwind corresponds to 56px (14 * 4)
+              className="rounded-full object-cover"
             />
           </div>
           <div className="ml-5 flex-1">

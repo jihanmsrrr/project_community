@@ -36,6 +36,18 @@ const nextConfig = {
         // port: '', // Kosongkan jika tidak ada port spesifik
         // pathname: '/api/**', // Sesuaikan jika pathnamenya selalu diawali /api/
       },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // <-- CONTOH UNTUK GOOGLE
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com', // <-- CONTOH UNTUK GITHUB
+      },
     ],
   },
 };

@@ -2,6 +2,8 @@
 "use client"; // Pastikan ini adalah Client Component
 
 import React, { useState, useEffect } from "react";
+// --- PERUBAHAN: Impor komponen Image dari Next.js ---
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import {
@@ -13,11 +15,11 @@ import {
   Building,
   Clock,
   AlertCircle,
-  Mail, // Tambahkan Mail icon
-  MapPin, // Tambahkan MapPin icon
-  VenetianMask as Gender, // Ganti Gender icon dengan VenetianMask (ikon gender)
-  Award, // Tambahkan Award icon untuk Grade
-  Users, // Tambahkan Users icon untuk SSO ID
+  Mail,
+  MapPin,
+  VenetianMask as Gender,
+  Award,
+  Users,
 } from "lucide-react";
 
 // Interface untuk struktur data profil pengguna dari API
@@ -155,8 +157,7 @@ const ProfilPage: React.FC = () => {
     <div className="min-h-screen bg-surface-page text-text-primary">
       {/* Hero Section */}
       <div className="relative w-full h-48 sm:h-64 bg-gradient-to-r from-brand-primary to-brand-secondary flex items-center justify-center pt-20 sm:pt-24 overflow-hidden">
-        <div className="absolute inset-0 bg-pattern-dots opacity-10"></div>{" "}
-        {/* Dekorasi */}
+        <div className="absolute inset-0 bg-pattern-dots opacity-10"></div>
         <div className="relative text-center z-10">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white drop-shadow-lg">
             Profil Saya
@@ -168,17 +169,18 @@ const ProfilPage: React.FC = () => {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 sm:-mt-24 relative z-20 pb-10">
-        {" "}
-        {/* Naikkan konten utama */}
         <div className="bg-surface-card rounded-3xl shadow-2xl p-6 sm:p-8 border border-ui-border-faded">
           {/* Bagian Foto Profil dan Info Dasar */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-6 border-b border-ui-border">
-            <div className="w-28 h-28 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 shadow-lg border-4 border-white dark:border-gray-800">
+            <div className="relative w-28 h-28 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 shadow-lg border-4 border-white dark:border-gray-800">
               {userProfile.foto_url ? (
-                <img
+                // --- PERUBAHAN: Menggunakan komponen Image dari Next.js ---
+                <Image
                   src={userProfile.foto_url}
                   alt="Foto Profil"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 112px, 160px"
                 />
               ) : (
                 <UserIcon

@@ -17,9 +17,9 @@ type BeritaStatus = "pending_review" | "published" | "draft" | "revision";
 interface BeritaTableProps {
   data: ArtikelBerita[];
   isLoading?: boolean;
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
-  onApprove: (id: number) => void;
+  onEdit: (id: bigint) => void; // Changed to bigint
+  onDelete: (id: bigint) => void; // Changed to bigint
+  onApprove: (id: bigint) => void; // Changed to bigint
 }
 
 const BeritaTable: React.FC<BeritaTableProps> = ({
@@ -107,12 +107,12 @@ const BeritaTable: React.FC<BeritaTableProps> = ({
         <tbody className="divide-y divide-ui-border">
           {data.length > 0 ? (
             data.map((item) => (
-              <tr key={item.id} className="hover:bg-surface-hover">
+              <tr key={Number(item.news_id)} className="hover:bg-surface-hover">
                 <td className="px-4 py-3 whitespace-normal text-sm font-medium text-text-primary max-w-xs">
                   {getDisplayValue(item.judul)}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                  {item.namaPenulis || "N/A"}
+                  {item.nama_penulis || "N/A"}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
                   {new Date(item.savedAt).toLocaleDateString("id-ID", {
@@ -132,7 +132,7 @@ const BeritaTable: React.FC<BeritaTableProps> = ({
                   <div className="flex items-center justify-center gap-1 sm:gap-2">
                     {getDisplayValue(item.status) === "pending_review" && (
                       <button
-                        onClick={() => onApprove(item.id)}
+                        onClick={() => onApprove(item.news_id)}
                         title="Setujui & Tayangkan"
                         className="p-2 text-text-secondary hover:text-status-green hover:bg-status-green/10 rounded-full transition-colors"
                       >
@@ -140,14 +140,14 @@ const BeritaTable: React.FC<BeritaTableProps> = ({
                       </button>
                     )}
                     <button
-                      onClick={() => onEdit(item.id)}
+                      onClick={() => onEdit(item.news_id)}
                       title="Edit Berita"
                       className="p-2 text-text-secondary hover:text-brand-primary hover:bg-brand-primary/10 rounded-full transition-colors"
                     >
                       <Edit size={16} />
                     </button>
                     <a
-                      href={`/varia-statistik/artikel/${item.id}`}
+                      href={`/varia-statistik/artikel/${Number(item.news_id)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Lihat Berita"
@@ -156,7 +156,7 @@ const BeritaTable: React.FC<BeritaTableProps> = ({
                       <Eye size={16} />
                     </a>
                     <button
-                      onClick={() => onDelete(item.id)}
+                      onClick={() => onDelete(item.news_id)}
                       title="Hapus Berita"
                       className="p-2 text-text-secondary hover:text-status-red hover:bg-status-red/10 rounded-full transition-colors"
                     >

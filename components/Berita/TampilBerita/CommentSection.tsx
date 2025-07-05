@@ -1,38 +1,42 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import CommentItem from "./CommentItem";
 import CommentForm from "./CommentForm";
-import type { Comment } from "@/types/varia"; // Import Comment type
+import type { Comment } from "@/types/varia"; // Import tipe Comment yang sudah diperbarui
 
 interface CommentSectionProps {
-  articleId: number; // Pastikan tipe data ID sesuai
+  articleId: bigint; // PERBAIKAN: articleId (news_id) harus BigInt
 }
 
 const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
-  const [comments, setComments] = useState<Comment[]>([]); // Use imported Comment type
+  const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fungsi fetchComments disesuaikan dengan endpoint Anda
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
+    // PERBAIKAN: Konversi articleId ke string untuk URL
     if (!articleId) return;
     setIsLoading(true);
-    // Endpoint API dari kode Anda
-    const res = await fetch(`/api/comments?articleId=${articleId}`); // <-- Endpoint sudah benar
+    const res = await fetch(`/api/comments?articleId=${articleId.toString()}`); // Mengirim BigInt sebagai string di URL
     if (res.ok) {
       const data: Comment[] = await res.json();
       setComments(data);
+    } else {
+      console.error("Failed to fetch comments:", res.status, res.statusText);
+      setComments([]); // Pastikan state comments kosong jika ada error
     }
     setIsLoading(false);
-  };
+  }, [articleId]);
 
   useEffect(() => {
     fetchComments();
-  }, [articleId]);
+  }, [articleId, fetchComments]);
 
   // Logika untuk memisahkan komentar utama
+  // PERBAIKAN: Gunakan comment.parent_id untuk filtering
   const topLevelComments = comments.filter(
-    (comment) => comment.parentId === null
+    (comment) => comment.parent_id === null
   );
 
   return (
@@ -51,7 +55,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
           ) : topLevelComments.length > 0 ? (
             topLevelComments.map((comment) => (
               <CommentItem
-                key={comment.commentId}
+                key={comment.comment_id.toString()} // PERBAIKAN: Gunakan comment_id dan konversi ke string untuk key
                 comment={comment}
                 allComments={comments}
                 articleId={articleId}

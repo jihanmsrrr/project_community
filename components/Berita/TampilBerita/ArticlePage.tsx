@@ -1,5 +1,6 @@
 // components/ArticlePage.tsx
 import React from "react";
+import ArticleHeader from "./ArticleHeader"; // <-- ADD THIS LINE
 import Sidebar from "./Sidebar";
 import RelatedArticles from "./RelatedArticles";
 // import ArticleContent from './ArticleContent/ArticleContent'; // nanti kalau perlu

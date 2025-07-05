@@ -288,37 +288,38 @@ const provinceDefinitions: { key: string; namaWilayah: string; kodeBps: string; 
 const createProvincialSatkerData = (): { [key: string]: DetailPegawaiData } => {
     const provincialData: { [key: string]: DetailPegawaiData } = {};
     provinceDefinitions.forEach(prov => {
-        const defaultPropertiesForSatker: Omit<DetailPegawaiData, "id" | "nama" | "namaSatkerLengkap" | "namaWilayahAsli" | "satuanKerjaId" | "satuanKerjaNama" | "alamatKantor" | "teleponKantor" | "homepageSatker" | "email" | "totalPegawai" | "persenTerhadapABK" | "rataUmurSatker" | "rataKJKSatker" | "pejabatStruktural" | "berita" | "daftarTimKerja" > = { // Ditambahkan daftarTimKerja ke Omit
-            nipLama: "N/A",
-            nipBaru: "N/A",
-            fotoUrl: undefined,
-            tempatLahir: undefined,
-            tanggalLahir: undefined,
-            jenisKelamin: undefined,
-            statusKepegawaian: undefined,
-            TMT_PNS: undefined,
-            pangkatGolongan: undefined,
-            tmtPangkatGolongan: undefined,
-            jabatanStruktural: undefined,
-            jenjangJabatanFungsional: undefined,
-            tmtJabatan: undefined,
-            pendidikanTerakhir: undefined,
-            masaKerjaGolongan: undefined,
-            masaKerjaTotal: undefined,
-            tanggalPensiun: undefined,
-            sisaMasaKerja: undefined,
-            grade: undefined,
-            bmnDipegang: [],
-            unitKerjaEselon1: undefined,
-            unitKerjaEselon2: undefined,
-            subtextABK: `Target ${prov.namaWilayah} ${new Date().getFullYear()}`,
-            infoABK: `Perka BPS No. XX Tahun ${new Date().getFullYear()}`,
-            subtextKJK: `KJK ${prov.namaWilayah} tidak termasuk bulan ini`,
-            anggotaTim: [], // Mungkin tidak lagi digunakan jika daftarTimKerja lebih detail
-            riwayatPendidikan: [],
-            riwayatJabatan: [],
-            kompetensi: [],
-            prestasi: [],
+        const defaultPropertiesForSatker: Omit<DetailPegawaiData, "id" | "nama" | "namaSatkerLengkap" | "namaWilayahAsli" | "satuanKerjaId" | "satuanKerjaNama" | "alamatKantor" | "teleponKantor" | "homepageSatker" | "email" | "totalPegawai" | "persenTerhadapABK" | "rataUmurSatker" | "rataKJKSatker" | "pejabatStruktural" | "berita" | "daftarTimKerja" > = {
+          nipLama: "N/A",
+          nipBaru: "N/A",
+          fotoUrl: undefined,
+          tempatLahir: undefined,
+          tanggalLahir: undefined,
+          jenisKelamin: undefined,
+          statusKepegawaian: undefined,
+          TMT_PNS: undefined,
+          pangkatGolongan: undefined,
+          tmtPangkatGolongan: undefined,
+          jabatanStruktural: undefined,
+          jenjangJabatanFungsional: undefined,
+          tmtJabatan: undefined,
+          pendidikanTerakhir: undefined,
+          masaKerjaGolongan: undefined,
+          masaKerjaTotal: undefined,
+          tanggalPensiun: undefined,
+          sisaMasaKerja: undefined,
+          grade: undefined,
+          bmnDipegang: [],
+          unitKerjaEselon1: undefined,
+          unitKerjaEselon2: undefined,
+          subtextABK: `Target ${prov.namaWilayah} ${new Date().getFullYear()}`,
+          infoABK: `Perka BPS No. XX Tahun ${new Date().getFullYear()}`,
+          subtextKJK: `KJK ${prov.namaWilayah} tidak termasuk bulan ini`,
+          anggotaTim: [], // Mungkin tidak lagi digunakan jika daftarTimKerja lebih detail
+          riwayatPendidikan: [],
+          riwayatJabatan: [],
+          kompetensi: [],
+          prestasi: [],
+          role: ''
         };
         
         const pejabatStrukturalProv = getPejabatUntukSatker(prov.kodeBps, prov.namaWilayah);
@@ -365,7 +366,7 @@ export const dataStatistikLengkap: DataStatistikNasional = {
     totalPegawai: 17593,
     persenTerhadapABK: 75.8,
     subtextABK: `Target Nasional ${new Date().getFullYear()}`,
-    infoABK: `Peraturan Kepala BPS No. 182 Tahun ${new Date().getFullYear() -1}`,
+    infoABK: `Peraturan Kepala BPS No. 182 Tahun ${new Date().getFullYear() - 1}`,
     rataUmurSatker: 40.2,
     rataKJKSatker: { jam: 0, menit: 35 },
     subtextKJK: "KJK Nasional tidak termasuk bulan ini",
@@ -374,7 +375,7 @@ export const dataStatistikLengkap: DataStatistikNasional = {
     jabatanStruktural: "Lembaga Pemerintah Nonkementerian",
     unitKerjaEselon1: "Badan Pusat Statistik",
     pejabatStruktural: getPejabatUntukSatker("NASIONAL", "Nasional"),
-    berita: generateDummyOrganizationalNews("NASIONAL", "Nasional", randomInt(3,5)),
+    berita: generateDummyOrganizationalNews("NASIONAL", "Nasional", randomInt(3, 5)),
     // Generate daftar tim kerja juga untuk Nasional
     daftarTimKerja: generateDaftarTimKerja("NASIONAL", "Nasional", getPejabatUntukSatker("NASIONAL", "Nasional")),
     // ... (field opsional lainnya di-set undefined atau N/A)
@@ -383,6 +384,7 @@ export const dataStatistikLengkap: DataStatistikNasional = {
     tmtJabatan: undefined, pendidikanTerakhir: undefined, masaKerjaGolongan: undefined, masaKerjaTotal: undefined,
     tanggalPensiun: undefined, sisaMasaKerja: undefined, grade: undefined, bmnDipegang: [], unitKerjaEselon2: undefined,
     anggotaTim: [], riwayatPendidikan: [], riwayatJabatan: [], kompetensi: [], prestasi: [],
+    role: ''
   },
   ...createProvincialSatkerData(),
 };

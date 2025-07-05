@@ -1,6 +1,6 @@
 import { useState } from "react";
 import PageTitle from "@/components/ui/PageTitle";
-import Breadcrumb from "@/components/Berita/Submenu/Breadcrumb";
+import Breadcrumb from "./Breadcrumb";
 
 const menuItems = [
   "BPS Terkini",
@@ -64,7 +64,11 @@ const MenuBerita = () => {
             viewBox="0 0 24 24"
             aria-hidden="true"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
 

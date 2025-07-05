@@ -12,164 +12,169 @@ generator client {
 // Definisi Model-model Database
 
 model organization_units {
-  org_unit_id         BigInt    @id @default(autoincrement())
-  nama_wilayah        String?   @db.VarChar(255)
-  kode_bps            String?   @db.VarChar(50)
-  nama_satker_bagian  String?   @db.VarChar(255)
-  alamat              String?   @db.Text
-  telepon             String?   @db.VarChar(50)
-  web                 String?   @db.VarChar(255)
-  parent_unit_id      BigInt?
-  nama_wilayah_singkat String?   @db.VarChar(100)
-  kepala_id           BigInt?   @unique
+  org_unit_id          BigInt  @id @default(autoincrement())
+  nama_wilayah         String? @db.VarChar(255)
+  kode_bps             String? @db.VarChar(50)
+  nama_satker_bagian   String? @db.VarChar(255)
+  alamat               String? @db.Text
+  telepon              String? @db.VarChar(50)
+  web                  String? @db.VarChar(255)
+  parent_unit_id       BigInt?
+  nama_wilayah_singkat String? @db.VarChar(100)
+  kepala_id            BigInt? @unique
 
-  kepala              users?                @relation("KepalaUnit", fields: [kepala_id], references: [user_id])
-  pegawai             users[]               @relation("PegawaiDiUnit")
-  parent              organization_units?   @relation("HirarkiUnit", fields: [parent_unit_id], references: [org_unit_id])
-  children            organization_units[]  @relation("HirarkiUnit")
-  teams               teams[]
+  kepala    users?             @relation("KepalaUnit", fields: [kepala_id], references: [user_id])
+  pegawai   users[]            @relation("PegawaiDiUnit")
+  parent    organization_units? @relation("HirarkiUnit", fields: [parent_unit_id], references: [org_unit_id])
+  children  organization_units[] @relation("HirarkiUnit")
+  teams     teams[]
 }
 
 model users {
-  user_id                 BigInt    @id @default(autoincrement())
-  nama_lengkap            String?   @db.VarChar(255)
-  nip_baru                String?   @unique @db.VarChar(20)
-  nip_lama                String?   @db.VarChar(20)
-  email                   String?   @unique @db.VarChar(255)
-  unit_kerja_id           BigInt?
-  role                    String?   @db.VarChar(50)
-  sso_id                  String?   @unique @db.VarChar(255)
-  foto_url                String?   @db.VarChar(255)
-  tempat_lahir            String?   @db.VarChar(100)
-  tanggal_lahir           DateTime? @db.Date
-  jenis_kelamin           String?   @db.VarChar(20)
-  status_kepegawaian      String?   @db.VarChar(50)
-  tmt_pns                 DateTime? @db.Date
-  pangkat_golongan        String?   @db.VarChar(50)
-  tmt_pangkat_golongan    DateTime? @db.Date
-  jabatan_struktural      String?   @db.VarChar(255)
+  user_id                    BigInt    @id @default(autoincrement())
+  nama_lengkap               String?   @db.VarChar(255)
+  nip_baru                   String?   @unique @db.VarChar(20)
+  nip_lama                   String?   @db.VarChar(20)
+  email                      String?   @unique @db.VarChar(255)
+  unit_kerja_id              BigInt?
+  role                       String?   @db.VarChar(50)
+  sso_id                     String?   @unique @db.VarChar(255)
+  foto_url                   String?   @db.VarChar(255)
+  tempat_lahir               String?   @db.VarChar(100)
+  tanggal_lahir              DateTime? @db.Date
+  jenis_kelamin              String?   @db.VarChar(20)
+  status_kepegawaian         String?   @db.VarChar(50)
+  tmt_pns                    DateTime? @db.Date
+  pangkat_golongan           String?   @db.VarChar(50)
+  tmt_pangkat_golongan       DateTime? @db.Date
+  jabatan_struktural         String?   @db.VarChar(255)
   jenjang_jabatan_fungsional String?   @db.VarChar(255)
-  tmt_jabatan             DateTime? @db.Date
-  pendidikan_terakhir     String?   @db.VarChar(255)
-  masa_kerja_golongan     String?   @db.VarChar(50)
-  masa_kerja_total        String?   @db.VarChar(50)
-  tanggal_pensiun         DateTime? @db.Date
-  sisa_masa_kerja         String?   @db.VarChar(50)
-  grade                   String?   @db.VarChar(10)
-  unit_kerja_eselon1      String?   @db.VarChar(255)
-  unit_kerja_eselon2      String?   @db.VarChar(255)
-  username                String?   @unique @db.VarChar(255) // Tambahkan kolom username
-  password                String?   @db.VarChar(255)      // Tambahkan kolom password
+  tmt_jabatan                DateTime? @db.Date
+  pendidikan_terakhir        String?   @db.VarChar(255)
+  masa_kerja_golongan        String?   @db.VarChar(50)
+  masa_kerja_total           String?   @db.VarChar(50)
+  tanggal_pensiun            DateTime? @db.Date
+  sisa_masa_kerja            String?   @db.VarChar(50)
+  grade                      String?   @db.VarChar(10)
+  unit_kerja_eselon1         String?   @db.VarChar(255)
+  unit_kerja_eselon2         String?   @db.VarChar(255)
+  username                   String?   @unique @db.VarChar(255)
+  password                   String?   @db.VarChar(255)
 
-  unit_kerja              organization_units?   @relation("PegawaiDiUnit", fields: [unit_kerja_id], references: [org_unit_id])
-  berita_ditulis          news[]
- bahan_bacaan_diunggah reading_materials[] @relation("UploaderToMaterials")
-  komentar                comments[]
-  likes                   likes[]
-  bookmarks               bookmarks[]
-  unit_kerja_dipimpin     organization_units[] @relation("KepalaUnit")
-  tim_dipimpin            teams[]
-  keanggotaan_tim         team_memberships[]
-  riwayat_pendidikan      user_education_history[]
-  riwayat_jabatan         user_job_history[]
-  kompetensi              user_competencies[]
-  prestasi                user_achievements[]
+  unit_kerja           organization_units? @relation("PegawaiDiUnit", fields: [unit_kerja_id], references: [org_unit_id])
+  berita_ditulis       news[]
+  bahan_bacaan_diunggah reading_materials[] @relation("UploaderToMaterials")
+  komentar             comments[]
+  likes                likes[]
+  bookmarks            bookmarks[]
+  unit_kerja_dipimpin  organization_units[] @relation("KepalaUnit")
+  tim_dipimpin         teams[]
+  keanggotaan_tim      team_memberships[]
+  riwayat_pendidikan   user_education_history[]
+  riwayat_jabatan      user_job_history[]
+  kompetensi           user_competencies[]
+  prestasi             user_achievements[]
+  reviews              reviews[]             @relation("UserReviews") // RELASI DARI USER KE REVIEW
+}
+
+model reviews {
+  review_id  BigInt    @id @default(autoincrement())
+  user_id    BigInt?
+  rating     Int
+  comment    String    @db.Text
+  created_at DateTime  @default(now())
+
+  user users? @relation("UserReviews", fields: [user_id], references: [user_id], onDelete: SetNull) // RELASI KE USER
 }
 
 model news {
-  // --- PERBAIKAN: Menggunakan auto-increment untuk ID ---
-  // Ini adalah cara terbaik dan paling aman untuk menangani ID.
-  // Database akan secara otomatis memberikan nomor unik setiap kali ada berita baru.
-  news_id     BigInt   @id @default(autoincrement())
-  
-  judul       String
-  abstrak     String
-  kategori    String
-  kata_kunci  Json
-  isi_berita  String   @db.Text
-  status      String
+  news_id      BigInt   @id @unique
+  judul        String
+  abstrak      String
+  kategori     String
+  kata_kunci   Json
+  isi_berita   String   @db.Text
+  status       String
   nama_penulis String
-  gambar_urls Json     // Tetap Json untuk fleksibilitas
-  savedAt     DateTime
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  penulisId   BigInt
+  gambar_urls  Json
+  savedAt      DateTime
+  publishedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  penulisId    BigInt
 
-  penulis     users?     @relation(fields: [penulisId], references: [user_id])
-  komentar    comments[]
-  likes       likes[]
-  bookmarks   bookmarks[]
+  penulis   users?     @relation(fields: [penulisId], references: [user_id])
+  komentar  comments[]
+  likes     likes[]
+  bookmarks bookmarks[]
 }
 
 model reading_materials {
-  material_id      BigInt    @id @default(autoincrement())
-  judul            String?   @db.VarChar(255)
-  kategori         String?   @db.VarChar(100)
-  sub_kategori     String?   @db.VarChar(100)
-  deskripsi        String?   @db.Text
-  file_path        String?   @db.VarChar(255) // Akan kita gunakan untuk membuat URL
-  uploader_id      BigInt?
-  tanggal_upload   DateTime?
-  hits             Int
-  
-  // Kolom tambahan yang akan kita isi dari seed
-  slug             String   @unique
-  bacaUrl          String   @map("baca_url")
-  unduhUrl         String   @map("unduh_url")
-  
- uploader      users?   @relation("UploaderToMaterials", fields: [uploader_id], references: [user_id], onDelete: SetNull)
+  material_id    BigInt    @id @default(autoincrement())
+  judul          String?   @db.VarChar(255)
+  kategori       String?   @db.VarChar(100)
+  sub_kategori   String?   @db.VarChar(100)
+  deskripsi      String?   @db.Text
+  file_path      String?   @db.VarChar(255)
+  uploader_id    BigInt?
+  tanggal_upload DateTime?
+  hits           Int
+
+  slug    String @unique
+  bacaUrl String @map("baca_url")
+  unduhUrl String @map("unduh_url")
+
+  uploader users? @relation("UploaderToMaterials", fields: [uploader_id], references: [user_id], onDelete: SetNull)
 }
 
 model comments {
-  comment_id        BigInt    @id @default(autoincrement())
-  news_id           BigInt?
-  user_id           BigInt?
-  username          String?   @db.VarChar(255)
-  isi_komentar      String?   @db.Text
-  tanggal_komentar  DateTime? @db.DateTime(0)
-  parent_id         BigInt?
+  comment_id       BigInt    @id @default(autoincrement())
+  news_id          BigInt?
+  user_id          BigInt?
+  username         String?   @db.VarChar(255)
+  isi_komentar     String?   @db.Text
+  tanggal_komentar DateTime? @db.DateTime(0)
+  parent_id        BigInt?
 
-  berita            news?     @relation(fields: [news_id], references: [news_id])
-  pengguna          users?    @relation(fields: [user_id], references: [user_id])
-  parent            comments? @relation("CommentReplies", fields: [parent_id], references: [comment_id])
-  replies           comments[] @relation("CommentReplies")
+  berita    news?    @relation(fields: [news_id], references: [news_id])
+  pengguna  users?   @relation(fields: [user_id], references: [user_id])
+  parent    comments? @relation("CommentReplies", fields: [parent_id], references: [comment_id])
+  replies   comments[] @relation("CommentReplies")
 }
 
 model teams {
-  team_id       BigInt    @id @default(autoincrement())
-  nama_tim      String?   @db.VarChar(255)
-  singkatan     String?   @db.VarChar(50)
-  deskripsi     String?   @db.Text
-  ketua_tim_id  BigInt?   @unique
+  team_id       BigInt  @id @default(autoincrement())
+  nama_tim      String? @db.VarChar(255)
+  singkatan     String? @db.VarChar(50)
+  deskripsi     String? @db.Text
+  ketua_tim_id  BigInt? @unique
   org_unit_id   BigInt?
 
-  ketua_tim     users?    @relation(fields: [ketua_tim_id], references: [user_id])
-  unit_kerja    organization_units? @relation(fields: [org_unit_id], references: [org_unit_id])
-  anggota       team_memberships[]
+  ketua_tim  users?             @relation(fields: [ketua_tim_id], references: [user_id])
+  unit_kerja organization_units? @relation(fields: [org_unit_id], references: [org_unit_id])
+  anggota    team_memberships[]
 }
 
 model team_memberships {
-  team_member_id  BigInt  @id @default(autoincrement())
-  team_id         BigInt?
-  user_id         BigInt?
-  posisi          String? @db.VarChar(100)
+  team_member_id BigInt  @id @default(autoincrement())
+  team_id        BigInt?
+  user_id        BigInt?
+  posisi         String? @db.VarChar(100)
 
-  tim             teams?  @relation(fields: [team_id], references: [team_id])
-  pengguna        users?  @relation(fields: [user_id], references: [user_id])
+  tim     teams? @relation(fields: [team_id], references: [team_id])
+  pengguna users? @relation(fields: [user_id], references: [user_id])
 
-  // TAMBAHKAN BARIS INI
   @@unique([team_id, user_id])
 }
 
 model likes {
-  like_id     BigInt    @id @default(autoincrement())
-  article_id  BigInt?
-  user_id     BigInt?
-  timestamp   DateTime? @db.DateTime(0)
+  like_id   BigInt    @id @default(autoincrement())
+  article_id BigInt?
+  user_id   BigInt?
+  timestamp DateTime? @db.DateTime(0)
 
-  berita      news?     @relation(fields: [article_id], references: [news_id])
-  pengguna    users?    @relation(fields: [user_id], references: [user_id])
+  berita   news?  @relation(fields: [article_id], references: [news_id])
+  pengguna users? @relation(fields: [user_id], references: [user_id])
 }
 
 model bookmarks {
@@ -178,21 +183,21 @@ model bookmarks {
   article_id  BigInt?
   timestamp   DateTime? @db.DateTime(0)
 
-  pengguna    users?    @relation(fields: [user_id], references: [user_id])
-  berita      news?     @relation(fields: [article_id], references: [news_id])
+  pengguna users? @relation(fields: [user_id], references: [user_id])
+  berita   news?  @relation(fields: [article_id], references: [news_id])
 }
 
 model user_education_history {
-  education_id            BigInt    @id @default(autoincrement())
-  user_id                 BigInt?
-  jenjang                 String?   @db.VarChar(50)
-  nama_sekolah_institusi  String?   @db.VarChar(255)
-  jurusan                 String?   @db.VarChar(255)
-  pendidikan              String?   @db.VarChar(255)
-  tahun_lulus             Int?
-  tanggal_ijazah          DateTime? @db.Date
+  education_id         BigInt    @id @default(autoincrement())
+  user_id              BigInt?
+  jenjang              String?   @db.VarChar(50)
+  nama_sekolah_institusi String?   @db.VarChar(255)
+  jurusan              String?   @db.VarChar(255)
+  pendidikan           String?   @db.VarChar(255)
+  tahun_lulus          Int?
+  tanggal_ijazah       DateTime? @db.Date
 
-  pengguna                users?    @relation(fields: [user_id], references: [user_id])
+  pengguna users? @relation(fields: [user_id], references: [user_id])
 }
 
 model user_job_history {
@@ -205,7 +210,7 @@ model user_job_history {
   no_sk           String?   @db.VarChar(255)
   tmt             DateTime? @db.Date
 
-  pengguna        users?    @relation(fields: [user_id], references: [user_id])
+  pengguna users? @relation(fields: [user_id], references: [user_id])
 }
 
 model user_competencies {
@@ -217,16 +222,16 @@ model user_competencies {
   nomor_sertifikat  String?   @db.VarChar(255)
   berlaku_sampai    DateTime? @db.Date
 
-  pengguna          users?    @relation(fields: [user_id], references: [user_id])
+  pengguna users? @relation(fields: [user_id], references: [user_id])
 }
 
 model user_achievements {
-  achievement_id        BigInt    @id @default(autoincrement())
-  user_id               BigInt?
-  tahun                 Int?
-  nama_prestasi         String?   @db.VarChar(255)
-  tingkat               String?   @db.VarChar(100)
-  pemberi_penghargaan   String?   @db.VarChar(255)
+  achievement_id      BigInt  @id @default(autoincrement())
+  user_id             BigInt?
+  tahun               Int?
+  nama_prestasi       String? @db.VarChar(255)
+  tingkat             String? @db.VarChar(100)
+  pemberi_penghargaan String? @db.VarChar(255)
 
-  pengguna              users?    @relation(fields: [user_id], references: [user_id])
+  pengguna users? @relation(fields: [user_id], references: [user_id])
 }

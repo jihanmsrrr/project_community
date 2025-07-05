@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image"; // Import the Image component
 
 const items = [
   { title: "Warna Data dalam Statistik", img: "warna.png" },
@@ -10,7 +11,9 @@ const items = [
 const RelatedArticles = () => {
   return (
     <section className="mt-10">
-      <h3 className="text-xl font-semibold mb-6 text-gray-800">Artikel Lainnya</h3>
+      <h3 className="text-xl font-semibold mb-6 text-gray-800">
+        Artikel Lainnya
+      </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {items.map((item, idx) => (
           <article
@@ -20,11 +23,13 @@ const RelatedArticles = () => {
             role="button"
             aria-label={`Baca artikel: ${item.title}`}
           >
-            <img
-              src={item.img}
+            {/* Replace img tag with Image component */}
+            <Image
+              src={`/${item.img}`} // Ensure the path is correct relative to your public directory
               alt={item.title}
+              width={500} // You might need to adjust these values based on your layout
+              height={300} // You might need to adjust these values based on your layout
               className="w-full h-auto rounded-md mb-3 object-cover"
-              loading="lazy"
             />
             <p className="text-gray-700 font-medium">{item.title}</p>
           </article>

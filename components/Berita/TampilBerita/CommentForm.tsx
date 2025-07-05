@@ -1,95 +1,80 @@
-import React, { useState } from "react";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
+// components/Berita/TampilBerita/CommentForm.tsx
+// Ini adalah contoh, sesuaikan dengan kode asli CommentForm Anda.
 
-// Definisikan tipe untuk props agar lebih jelas
-type CommentFormProps = {
-  articleId: number;
-  parentId?: string | null;
+import React, { useState } from "react";
+// import { PrismaClient } from '@prisma/client'; // Contoh: jika Anda berinteraksi dengan DB di sini
+
+// Definisikan tipe untuk props CommentForm
+interface CommentFormProps {
+  articleId: bigint; // PERBAIKAN: Ubah dari number ke bigint
+  parentId?: bigint; // PERBAIKAN: Ubah dari string ke bigint (dan opsional)
   onCommentPosted: () => void;
-};
+}
 
 const CommentForm: React.FC<CommentFormProps> = ({
   articleId,
-  parentId = null,
+  parentId,
   onCommentPosted,
 }) => {
-  const { data: session, status } = useSession();
   const [commentText, setCommentText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!commentText.trim()) return; // Jangan submit komentar kosong
 
-    if (status !== "authenticated" || !commentText.trim() || !session?.user) {
-      console.error("User tidak terotentikasi atau komentar kosong.");
-      return;
-    }
+    setIsSubmitting(true);
+    try {
+      // Data yang akan dikirim ke API
+      const commentData = {
+        newsId: articleId.toString(), // PERBAIKAN: Konversi bigint ke string untuk pengiriman API
+        parentId: parentId ? parentId.toString() : null, // PERBAIKAN: Konversi bigint ke string, atau null
+        userId: 1000n, // Contoh: ID user yang sedang login (Anda perlu mengambil ini dari sesi/konteks)
+        username: "Dummy User", // Contoh: Username user yang sedang login
+        isiKomentar: commentText,
+      };
 
-    const response = await fetch("/api/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        articleId: articleId,
-        text: commentText,
-        parentId: parentId,
-        userId: session.user.id, // Kirim userId dari sesi
-        username: session.user.name, // Kirim username dari sesi
-      }),
-    });
+      // Contoh: Panggil API endpoint untuk mengirim komentar
+      const response = await fetch("/api/comments", {
+        // Ganti dengan API endpoint Anda
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(commentData),
+      });
 
-    if (response.ok) {
-      setCommentText("");
-      onCommentPosted();
-    } else {
-      console.error("Gagal mengirim komentar");
+      if (!response.ok) {
+        throw new Error("Gagal memposting komentar");
+      }
+
+      setCommentText(""); // Bersihkan form
+      onCommentPosted(); // Panggil callback untuk memberitahu parent
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      alert("Gagal mengirim komentar. Silakan coba lagi.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (status === "loading") {
-    return <p className="text-sm text-gray-400">Memuat sesi...</p>;
-  }
-
-  if (status === "unauthenticated" || !session?.user) {
-    // <-- Perbaiki kondisi di sini
-    return (
-      <p className="text-sm text-gray-500">
-        Silakan
-        <Link href="/login" className="text-blue-600 hover:underline">
-          login
-        </Link>
-        untuk berkomentar.
-      </p>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="mt-4">
-      <div className="flex items-start space-x-3">
-        {session.user?.image && (
-          <img
-            src={session.user.image}
-            alt={session.user.name || "Avatar"}
-            className="w-10 h-10 rounded-full"
-          />
-        )}
-        <div className="flex-1">
-          <textarea
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder={`Berkomentar sebagai ${session.user?.name}...`}
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 transition"
-            rows={3}
-          />
-          <div className="text-right">
-            <button
-              type="submit"
-              disabled={!commentText.trim()}
-              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              Kirim Komentar
-            </button>
-          </div>
-        </div>
+    <form onSubmit={handleSubmit} className="mt-3">
+      <textarea
+        className="w-full p-2 border rounded-md resize-y min-h-[60px] text-sm"
+        placeholder="Tulis komentar atau balasan..."
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        disabled={isSubmitting}
+      />
+      <div className="flex justify-end mt-2">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 disabled:opacity-50"
+          disabled={isSubmitting || !commentText.trim()}
+        >
+          {isSubmitting ? "Mengirim..." : "Kirim Komentar"}
+        </button>
       </div>
     </form>
   );

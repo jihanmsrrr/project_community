@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+// --- PERUBAHAN: Impor komponen Image dari Next.js ---
+import Image from "next/image";
 import { Share, Save, MessageCircle, Plus, X } from "lucide-react";
 
 const BeritaInfo: React.FC = () => {
@@ -20,10 +22,13 @@ const BeritaInfo: React.FC = () => {
     <div className="max-w-xl mx-auto bg-gray-100 p-5 rounded-xl relative font-sans">
       {/* Profile Section */}
       <div className="flex items-center gap-4">
-        <img
+        {/* --- PERUBAHAN: Menggunakan komponen Image dari Next.js --- */}
+        <Image
           src="https://i.pravatar.cc/150?img=9"
           alt="Penulis"
-          className="w-14 h-14 rounded-full object-cover"
+          className="rounded-full object-cover"
+          width={56} // w-14 di Tailwind secara default adalah 56px
+          height={56} // h-14 di Tailwind secara default adalah 56px
         />
         <button
           onClick={toggleAuthorInfo}
@@ -85,7 +90,9 @@ const BeritaInfo: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="font-semibold">Alamat Kantor</span>
-              <span>BPS Propinsi Nusa Tenggara Barat Jl. Dr. Soedjono No. 74</span>
+              <span>
+                BPS Propinsi Nusa Tenggara Barat Jl. Dr. Soedjono No. 74
+              </span>
             </div>
           </div>
 

@@ -1,10 +1,10 @@
-// components/FeedbackSection.tsx
+// components/Home/FeedbackSection.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Star, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Transition } from "framer-motion"; // Import Transition type
 import ilustrasiLayanan from "@/public/ruangbaca.png"; // Pastikan path ini benar
 
 // --- Tipe Data ---
@@ -38,7 +38,7 @@ const SatisfactionReviewModal: React.FC<SatisfactionReviewProps> = ({
     e.preventDefault();
     onSubmitSurvey({ rating, pendapat });
   };
-  const modalTransition = animationsDisabled
+  const modalTransition: Transition = animationsDisabled
     ? { duration: 0.01 }
     : { type: "spring", stiffness: 300, damping: 30 };
 
@@ -269,19 +269,19 @@ const FeedbackSection: React.FC = () => {
                 onClick={handleOpenReviewModal} // Pastikan handleOpenReviewModal sudah didefinisikan
                 type="button"
                 className={`
-                  bg-brand-primary text-text-on-brand 
-                  font-semibold text-sm rounded-lg 
+                  bg-brand-primary text-text-on-brand
+                  font-semibold text-sm rounded-lg
                   px-6 py-2.5  {/* Padding internal tombol */}
                   transition-colors duration-200 ease-in-out
-                  hover:bg-brand-primary-hover 
-                  focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary 
+                  hover:bg-brand-primary-hover
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary
                   focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card
-                  
+
                   w-auto /* PERUBAHAN UTAMA: Lebar tombol sekarang auto, sesuai konten + padding */
-                  
-                  {/* Anda masih bisa menambahkan max-width jika diperlukan, 
+
+                  {/* Anda masih bisa menambahkan max-width jika diperlukan,
                       misalnya jika teks tombolnya bisa sangat panjang:
-                      max-w-xs 
+                      max-w-xs
                   */}
                 `}
               >

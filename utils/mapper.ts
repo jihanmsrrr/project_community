@@ -15,32 +15,46 @@ const getCategoryColorClasses = (kategori: string) => {
 };
 
 export const mapArtikelToNewsCardItem = (artikel: ArtikelBerita): NewsCardItem => {
-    const styles = getCategoryColorClasses(artikel.kategori);
-    const originalDate = new Date(artikel.savedAt);
+    const styles = getCategoryColorClasses(artikel.kategori || 'umum');
+    const originalDate = artikel.savedAt instanceof Date ? artikel.savedAt : new Date();
+    
     const safeBgColor = styles.categoryBgColor.replace("bg-", "");
     const safePlaceholderTextColor = styles.placeholderTextColor.replace("text-", "");
 
-    const imageUrl = artikel.gambarFiles.length > 0 && artikel.gambarFiles[0].url
-        ? artikel.gambarFiles[0].url
-        : `https://placehold.co/800x500/${safeBgColor}/${safePlaceholderTextColor}?text=${encodeURIComponent(artikel.judul)}&font=Inter`;
+    // PERBAIKAN UTAMA DI SINI: Validasi dan Type Assertion untuk gambar_urls
+    let primaryImageUrl: string | null = null;
+    if (Array.isArray(artikel.gambar_urls) && artikel.gambar_urls.length > 0) {
+        // Asumsikan setiap elemen di gambar_urls adalah objek dengan properti 'url'
+        const firstImage = artikel.gambar_urls[0];
+        if (typeof firstImage === 'object' && firstImage !== null && 'url' in firstImage) {
+            primaryImageUrl = (firstImage as { url: string }).url;
+        }
+    }
+
+    const imageUrl = primaryImageUrl
+        ? primaryImageUrl
+        : `https://placehold.co/800x500/${safeBgColor}/${safePlaceholderTextColor}?text=${encodeURIComponent(artikel.judul || 'Berita')}&font=Inter`;
+
+    const authorName = artikel.penulis?.nama_lengkap || artikel.nama_penulis || 'Anonim';
+    const authorImageUrl = artikel.penulis?.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=random&size=32&color=fff&font-size=0.45`;
 
     return {
-        id: artikel.id.toString(),
+        id: artikel.news_id.toString(),
         title: artikel.judul,
         excerpt: artikel.abstrak,
         category: artikel.kategori,
-        author: artikel.namaPenulis,
+        author: authorName,
         date: originalDate,
         displayDate: originalDate.toLocaleDateString("id-ID", {
             day: "numeric",
             month: "long",
             year: "numeric",
         }),
-        link: `/varia-statistik/artikel/${artikel.id}`,
+        link: `/varia-statistik/artikel/${artikel.news_id.toString()}`,
         imageUrl: imageUrl,
-        authorImageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(artikel.namaPenulis)}&background=random&size=32&color=fff&font-size=0.45`,
-        views: null, // Anda bisa isi dengan data asli jika ada
-        comments: null, // Anda bisa isi dengan data asli jika ada
+        authorImageUrl: authorImageUrl,
+        views: null, // Data ini perlu diisi dari sumber lain (misal dari kolom hits jika ada)
+        comments: null, // Data ini perlu diisi dari sumber lain (misal dari hitungan komentar)
         ...styles,
     };
 };

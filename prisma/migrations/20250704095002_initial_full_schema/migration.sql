@@ -44,30 +44,45 @@ CREATE TABLE `users` (
     `grade` VARCHAR(10) NULL,
     `unit_kerja_eselon1` VARCHAR(255) NULL,
     `unit_kerja_eselon2` VARCHAR(255) NULL,
+    `username` VARCHAR(255) NULL,
+    `password` VARCHAR(255) NULL,
 
     UNIQUE INDEX `users_nip_baru_key`(`nip_baru`),
     UNIQUE INDEX `users_email_key`(`email`),
     UNIQUE INDEX `users_sso_id_key`(`sso_id`),
+    UNIQUE INDEX `users_username_key`(`username`),
     PRIMARY KEY (`user_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `news` (
-    `news_id` BIGINT NOT NULL AUTO_INCREMENT,
-    `judul` VARCHAR(255) NULL,
-    `kategori` VARCHAR(100) NULL,
-    `kata_kunci` TEXT NULL,
-    `abstrak` TEXT NULL,
-    `isi_berita` LONGTEXT NULL,
-    `status` VARCHAR(50) NULL DEFAULT 'menunggu_verifikasi',
-    `nama_penulis` VARCHAR(255) NULL,
-    `penulis_id` BIGINT NULL,
-    `gambar_urls` JSON NULL,
-    `lampiran_urls` JSON NULL,
-    `created_at` DATETIME(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
-    `updated_at` DATETIME(0) NULL,
-    `published_at` DATETIME(0) NULL,
+CREATE TABLE `reviews` (
+    `review_id` BIGINT NOT NULL AUTO_INCREMENT,
+    `user_id` BIGINT NULL,
+    `rating` INTEGER NOT NULL,
+    `comment` TEXT NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    PRIMARY KEY (`review_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `news` (
+    `news_id` BIGINT NOT NULL,
+    `judul` VARCHAR(191) NOT NULL,
+    `abstrak` VARCHAR(191) NOT NULL,
+    `kategori` VARCHAR(191) NOT NULL,
+    `kata_kunci` JSON NOT NULL,
+    `isi_berita` TEXT NOT NULL,
+    `status` VARCHAR(191) NOT NULL,
+    `nama_penulis` VARCHAR(191) NOT NULL,
+    `gambar_urls` JSON NOT NULL,
+    `savedAt` DATETIME(3) NOT NULL,
+    `publishedAt` DATETIME(3) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `penulisId` BIGINT NOT NULL,
+
+    UNIQUE INDEX `news_news_id_key`(`news_id`),
     PRIMARY KEY (`news_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -76,10 +91,17 @@ CREATE TABLE `reading_materials` (
     `material_id` BIGINT NOT NULL AUTO_INCREMENT,
     `judul` VARCHAR(255) NULL,
     `kategori` VARCHAR(100) NULL,
+    `sub_kategori` VARCHAR(100) NULL,
+    `deskripsi` TEXT NULL,
     `file_path` VARCHAR(255) NULL,
     `uploader_id` BIGINT NULL,
-    `tanggal_upload` DATETIME(0) NULL,
+    `tanggal_upload` DATETIME(3) NULL,
+    `hits` INTEGER NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
+    `baca_url` VARCHAR(191) NOT NULL,
+    `unduh_url` VARCHAR(191) NOT NULL,
 
+    UNIQUE INDEX `reading_materials_slug_key`(`slug`),
     PRIMARY KEY (`material_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -116,6 +138,7 @@ CREATE TABLE `team_memberships` (
     `user_id` BIGINT NULL,
     `posisi` VARCHAR(100) NULL,
 
+    UNIQUE INDEX `team_memberships_team_id_user_id_key`(`team_id`, `user_id`),
     PRIMARY KEY (`team_member_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -202,7 +225,10 @@ ALTER TABLE `organization_units` ADD CONSTRAINT `organization_units_parent_unit_
 ALTER TABLE `users` ADD CONSTRAINT `users_unit_kerja_id_fkey` FOREIGN KEY (`unit_kerja_id`) REFERENCES `organization_units`(`org_unit_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `news` ADD CONSTRAINT `news_penulis_id_fkey` FOREIGN KEY (`penulis_id`) REFERENCES `users`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `reviews` ADD CONSTRAINT `reviews_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `news` ADD CONSTRAINT `news_penulisId_fkey` FOREIGN KEY (`penulisId`) REFERENCES `users`(`user_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `reading_materials` ADD CONSTRAINT `reading_materials_uploader_id_fkey` FOREIGN KEY (`uploader_id`) REFERENCES `users`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;

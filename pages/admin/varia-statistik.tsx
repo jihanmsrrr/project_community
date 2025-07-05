@@ -24,8 +24,14 @@ import {
 import type { NextPageWithLayout } from "../_app";
 import AdminLayout from "@/components/ui/AdminLayout";
 import BeritaTable from "@/components/Admin/Berita/BeritaTable";
+import type { ArtikelBerita } from "@/types/varia"; // Asumsi tipe ini sudah diperbarui atau akan diperbarui
 import RekapCard from "@/components/Admin/Berita/RekapCard";
-import type { ArtikelBerita } from "@/types/varia";
+
+// === START: Tambahkan import 'BigInt' untuk tipe ID dari Prisma ===
+// Jika Anda tidak menggunakan BigInt secara global, Anda bisa mengimpornya.
+// Tapi karena BigInt adalah tipe bawaan JS, tidak perlu import khusus.
+// Kita hanya perlu pastikan TypeScript memahami bahwa ini adalah BigInt.
+// === END: Tambahkan import 'BigInt' ===
 
 // Tipe status berita yang dikelola di halaman ini (tanpa 'draft')
 type BeritaStatus = Exclude<ArtikelBerita["status"], "draft">;
@@ -87,30 +93,63 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
       const lowerSearchTerm = searchTerm.toLowerCase();
       data = data.filter(
         (item) =>
+          // PERBAIKAN: Gunakan 'nama_penulis' sesuai skema Prisma
           item.judul.toLowerCase().includes(lowerSearchTerm) ||
-          item.namaPenulis.toLowerCase().includes(lowerSearchTerm)
+          (item.nama_penulis &&
+            item.nama_penulis.toLowerCase().includes(lowerSearchTerm)) // Tambahkan cek nullish
       );
     }
 
     // Urutkan berdasarkan tanggal terbaru
-    return data.sort((a, b) => b.savedAt - a.savedAt);
+    // PERBAIKAN: Gunakan .getTime() untuk mengurutkan objek Date
+    return data.sort((a, b) => b.savedAt.getTime() - a.savedAt.getTime());
   }, [activeTab, searchTerm, beritaList]);
 
-  const handleEdit = (id: number) => {
-    router.push(`/admin/varia-statistik/edit?id=${id}`);
+  // PERBAIKAN: Ubah tipe ID menjadi BigInt
+  const handleEdit = (id: bigint) => {
+    // Karena URL query biasanya string atau number, Anda mungkin perlu konversi BigInt ke string
+    router.push(`/admin/varia-statistik/edit?id=${id.toString()}`);
   };
 
-  const handleDelete = useCallback(async (id: number) => {
+  // PERBAIKAN: Ubah tipe ID menjadi BigInt
+  const handleDelete = useCallback(async (id: bigint) => {
+    console.log("Hapus artikel dengan ID:", id.toString()); // Konversi untuk log
     // TODO: Implementasikan logika hapus artikel
-    console.log("Hapus artikel dengan ID:", id);
-    // Contoh: setBeritaList(beritaList.filter(b => b.id !== id));
-  }, []);
+    // Contoh:
+    // try {
+    //   const response = await fetch(`/api/berita/${id.toString()}`, {
+    //     method: 'DELETE',
+    //   });
+    //   if (!response.ok) throw new Error('Gagal menghapus berita');
+    //   // Perbarui daftar berita setelah penghapusan berhasil
+    //   setBeritaList(beritaList.filter(b => b.news_id !== id));
+    // } catch (error) {
+    //   console.error("Error deleting berita:", error);
+    // }
+  }, []); // Anda mungkin perlu menambahkan 'beritaList' ke dependency array jika onDelete langsung memodifikasi state
 
-  const handleApprove = useCallback(async (id: number) => {
+  // PERBAIKAN: Ubah tipe ID menjadi BigInt
+  const handleApprove = useCallback(async (id: bigint) => {
+    console.log("Setujui artikel dengan ID:", id.toString()); // Konversi untuk log
     // TODO: Implementasikan logika setujui artikel
-    console.log("Setujui artikel dengan ID:", id);
-    // Contoh: panggil API untuk mengubah status, lalu fetch data lagi
-  }, []);
+    // Contoh:
+    // try {
+    //   const response = await fetch(`/api/berita/${id.toString()}/approve`, {
+    //     method: 'PUT', // Atau PATCH, tergantung API Anda
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ status: 'published' }),
+    //   });
+    //   if (!response.ok) throw new Error('Gagal menyetujui berita');
+    //   // Perbarui daftar berita setelah persetujuan berhasil
+    //   // Idealnya, fetch ulang data atau update status di state lokal
+    //   const updatedList = beritaList.map(b =>
+    //     b.news_id === id ? { ...b, status: 'published' } : b
+    //   );
+    //   setBeritaList(updatedList);
+    // } catch (error) {
+    //   console.error("Error approving berita:", error);
+    // }
+  }, []); // Anda mungkin perlu menambahkan 'beritaList' ke dependency array jika onApprove langsung memodifikasi state
 
   // Konfigurasi untuk item tab navigasi
   const tabItems: { label: string; status: BeritaStatus | "all" }[] = [

@@ -10,7 +10,6 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Settings2,
   X, // Untuk menutup filter panel
 } from "lucide-react";
 
