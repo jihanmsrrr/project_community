@@ -1,72 +1,149 @@
 // components/Organisasi/CariPegawai.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { useRouter } from "next/router"; // Impor useRouter
-import { Search, Filter, ChevronDown, Eye } from "lucide-react"; // XCircle dan DetailPegawai tidak lagi digunakan di sini
-import { motion } from "framer-motion"; // AnimatePresence mungkin tidak lagi dibutuhkan di sini jika detail pindah halaman
+import { useRouter } from "next/router";
+import { Search, Filter, ChevronDown, Eye } from "lucide-react";
+import { motion } from "framer-motion";
 
-// DetailPegawai tidak lagi diimpor di sini karena akan pindah ke halaman sendiri
-import type { DetailPegawaiData } from "@/types/pegawai";
-import { allDummyPegawai } from "@/data/dummyPegawaiService";
-import {
-  dataStatistikLengkap,
-  DataStatistikNasional,
-} from "@/data/statistikProvinsi";
+import { Prisma } from "@prisma/client";
+
+// Import tipe dari types/pegawai.ts
+import type { DashboardDataApi, AggregatedUnitData } from "@/types/pegawai";
+
+// ASUMSI: Tipe PegawaiUntukPencarian
+export type PegawaiUntukPencarian = Prisma.usersGetPayload<{
+  select: {
+    user_id: true;
+    nama_lengkap: true;
+    nip_baru: true;
+    nip_lama: true;
+    foto_url: true;
+    unit_kerja_eselon1: true; // string | null
+    unit_kerja_eselon2: true; // string | null
+    unit_kerja: {
+      select: {
+        org_unit_id: true;
+        nama_wilayah: true;
+        kode_bps: true;
+        nama_satker_bagian: true;
+        nama_wilayah_singkat: true; // string | null
+      };
+    };
+  };
+}>;
 
 const CariPegawai: React.FC = () => {
-  const router = useRouter(); // Inisialisasi router
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [hasilPencarian, setHasilPencarian] = useState<DetailPegawaiData[]>([]);
+  const [allPegawaiFromDB, setAllPegawaiFromDB] = useState<
+    PegawaiUntukPencarian[]
+  >([]);
+  const [hasilPencarian, setHasilPencarian] = useState<PegawaiUntukPencarian[]>(
+    []
+  );
   const [satkerFilter, setSatkerFilter] = useState("all");
   const [biroFilter, setBiroFilter] = useState("all");
-  // selectedPegawaiUntukDetail dan handleCloseDetail tidak lagi dibutuhkan
-  const [hoveredPegawaiId, setHoveredPegawaiId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [dataStatistikOrganisasi, setDataStatistikOrganisasi] =
+    useState<DashboardDataApi | null>(null);
+
+  const [hoveredPegawaiId, setHoveredPegawaiId] = useState<bigint | null>(null);
 
   useEffect(() => {
-    let filteredResults = allDummyPegawai;
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const pegawaiRes = await fetch("/api/organisasi/all-pegawai");
+        if (!pegawaiRes.ok) throw new Error("Gagal mengambil data pegawai.");
+        const pegawaiData: PegawaiUntukPencarian[] = await pegawaiRes.json();
+        setAllPegawaiFromDB(pegawaiData);
 
-    if (satkerFilter !== "all") {
+        const orgDataRes = await fetch("/api/organisasi/dashboard-data");
+        if (!orgDataRes.ok)
+          throw new Error("Gagal mengambil data organisasi untuk filter.");
+
+        const orgData: DashboardDataApi = await orgDataRes.json();
+        setDataStatistikOrganisasi(orgData);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        setAllPegawaiFromDB([]);
+        setDataStatistikOrganisasi(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    let filteredResults: PegawaiUntukPencarian[] = allPegawaiFromDB;
+
+    // Filter berdasarkan Satuan Kerja
+    if (satkerFilter !== "all" && dataStatistikOrganisasi) {
       if (satkerFilter === "Nasional") {
         filteredResults = filteredResults.filter(
-          (p) =>
-            p.satuanKerjaId === "NASIONAL" ||
-            p.satuanKerjaNama === "Nasional" ||
-            p.satuanKerjaNama === "Pusat"
+          (p) => p.unit_kerja?.kode_bps === "0000"
         );
       } else {
-        filteredResults = filteredResults.filter(
-          (p) => p.satuanKerjaNama === satkerFilter
-        );
+        const selectedOrgUnit = Object.values(
+          dataStatistikOrganisasi.dataStatistikLengkap
+        ).find((ou: AggregatedUnitData) => ou.namaWilayahAsli === satkerFilter);
+        if (selectedOrgUnit?.id) {
+          filteredResults = filteredResults.filter(
+            (p) => p.unit_kerja?.kode_bps === selectedOrgUnit.id
+          );
+        }
       }
     }
 
+    // Filter berdasarkan Biro (Eselon I) - hanya berlaku jika Satker Nasional dipilih
     if (satkerFilter === "Nasional" && biroFilter !== "all") {
       filteredResults = filteredResults.filter(
-        (p) => p.unitKerjaEselon1 === biroFilter
+        (p) => (p.unit_kerja_eselon1 || "") === biroFilter
       );
     }
 
+    // Filter berdasarkan Query Pencarian
     const query = searchQuery.trim().toLowerCase();
     if (query !== "") {
       filteredResults = filteredResults.filter((p) => {
-        const nameMatch = p.nama.toLowerCase().includes(query);
-        const nipBaruMatch = p.nipBaru
-          ? p.nipBaru.toLowerCase().includes(query)
-          : false;
-        const nipLamaMatch = p.nipLama
-          ? p.nipLama.toLowerCase().includes(query)
-          : false;
+        const nameMatch = (p.nama_lengkap || "").toLowerCase().includes(query);
+        const nipBaruMatch = (p.nip_baru || "").toLowerCase().includes(query);
+        const nipLamaMatch = (p.nip_lama || "").toLowerCase().includes(query);
+
         let satkerNameInQueryMatch = false;
-        if (satkerFilter === "all" && p.satuanKerjaNama) {
-          satkerNameInQueryMatch = p.satuanKerjaNama
-            .toLowerCase()
-            .includes(query);
+        // --- PERBAIKAN LEBIH KUAT DAN EKSPLISIT DI SINI ---
+        if (satkerFilter === "all" && p.unit_kerja) {
+          const namaWilayahSingkat = p.unit_kerja.nama_wilayah_singkat;
+          // Memastikan namaWilayahSingkat adalah string yang valid
+          if (typeof namaWilayahSingkat === "string") {
+            // Explicit type check
+            satkerNameInQueryMatch = (namaWilayahSingkat as string)
+              .toLowerCase()
+              .includes(query);
+          }
         }
+        // --- AKHIR PERBAIKAN ---
+
+        // Also ensure unit_kerja_eselon1 and unit_kerja_eselon2 are handled safely in general search logic
+        const eselon1Match = (p.unit_kerja_eselon1 || "")
+          .toLowerCase()
+          .includes(query);
+        const eselon2Match = (p.unit_kerja_eselon2 || "")
+          .toLowerCase()
+          .includes(query);
+
         return (
-          nameMatch || nipBaruMatch || nipLamaMatch || satkerNameInQueryMatch
+          nameMatch ||
+          nipBaruMatch ||
+          nipLamaMatch ||
+          satkerNameInQueryMatch ||
+          eselon1Match ||
+          eselon2Match
         );
       });
     }
@@ -80,66 +157,80 @@ const CariPegawai: React.FC = () => {
     } else {
       setHasilPencarian(filteredResults);
     }
-  }, [searchQuery, satkerFilter, biroFilter]);
+  }, [
+    searchQuery,
+    satkerFilter,
+    biroFilter,
+    allPegawaiFromDB,
+    dataStatistikOrganisasi,
+  ]);
 
   const handleSearchInputChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setSearchQuery(event.target.value);
-    // Tidak perlu lagi menghapus selectedPegawaiUntukDetail
   };
 
-  // PERUBAHAN UTAMA: Fungsi ini akan melakukan navigasi
-  const handlePilihPegawaiUntukDetail = (pegawai: DetailPegawaiData) => {
-    if (pegawai.nipBaru) {
-      router.push(`/organisasi/pegawai/${pegawai.nipBaru}`);
+  const handlePilihPegawaiUntukDetail = (pegawai: PegawaiUntukPencarian) => {
+    if (pegawai.nip_baru) {
+      router.push(`/organisasi/pegawai/${pegawai.nip_baru}`);
     } else {
-      // Fallback jika nipBaru tidak ada (seharusnya tidak terjadi dengan data dummy kita)
       console.warn(
         "NIP Baru pegawai tidak ditemukan, tidak bisa navigasi:",
         pegawai
       );
-      // Mungkin tampilkan notifikasi ke pengguna
     }
   };
 
-  const satkerOptions = [
-    { value: "all", label: "Semua Satuan Kerja" },
-    { value: "Nasional", label: "BPS RI (Pusat)" },
-    ...Object.keys(dataStatistikLengkap)
-      .filter(
-        (key) =>
-          key !== "nasional" &&
-          dataStatistikLengkap[key as keyof DataStatistikNasional]
-      )
-      .map((key) => {
-        const satker = dataStatistikLengkap[key as keyof DataStatistikNasional];
-        return {
-          value: satker.namaWilayahAsli,
-          label: satker.nama,
-        };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label)),
-  ];
+  const satkerOptions = useMemo(() => {
+    const options = [
+      { value: "all", label: "Semua Satuan Kerja" },
+      { value: "Nasional", label: "BPS RI (Pusat)" },
+    ];
+    if (dataStatistikOrganisasi?.dataStatistikLengkap) {
+      Object.values(dataStatistikOrganisasi.dataStatistikLengkap)
+        .filter((ou: AggregatedUnitData) => ou.id !== "NASIONAL")
+        .forEach((satker: AggregatedUnitData) => {
+          options.push({
+            value: satker.namaWilayahAsli,
+            label: satker.namaWilayahAsli,
+          });
+        });
+    }
+    return options.sort((a, b) => a.label.localeCompare(b.label));
+  }, [dataStatistikOrganisasi]);
 
-  const unitKerjaEselon1BPSRIGlobal: string[] = [
-    "Sekretariat Utama",
-    "Deputi Bidang Statistik Sosial",
-    "Deputi Bidang Statistik Produksi",
-    "Deputi Bidang Statistik Distribusi dan Jasa",
-    "Deputi Bidang Neraca dan Analisis Statistik",
-    "Deputi Bidang Metodologi dan Informasi Statistik",
-    "Inspektorat Utama",
-    "Pusat Pendidikan dan Pelatihan",
-  ];
+  const unitKerjaEselon1BPSRIGlobal: string[] = useMemo(
+    () => [
+      "Sekretariat Utama",
+      "Deputi Bidang Statistik Sosial",
+      "Deputi Bidang Statistik Produksi",
+      "Deputi Bidang Statistik Distribusi dan Jasa",
+      "Deputi Bidang Neraca dan Analisis Statistik",
+      "Deputi Bidang Metodologi dan Informasi Statistik",
+      "Inspektorat Utama",
+      "Pusat Pendidikan dan Pelatihan",
+    ],
+    []
+  );
 
-  const biroOptions = [
-    { value: "all", label: "Semua Unit Eselon I" },
-    ...unitKerjaEselon1BPSRIGlobal.map((unit) => ({
-      value: unit,
-      label: unit,
-    })),
-  ];
+  const biroOptions = useMemo(() => {
+    return [
+      { value: "all", label: "Semua Unit Eselon I" },
+      ...unitKerjaEselon1BPSRIGlobal.map((unit) => ({
+        value: unit,
+        label: unit,
+      })),
+    ];
+  }, [unitKerjaEselon1BPSRIGlobal]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[500px] bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+        <p>Memuat data pegawai...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-slate-100 dark:bg-slate-900 min-h-screen flex flex-col items-center">
@@ -248,7 +339,6 @@ const CariPegawai: React.FC = () => {
           </aside>
 
           <main className="lg:col-span-9 space-y-4">
-            {/* Bagian ini hanya menampilkan daftar hasil pencarian atau pesan jika tidak ada query */}
             {searchQuery.trim() ||
             satkerFilter !== "all" ||
             biroFilter !== "all" ? (
@@ -256,17 +346,16 @@ const CariPegawai: React.FC = () => {
                 {hasilPencarian.length > 0 ? (
                   hasilPencarian.map((pegawai) => (
                     <motion.div
-                      key={pegawai.id}
+                      key={pegawai.user_id.toString()}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2 }}
-                      // PERUBAHAN: onClick memanggil fungsi navigasi
                       onClick={() => handlePilihPegawaiUntukDetail(pegawai)}
-                      onMouseEnter={() => setHoveredPegawaiId(pegawai.id)}
+                      onMouseEnter={() => setHoveredPegawaiId(pegawai.user_id)}
                       onMouseLeave={() => setHoveredPegawaiId(null)}
                       className={`bg-white dark:bg-slate-800 rounded-xl shadow-lg border 
                                   ${
-                                    hoveredPegawaiId === pegawai.id
+                                    hoveredPegawaiId === pegawai.user_id
                                       ? "border-blue-500 dark:border-sky-500 bg-blue-50 dark:bg-sky-900/40"
                                       : "border-slate-200 dark:border-slate-700"
                                   } 
@@ -280,31 +369,33 @@ const CariPegawai: React.FC = () => {
                     >
                       <Image
                         src={
-                          pegawai.fotoUrl ||
+                          pegawai.foto_url ||
                           `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            pegawai.nama
+                            pegawai.nama_lengkap || "Pegawai"
                           )}&size=64&background=random&color=fff&font-size=0.33`
                         }
-                        alt={`Foto ${pegawai.nama}`}
+                        alt={`Foto ${pegawai.nama_lengkap}`}
                         width={56}
                         height={56}
                         className="rounded-lg object-cover flex-shrink-0"
                       />
                       <div className="flex-grow">
                         <p className="font-semibold text-base text-slate-800 dark:text-slate-100">
-                          {pegawai.nama}
+                          {pegawai.nama_lengkap}
                         </p>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                          {pegawai.satuanKerjaNama || "Tidak ada data satker"}
+                          {pegawai.unit_kerja?.nama_wilayah_singkat ||
+                            pegawai.unit_kerja_eselon2 ||
+                            "Tidak ada data satker"}
                         </p>
                         <p className="text-xs text-slate-400 dark:text-slate-500">
-                          NIP: {pegawai.nipBaru || "N/A"}
+                          NIP: {pegawai.nip_baru || "N/A"}
                         </p>
                       </div>
                       <Eye
                         size={24}
                         className={`flex-shrink-0 transition-colors ${
-                          hoveredPegawaiId === pegawai.id
+                          hoveredPegawaiId === pegawai.user_id
                             ? "text-blue-600 dark:text-sky-500"
                             : "text-slate-400 dark:text-slate-500"
                         }`}
@@ -313,7 +404,6 @@ const CariPegawai: React.FC = () => {
                   ))
                 ) : (
                   <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 text-center">
-                    {/* Icon XCircle tidak lagi dibutuhkan di sini */}
                     <p className="text-slate-500 dark:text-slate-400">
                       Pegawai tidak ditemukan dengan kriteria tersebut.
                     </p>
@@ -321,7 +411,6 @@ const CariPegawai: React.FC = () => {
                 )}
               </div>
             ) : (
-              // Tampilan awal jika tidak ada pencarian/filter aktif
               <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 text-center mt-6 flex flex-col items-center justify-center min-h-[300px]">
                 <Search
                   size={56}
@@ -336,7 +425,6 @@ const CariPegawai: React.FC = () => {
                 </p>
               </div>
             )}
-            {/* DetailPegawai dan AnimatePresence untuk detail dihapus dari sini */}
           </main>
         </div>
       </div>

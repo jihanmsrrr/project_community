@@ -1,28 +1,14 @@
-// prisma/seeds/02_news_materials.ts
-import { PrismaClient, Prisma } from '@prisma/client';
+// prisma/seeds/02_content_and_interactions.ts
+import type { Prisma, PrismaClient } from '@prisma/client';
 
-export async function seedNewsAndMaterials(prisma: PrismaClient) {
-  console.log(`--- Seeding news and reading_materials ---`);
+type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+const randomPick = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-  // --- Seed news ---
-  const newsData: Prisma.newsCreateInput[] = [
-    {
-      news_id: 1,
-      judul: 'Wisata: Analisis Mendalam Topik ke-1',
-      kategori: 'Wisata',
-      kata_kunci: ["Statistik", "Ekonomi"],
-      isi_berita: 'Ini adalah isi lengkap untuk berita ke-1. Pembahasan mencakup data historis, analisis tren, dan proyeksi masa depan untuk memberikan pemahaman yang komprehensif kepada pembaca.',
-      status: 'published',
-      nama_penulis: 'Mohamad Rivani S.IP, M.M.',
-      gambar_urls: [{ url: 'https://placehold.co/1200x600/3B82F6/FFFFFF/png?text=Berita+1' }],
-      createdAt: new Date('2025-07-04T03:24:08.334Z'),
-      penulis: { connect: { user_id: 5 } },
-      publishedAt: new Date('2025-03-27T03:24:08.329Z'),
-      savedAt: new Date('2025-03-27T03:24:08.329Z'),
-      updatedAt: new Date('2025-07-04T03:24:08.334Z'),
-      abstrak: 'Ini adalah abstrak untuk berita "Wisata: Analisis Mendalam Topik ke-1". Artikel ini membahas berbagai aspek penting yang relevan dengan topik terkini.',
-    },
-    {
+// --- DATA BERITA STATIS ANDA ---
+const newsData: Prisma.newsCreateInput[] = [
+    // PASTE SEMUA 100+ DATA `newsData` DARI FILE ANDA DI SINI
+    { news_id: 1, judul: 'Wisata: Analisis Mendalam Topik ke-1', kategori: 'Wisata', kata_kunci: ["Statistik", "Ekonomi"], isi_berita: 'Isi berita...', status: 'published', nama_penulis: 'Mohamad Rivani S.IP, M.M.', gambar_urls: [{ url: '...' }], createdAt: new Date(), penulis: { connect: { user_id: 5 } }, publishedAt: new Date(), savedAt: new Date(), updatedAt: new Date(), abstrak: 'Abstrak...' },
+     {
       news_id: 2,
       judul: 'Opini: Analisis Mendalam Topik ke-2',
       kategori: 'Opini',
@@ -1642,34 +1628,86 @@ export async function seedNewsAndMaterials(prisma: PrismaClient) {
       updatedAt: new Date('2025-07-04T05:27:07.686Z'),
       abstrak: 'ini bsia gaa',
     },
-    {
-      news_id: 1751606831424,
-      judul: 'uda bisa blm',
-      kategori: 'BPS Terkini',
-      kata_kunci: [],
-      isi_berita: '<p>aaaaa</p>',
-      status: 'pending_review',
-      nama_penulis: 'Arianto S.Si., SE., M.Si',
-      gambar_urls: [
-        { url: '/files/berita/lj8588ddn2shihrssusa68bxr.27.33.png' },
-        { url: '/files/berita/jepu8amd28e41ao5rrvv1iqpb.13.35.png' },
-        { url: '/files/berita/z9nannvp3g7d27p1uj24mcdyt.42.23.png' }
-      ],
-      createdAt: new Date('2025-07-04T05:27:11.426Z'),
-      penulis: { connect: { user_id: 1 } },
-      publishedAt: null,
-      savedAt: new Date('2025-07-04T05:27:11.424Z'),
-      updatedAt: new Date('2025-07-04T05:27:11.426Z'),
-      abstrak: 'ini bsia gaa',
-    },
-  ];
+    { news_id: 1751606831424, judul: 'uda bisa blm', kategori: 'BPS Terkini', kata_kunci: [], isi_berita: '<p>aaaaa</p>', status: 'pending_review', nama_penulis: 'Arianto S.Si., SE., M.Si', gambar_urls: [{ url: '...' }], createdAt: new Date(), penulis: { connect: { user_id: 1 } }, publishedAt: null, savedAt: new Date(), updatedAt: new Date(), abstrak: 'ini bsia gaa' },
+];
 
-  for (const data of newsData) {
-    await prisma.news.upsert({
-      where: { news_id: data.news_id },
-      update: data,
-      create: data,
-    });
-  }
-  console.log(`✅ Seeded news.`);
+export async function seedContentAndInteractions(tx: TransactionClient) {
+    console.log(`-> Membersihkan & memasukkan konten (berita, interaksi)...`);
+    
+    await tx.comments.deleteMany({});
+    await tx.likes.deleteMany({});
+    await tx.bookmarks.deleteMany({});
+    await tx.news.deleteMany({});
+    
+    console.log(`  -> Memasukkan ${newsData.length} berita statis...`);
+    for (const data of newsData) {
+        const newsIdAsNumber = Number(data.news_id);
+        // Menggunakan `create` karena kita butuh relasi `connect` untuk penulis
+        await tx.news.create({
+            data: {
+                ...data,
+                news_id: newsIdAsNumber,
+            },
+        });
+    }
+    
+    const allUsers = await tx.users.findMany({ select: { user_id: true, nama_lengkap: true } });
+    const allNews = await tx.news.findMany({ select: { news_id: true } });
+    if(allUsers.length === 0 || allNews.length === 0) {
+        console.log("  ⚠️ Tidak ada User atau Berita untuk dibuatkan interaksi.");
+        return;
+    }
+
+    console.log(`  -> Membuat interaksi dinamis...`);
+    // FIX: Menggunakan tipe data yang benar untuk `createMany`
+    const likesToCreate: Prisma.likesCreateManyInput[] = [];
+    const bookmarksToCreate: Prisma.bookmarksCreateManyInput[] = [];
+    const commentsToCreate: Prisma.commentsCreateManyInput[] = [];
+    
+    const interactionPairs = new Set<string>();
+
+    for (let i = 0; i < 500; i++) {
+        const randomUser = randomPick(allUsers);
+        const randomNews = randomPick(allNews);
+        const pairKey = `${randomUser.user_id}-${randomNews.news_id}`;
+
+        if (!interactionPairs.has(pairKey)) {
+            // 60% chance to like
+            if (Math.random() > 0.4) {
+                likesToCreate.push({
+                    user_id: randomUser.user_id,
+                    article_id: randomNews.news_id,
+                    timestamp: new Date(),
+                });
+            }
+            // 30% chance to bookmark
+            if (Math.random() > 0.7) {
+                bookmarksToCreate.push({
+                    user_id: randomUser.user_id,
+                    article_id: randomNews.news_id,
+                    timestamp: new Date(),
+                });
+            }
+            // 20% chance to comment
+            if (Math.random() > 0.8) {
+                commentsToCreate.push({
+                    isi_komentar: randomPick(['Artikel yang sangat mencerahkan!', 'Terima kasih atas datanya, sangat bermanfaat.', 'Analisis yang tajam.']),
+                    user_id: randomUser.user_id,
+                    news_id: randomNews.news_id,
+                    username: randomUser.nama_lengkap,
+                    tanggal_komentar: new Date(),
+                });
+            }
+            interactionPairs.add(pairKey);
+        }
+    }
+    
+    if (likesToCreate.length > 0) await tx.likes.createMany({ data: likesToCreate, skipDuplicates: true });
+    if (bookmarksToCreate.length > 0) await tx.bookmarks.createMany({ data: bookmarksToCreate, skipDuplicates: true });
+    if (commentsToCreate.length > 0) await tx.comments.createMany({ data: commentsToCreate, skipDuplicates: true });
+
+    console.log(`✅ Seeded ${likesToCreate.length} likes, ${bookmarksToCreate.length} bookmarks, & ${commentsToCreate.length} comments.`);
 }
+
+// Menambahkan `export {}` untuk menjadikan file ini sebagai module
+export {};

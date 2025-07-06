@@ -1,7 +1,7 @@
 // pages/api/berita/user-activity.ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client'; // Import Prisma dan tipenya
 
 const prisma = new PrismaClient();
 
@@ -23,16 +23,22 @@ export default async function handler(
     try {
         const userBigIntId = BigInt(userId);
 
+        // Tipe utilitas untuk hasil kueri
+        type BookmarkedRecord = Prisma.bookmarksGetPayload<{ include: { berita: true } }>;
+        type LikedRecord = Prisma.likesGetPayload<{ include: { berita: true } }>;
+        type CommentedRecord = Prisma.commentsGetPayload<{ select: { berita: true } }>; // Perhatikan select
+
         // 1. Dapatkan artikel yang di-bookmark oleh pengguna
         const bookmarkedUserRecords = await prisma.bookmarks.findMany({
             where: {
                 user_id: userBigIntId,
             },
             include: {
-                berita: true, // Sertakan detail artikel terkait
+                berita: true,
             },
         });
-        const bookmarkedArticles = bookmarkedUserRecords.map(record => record.berita).filter(Boolean);
+        // PERBAIKAN: Beri tipe eksplisit pada parameter map
+        const bookmarkedArticles = bookmarkedUserRecords.map((record: BookmarkedRecord) => record.berita).filter(Boolean);
 
         // 2. Dapatkan artikel yang disukai oleh pengguna
         const likedUserRecords = await prisma.likes.findMany({
@@ -40,30 +46,27 @@ export default async function handler(
                 user_id: userBigIntId,
             },
             include: {
-                berita: true, // Sertakan detail artikel terkait
+                berita: true,
             },
         });
-        const likedArticles = likedUserRecords.map(record => record.berita).filter(Boolean);
+        // PERBAIKAN: Beri tipe eksplisit pada parameter map
+        const likedArticles = likedUserRecords.map((record: LikedRecord) => record.berita).filter(Boolean);
 
         // 3. Dapatkan artikel yang dikomentari oleh pengguna
-        // PERBAIKAN: Gunakan 'select' dan pastikan kolom 'news_id' dipilih
         const commentedUserRecords = await prisma.comments.findMany({
             where: {
                 user_id: userBigIntId,
-                parent_id: null, // Hanya ambil komentar level teratas dari pengguna ini
+                parent_id: null,
             },
-            distinct: ['news_id'], // Mengambil hanya satu komentar per berita_id dari pengguna
-            select: { // Menggunakan 'select' untuk memilih kolom
-                news_id: true, // Harus memilih kolom yang di-distinct
-                berita: true,  // Memilih objek berita penuh melalui relasi
+            distinct: ['news_id'],
+            select: {
+                news_id: true,
+                berita: true,
             },
         });
+        // PERBAIKAN: Beri tipe eksplisit pada parameter map
+        const commentedArticles = commentedUserRecords.map((record: CommentedRecord) => record.berita).filter(Boolean);
 
-        // Map ke array artikel saja
-        // Jika berita bisa null di select: { berita: true }, tambahkan filter(Boolean)
-        const commentedArticles = commentedUserRecords.map(record => record.berita).filter(Boolean);
-
-        // Serialisasi BigInt ke string untuk semua data yang dikembalikan
         const serializedResponse = JSON.parse(JSON.stringify({
             bookmarked: bookmarkedArticles,
             liked: likedArticles,

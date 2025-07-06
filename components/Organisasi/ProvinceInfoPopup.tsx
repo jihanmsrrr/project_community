@@ -2,23 +2,23 @@
 "use client";
 
 import React from "react";
+import { X, ExternalLink, Users, Building, Clock } from "lucide-react";
 import {
-  X,
-  ExternalLink,
-  TrendingUp,
-  Users,
-  Building,
-  Clock,
-} from "lucide-react";
-import { motion, AnimatePresence, Variants } from "framer-motion";
-import type { DetailPegawaiData } from "@/types/pegawai";
+  motion,
+  AnimatePresence,
+  Variants,
+  type Transition,
+} from "framer-motion";
+// PERBAIKAN: Import AggregatedUnitData
+import type { AggregatedUnitData } from "@/types/pegawai"; // Ganti DetailPegawaiData dengan AggregatedUnitData
 import Link from "next/link";
 
 interface ProvinceInfoPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  provinsiData?: DetailPegawaiData;
-  provinceCode?: string; // Ini adalah WilayahKey (misalnya "IDAC", "IDBA")
+  // PERBAIKAN UTAMA: Ubah tipe provinsiData menjadi AggregatedUnitData
+  provinsiData?: AggregatedUnitData;
+  provinceCode?: string;
   animationsDisabled?: boolean;
 }
 
@@ -46,7 +46,7 @@ const ProvinceInfoPopup: React.FC<ProvinceInfoPopupProps> = ({
   provinceCode,
   animationsDisabled,
 }) => {
-  const modalTransition = animationsDisabled
+  const modalTransition: Transition = animationsDisabled // Add the ': Transition' type annotation here
     ? { duration: 0.01 }
     : { type: "spring", stiffness: 300, damping: 30 };
 
@@ -87,59 +87,90 @@ const ProvinceInfoPopup: React.FC<ProvinceInfoPopupProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              {/* ... bagian statistik tetap sama ... */}
+              {/* Statistik - Menggunakan properti dari AggregatedUnitData */}
               <div className="bg-white dark:bg-slate-700/50 p-3.5 rounded-lg shadow-sm">
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-0.5">
-                  <Building size={14} />
+                  <Users size={14} />
                   Total Pegawai
                 </p>
                 <p className="font-semibold text-lg text-slate-700 dark:text-slate-100">
-                  {(provinsiData.totalPegawai ?? 0).toLocaleString()}
+                  {(provinsiData.jumlahPegawai ?? 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-white dark:bg-slate-700/50 p-3.5 rounded-lg shadow-sm">
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-0.5">
-                  <Users size={14} />
+                  <Building size={14} />
                   Pegawai thd ABK
                 </p>
                 <p className="font-semibold text-lg text-slate-700 dark:text-slate-100">
                   {(provinsiData.persenTerhadapABK ?? 0).toFixed(2)} %
                 </p>
+                {/* subtextABK dan infoABK */}
                 {provinsiData.subtextABK && (
                   <p className="text-[0.7rem] text-slate-500 dark:text-slate-400 opacity-90 mt-1">
                     {provinsiData.subtextABK}
                   </p>
                 )}
+                {provinsiData.infoABK && (
+                  <p className="text-[0.7rem] text-slate-500 dark:text-slate-400 opacity-90 mt-1">
+                    {provinsiData.infoABK}
+                  </p>
+                )}
               </div>
               <div className="bg-white dark:bg-slate-700/50 p-3.5 rounded-lg shadow-sm">
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-0.5">
-                  <TrendingUp size={14} />
-                  Rata-Rata Umur
+                  <Clock size={14} />
+                  Pensiun Tahun Ini
                 </p>
                 <p className="font-semibold text-lg text-slate-700 dark:text-slate-100">
-                  {(provinsiData.rataUmurSatker ?? 0).toFixed(2)} thn
+                  {(provinsiData.jumlahPensiunTahunIni ?? 0).toLocaleString()}
                 </p>
               </div>
               <div className="bg-white dark:bg-slate-700/50 p-3.5 rounded-lg shadow-sm">
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-0.5">
                   <Clock size={14} />
-                  Rata-Rata KJK
+                  Pensiun 5 Thn ke Depan
                 </p>
                 <p className="font-semibold text-lg text-slate-700 dark:text-slate-100">
-                  {provinsiData.rataKJKSatker?.jam ?? 0}j{" "}
-                  {provinsiData.rataKJKSatker?.menit ?? 0}m
+                  {(
+                    provinsiData.jumlahPensiun5TahunKedepan ?? 0
+                  ).toLocaleString()}
                 </p>
-                {provinsiData.subtextKJK && (
-                  <p className="text-[0.7rem] text-slate-500 dark:text-slate-400 opacity-90 mt-1">
-                    {provinsiData.subtextKJK}
-                  </p>
-                )}
               </div>
+              {/* Rata-Rata Umur dan Rata-Rata KJK jika ada */}
+              {provinsiData.rataUmurSatker !== undefined && (
+                <div className="bg-white dark:bg-slate-700/50 p-3.5 rounded-lg shadow-sm">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-0.5">
+                    <Users size={14} />{" "}
+                    {/* Menggunakan Users untuk rata-rata umur pegawai */}
+                    Rata-Rata Umur
+                  </p>
+                  <p className="font-semibold text-lg text-slate-700 dark:text-slate-100">
+                    {(provinsiData.rataUmurSatker ?? 0).toFixed(2)} thn
+                  </p>
+                </div>
+              )}
+              {provinsiData.rataKJKSatker && (
+                <div className="bg-white dark:bg-slate-700/50 p-3.5 rounded-lg shadow-sm">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-0.5">
+                    <Clock size={14} />
+                    Rata-Rata KJK
+                  </p>
+                  <p className="font-semibold text-lg text-slate-700 dark:text-slate-100">
+                    {provinsiData.rataKJKSatker.jam ?? 0}j{" "}
+                    {provinsiData.rataKJKSatker.menit ?? 0}m
+                  </p>
+                  {provinsiData.subtextKJK && (
+                    <p className="text-[0.7rem] text-slate-500 dark:text-slate-400 opacity-90 mt-1">
+                      {provinsiData.subtextKJK}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {provinceCode && (
               <Link
-                // PERBAIKAN UTAMA DI SINI:
                 href={`/organisasi/struktur?wilayah=${provinceCode}`}
                 passHref
                 legacyBehavior

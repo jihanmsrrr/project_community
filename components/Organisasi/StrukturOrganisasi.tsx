@@ -1,35 +1,30 @@
 // components/Organisasi/StrukturOrganisasi.tsx
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { UserCircleIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
-import type { DetailPegawaiData, Pejabat } from "@/types/pegawai";
-import {
-  dataStatistikLengkap,
-  DataStatistikNasional,
-} from "@/data/statistikProvinsi";
-import { allDummyPegawai } from "@/data/dummyPegawaiService";
+// Import tipe data yang telah disesuaikan
+import type { AggregatedUnitData, Pejabat } from "@/types/pegawai";
 
-type WilayahKey = Extract<keyof DataStatistikNasional, string>;
+type WilayahKey = string;
 
 interface StrukturOrganisasiProps {
   wilayahKode: WilayahKey;
 }
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
-    // Menerima custom prop 'i' untuk delay
     opacity: 1,
     y: 0,
     transition: {
       delay: i * 0.07,
       duration: 0.4,
-      ease: "easeOut",
+      ease: [0.25, 0.1, 0.25, 1.0],
     },
   }),
 };
@@ -40,6 +35,8 @@ interface PejabatCardProps {
   onClick?: () => void;
 }
 
+// FIX: Komponen PejabatCard hanya merender satu kartu pejabat.
+// Logika grid telah dipindahkan ke komponen utama.
 const PejabatCard: React.FC<PejabatCardProps> = ({
   pejabat,
   isLeader,
@@ -47,12 +44,12 @@ const PejabatCard: React.FC<PejabatCardProps> = ({
 }) => {
   return (
     <motion.div
-      className={`bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center flex flex-col items-center transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] ${
+      className={`bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 text-center flex flex-col items-center transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] h-full ${
         isLeader
           ? "border-2 border-sky-500 dark:border-sky-400"
           : "border border-slate-200 dark:border-slate-700"
       } ${onClick ? "cursor-pointer" : ""}`}
-      variants={cardVariants} // Digunakan oleh parent motion component dengan staggerChildren
+      variants={cardVariants}
       whileHover={{ y: -5 }}
       onClick={onClick}
       role={onClick ? "button" : undefined}
@@ -66,22 +63,23 @@ const PejabatCard: React.FC<PejabatCardProps> = ({
             : "ring-2 ring-slate-300 dark:ring-slate-600"
         }`}
       >
-        {pejabat.fotoUrl ? (
+        {pejabat.foto_url ? (
           <Image
-            src={pejabat.fotoUrl}
-            alt={`Foto ${pejabat.nama}`}
+            src={pejabat.foto_url}
+            alt={`Foto ${pejabat.nama_lengkap}`}
             layout="fill"
             objectFit="cover"
+            className="bg-slate-200"
           />
         ) : (
           <UserCircleIcon className="w-full h-full text-slate-400 dark:text-slate-500 p-1" />
         )}
       </div>
       <h4 className="text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-100 leading-tight">
-        {pejabat.nama}
+        {pejabat.nama_lengkap || "Nama Pejabat"}
       </h4>
       <p className="text-xs sm:text-sm text-sky-600 dark:text-sky-400 font-medium mt-1">
-        {pejabat.jabatan}
+        {pejabat.jabatan_struktural || "Jabatan tidak tersedia"}
       </p>
     </motion.div>
   );
@@ -91,86 +89,67 @@ const StrukturOrganisasi: React.FC<StrukturOrganisasiProps> = ({
   wilayahKode,
 }) => {
   const router = useRouter();
-  const satkerData = dataStatistikLengkap[wilayahKode] as
-    | DetailPegawaiData
-    | undefined;
+
+  const [dataOrganisasiApi, setDataOrganisasiApi] = useState<{
+    dataStatistikLengkap: { [key: string]: AggregatedUnitData };
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrgData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/api/organisasi/dashboard-data");
+        if (!response.ok)
+          throw new Error("Failed to fetch organization data for structure");
+        const data: {
+          dataStatistikLengkap: { [key: string]: AggregatedUnitData };
+        } = await response.json();
+        setDataOrganisasiApi(data);
+      } catch (error) {
+        console.error("Error fetching organization data for structure:", error);
+        setDataOrganisasiApi(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchOrgData();
+  }, []);
+
+  const satkerData = dataOrganisasiApi?.dataStatistikLengkap[wilayahKode];
 
   const handlePejabatClick = (clickedPejabat: Pejabat) => {
-    if (!satkerData) return;
-
-    // ---------------------------------------------------------------------------
-    // SARAN DAN REKOMENDASI TERKAIT PENCARIAN DETAIL PEGAWAI DARI STRUKTUR:
-    // ---------------------------------------------------------------------------
-    // Logika di bawah ini adalah upaya "best-effort" untuk menemukan data pegawai lengkap
-    // (termasuk NIP) dari `allDummyPegawai` berdasarkan informasi minimalis (`nama`, `jabatan`)
-    // yang ada pada objek `Pejabat` yang berasal dari `dataStatistikLengkap.pejabatStruktural`.
-
-    // KETERBATASAN PENDEKATAN SAAT INI:
-    // 1. Pencocokan Nama: `detailPegawai.nama.includes(clickedPejabat.nama)`
-    //    - `clickedPejabat.nama` (dari `getPejabatUntukSatker`) adalah nama lengkap dengan gelar dari sumber awal.
-    //    - `detailPegawai.nama` (dari `allDummyPegawai` yang di-generate oleh `dummyPegawaiService`)
-    //      menggunakan `clickedPejabat.nama` sebagai inti, namun bisa saja ditambahkan gelar acak
-    //      di depan atau belakangnya oleh `gelarDepanGlobal` dan `gelarBelakangGlobal`.
-    //    - Metode `includes()` cukup baik untuk kasus ini, tetapi bisa jadi kurang presisi jika ada
-    //      nama yang sangat mirip atau jika `clickedPejabat.nama` sendiri sangat generik.
-    // 2. Tidak Ada ID Unik Langsung: Objek `Pejabat` saat ini tidak memiliki NIP atau ID unik pegawai
-    //    yang bisa langsung digunakan untuk navigasi atau pencarian presisi.
-
-    // SOLUSI IDEAL (JANGKA PANJANG) YANG DISARANKAN:
-    // A. Memperkaya Tipe `Pejabat`:
-    //    - Tambahkan field opsional `nipUntukDetail?: string` atau `pegawaiUnikId?: string` pada
-    //      interface `Pejabat` di `src/types/pegawai.ts`.
-    // B. Penyesuaian Data Generation:
-    //    - Saat `getPejabatUntukSatker` di `data/statistikProvinsi.ts` membuat objek `Pejabat`,
-    //      idealnya ia sudah bisa menyertakan NIP (jika NIP pejabat struktural ini statis/diketahui)
-    //      atau ID unik yang akan konsisten dengan data pegawai yang di-generate.
-    //    - Alternatifnya, setelah `allDummyPegawai` (yang berisi NIP) dan `dataStatistikLengkap`
-    //      (yang berisi `pejabatStruktural` tanpa NIP) selesai di-generate, lakukan langkah
-    //      post-processing:
-    //        Iterasi `dataStatistikLengkap[kodeWilayah].pejabatStruktural`. Untuk setiap `Pejabat`,
-    //        cari entri yang cocok di `allDummyPegawai` (berdasarkan nama, jabatan awal, dan konteks satker).
-    //        Setelah ditemukan, suntikkan `nipBaru` dari `allDummyPegawai` ke field baru
-    //        (misalnya `nipUntukDetail`) pada objek `Pejabat` di `dataStatistikLengkap`.
-    // C. Hasil: Dengan NIP atau ID unik yang sudah ada di objek `Pejabat` yang diterima `PejabatCard`,
-    //    navigasi bisa langsung dilakukan tanpa perlu pencarian "fuzzy" seperti di bawah ini.
-
-    // Logika pencarian "best-effort" saat ini:
-    const foundPegawai = allDummyPegawai.find((detailPegawai) => {
-      const isNameMatch = detailPegawai.nama.includes(clickedPejabat.nama);
-      const isJabatanMatch =
-        detailPegawai.jabatanStruktural === clickedPejabat.jabatan;
-
-      let isSatkerMatch = false;
-      if (wilayahKode === "nasional") {
-        isSatkerMatch = detailPegawai.satuanKerjaId === "NASIONAL";
-      } else {
-        isSatkerMatch =
-          detailPegawai.satuanKerjaId === satkerData.satuanKerjaId;
-      }
-      return isNameMatch && isJabatanMatch && isSatkerMatch;
-    });
-
-    if (foundPegawai && foundPegawai.nipBaru) {
-      router.push(`/organisasi/pegawai/${foundPegawai.nipBaru}`);
+    if (clickedPejabat.nip_baru) {
+      router.push(`/organisasi/pegawai/${clickedPejabat.nip_baru}`);
     } else {
       console.warn(
-        "Peringatan: Detail pegawai lengkap (dari allDummyPegawai) tidak ditemukan untuk pejabat:",
-        `Nama di Struktur: "${clickedPejabat.nama}"`,
-        `Jabatan di Struktur: "${clickedPejabat.jabatan}"`,
-        `Satker: ${satkerData?.namaWilayahAsli} (Kode: ${wilayahKode})`,
-        "Hal ini mungkin disebabkan oleh ketidakcocokan dalam logika pencarian nama/jabatan/satker, atau data pejabat tersebut belum sepenuhnya di-generate di allDummyPegawai dengan detail yang cocok. Pertimbangkan Solusi Ideal di atas untuk perbaikan jangka panjang."
+        "NIP Baru pejabat tidak ditemukan, tidak bisa navigasi:",
+        clickedPejabat
       );
+      // FIX: Menggunakan properti yang benar dalam pesan alert
       alert(
-        `Detail lengkap untuk pejabat ${clickedPejabat.nama} (${clickedPejabat.jabatan}) saat ini belum dapat ditampilkan. Data pegawai terkait tidak ditemukan secara presisi.`
+        `Detail lengkap untuk pejabat ${
+          clickedPejabat.nama_lengkap || clickedPejabat.jabatan_struktural
+        } saat ini belum dapat ditampilkan. NIP pegawai tidak tersedia.`
       );
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-10 bg-white dark:bg-slate-800 rounded-xl shadow-lg">
+        <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
+          Memuat struktur organisasi...
+        </p>
+      </div>
+    );
+  }
 
   if (!satkerData) {
     return (
       <div className="text-center py-10 bg-white dark:bg-slate-800 rounded-xl shadow-lg">
         <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-          Data Satker untuk {wilayahKode} tidak ditemukan.
+          {`Data Satker untuk "${wilayahKode}" tidak ditemukan.`}
         </p>
       </div>
     );
@@ -193,7 +172,17 @@ const StrukturOrganisasi: React.FC<StrukturOrganisasiProps> = ({
   const pimpinanUtama = pejabatStruktural[0];
   const stafPimpinan = pejabatStruktural.slice(1);
 
-  const containerVariants = {
+  // FIX: Pindahkan konstanta ini ke dalam scope komponen agar bisa mengakses 'stafPimpinan'
+  const gridColsMap: { [key: number]: string } = {
+    1: "lg:grid-cols-1",
+    2: "lg:grid-cols-2",
+    3: "lg:grid-cols-3",
+    4: "lg:grid-cols-4",
+  };
+  const numCols = Math.max(1, Math.min(stafPimpinan.length, 4));
+  const gridColsClass = gridColsMap[numCols] || "lg:grid-cols-4"; // Fallback untuk keamanan
+
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -232,7 +221,6 @@ const StrukturOrganisasi: React.FC<StrukturOrganisasiProps> = ({
 
       {pimpinanUtama && (
         <div className="flex flex-col items-center space-y-6">
-          {/* Menerapkan custom prop ke motion.div yang membungkus PejabatCard */}
           <motion.div
             custom={0}
             variants={cardVariants}
@@ -255,18 +243,19 @@ const StrukturOrganisasi: React.FC<StrukturOrganisasiProps> = ({
           <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-6 text-center">
             Pejabat Struktural
           </h3>
+          {/* FIX: Logika grid dan pemetaan diterapkan di sini dengan kelas yang benar */}
           <motion.div
             variants={containerVariants}
-            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-${Math.min(
-              stafPimpinan.length,
-              4
-            )} gap-6`}
+            initial="hidden"
+            animate="visible"
+            className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${gridColsClass} gap-6`}
           >
             {stafPimpinan.map((pejabat, index) => (
               <motion.div
                 custom={index + 1}
-                key={pejabat.id}
+                key={pejabat.user_id?.toString() || index}
                 variants={cardVariants}
+                className="flex" // Menambahkan flex untuk memastikan kartu mengisi tinggi yang sama jika perlu
               >
                 <PejabatCard
                   pejabat={pejabat}

@@ -10,12 +10,10 @@ let prisma: PrismaClient;
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient();
 } else {
-  // @ts-expect-error: Allow attaching prisma to global object in development
+  // --- PERBAIKAN: Hapus @ts-expect-error yang tidak terpakai ---
   if (!global.prisma) {
-    // @ts-expect-error: Allow attaching prisma to global object in development
     global.prisma = new PrismaClient();
   }
-  // @ts-expect-error: Assigning PrismaClient instance to global object for development to prevent multiple instances
   prisma = global.prisma;
 }
 
@@ -46,11 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Ambil ID pengguna dari sesi
-    // ✅ PERBAIKAN: Jika user_id di database Anda adalah BigInt, maka Anda harus mengkonversi
-    // session.user.id ke BigInt, BUKAN parseInt.
-    // Jika user_id di schema.prisma Anda adalah `BigInt`, gunakan BigInt(session.user.id).
-    // Jika user_id di schema.prisma Anda adalah `Int`, maka `parseInt` sudah benar.
-    // Berdasarkan error "Do not know how to serialize a BigInt", kemungkinan user_id di DB adalah BigInt.
     const userId = BigInt(session.user.id); // Menggunakan BigInt() untuk konversi
 
     // Cari semua detail pengguna di database berdasarkan user_id
@@ -99,9 +92,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Karena kita sudah menambahkan toJSON ke BigInt.prototype, ini akan berfungsi
     return res.status(200).json(userProfile);
 
-  } catch (error: unknown) { // Tangkap error dengan tipe 'unknown'
+  } catch (error: unknown) {
     console.error('Error fetching user profile:', error);
-    // ✅ PERBAIKAN: Kirim pesan error yang lebih informatif di konsol server
     const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
     return res.status(500).json({ message: 'Internal Server Error', details: errorMessage });
   } finally {

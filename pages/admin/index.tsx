@@ -64,13 +64,10 @@ const AdminWidgetCard: React.FC<AdminWidgetCardProps> = ({
 // --- Komponen Utama Halaman Dashboard Admin ---
 const AdminDashboardPage: NextPageWithLayout = () => {
   const router = useRouter();
-  // LOGIKA KUNCI: Halaman ini bertanggung jawab penuh atas perlindungan rute
   const { userRole, currentUser, loading } = useAuth();
 
-  console.log("User Role di Admin Dashboard:", userRole); // <-- Baris ini ditambahkan
+  console.log("User Role di Admin Dashboard:", userRole);
 
-  // Langkah 1: Tampilkan status loading selagi AuthContext memverifikasi sesi.
-  // Ini penting untuk mencegah 'flicker' atau tampilan konten sesaat sebelum redirect.
   if (loading) {
     return (
       <div className="flex h-full min-h-[50vh] items-center justify-center p-10">
@@ -81,12 +78,9 @@ const AdminDashboardPage: NextPageWithLayout = () => {
     );
   }
 
-  // Langkah 2: Setelah loading selesai, periksa role.
-  // Jika role bukan 'admin', lakukan redirect.
   if (userRole !== "admin") {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
-      // Redirect di sisi client jika akses ditolak
       router.push("/login");
     }, [router]);
 
@@ -99,7 +93,6 @@ const AdminDashboardPage: NextPageWithLayout = () => {
     );
   }
 
-  // Langkah 3: Jika semua pemeriksaan lolos, tampilkan konten halaman admin.
   return (
     <div className="space-y-10">
       <div className="mb-8">
@@ -109,7 +102,9 @@ const AdminDashboardPage: NextPageWithLayout = () => {
         <p className="text-text-secondary mt-1">
           Selamat datang kembali,{" "}
           <span className="font-semibold text-text-primary">
-            {currentUser?.nama || "Admin"}
+            {/* --- PERBAIKAN DI SINI --- */}
+            {currentUser?.name || "Admin"}
+            {/* --- AKHIR PERBAIKAN --- */}
           </span>
           !
         </p>
@@ -194,7 +189,6 @@ const AdminDashboardPage: NextPageWithLayout = () => {
   );
 };
 
-// Menerapkan AdminLayout ke halaman ini (tidak ada perubahan)
 AdminDashboardPage.getLayout = function getLayout(page: ReactElement) {
   return <AdminLayout>{page}</AdminLayout>;
 };

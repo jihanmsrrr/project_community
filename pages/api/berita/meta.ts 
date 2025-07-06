@@ -14,22 +14,22 @@ export default async function handler(
   }
 
   try {
-    const categoryResult = await prisma.news.findMany({
-      where: { status: 'published', kategori: { not: null } },
-      distinct: ['kategori'],
-      select: { kategori: true },
-      orderBy: { kategori: 'asc' },
+    // Ambil SEMUA artikel, tetapi hanya kolom yang dibutuhkan
+    const allArticles = await prisma.news.findMany({
+      select: {
+        kategori: true,
+        nama_penulis: true,
+      },
     });
-    const categories = categoryResult.map(item => item.kategori);
 
-    // Anda bisa menambahkan pengambilan data penulis di sini jika diperlukan
-    // const authorResult = await prisma.news.findMany(...)
-    // const authors = authorResult.map(...)
-
-    res.status(200).json({ categories }); // Kirim hanya kategori untuk saat ini
-
+    // Proses di sisi server untuk mendapatkan nilai unik
+    const categories = Array.from(new Set(allArticles.map(item => item.kategori).filter(Boolean) as string[]));
+    const authors = Array.from(new Set(allArticles.map(item => item.nama_penulis).filter(Boolean) as string[]));
+    
+    res.status(200).json({ categories, authors });
+    
   } catch (error) {
-    console.error("API Error fetching meta data:", error);
-    res.status(500).json({ message: 'Gagal mengambil data meta untuk filter.' });
+    console.error("API /api/berita/meta Error:", error);
+    res.status(500).json({ message: 'Gagal mengambil data meta dari server.' });
   }
 }
