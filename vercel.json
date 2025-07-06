@@ -4,6 +4,6 @@
       "DATABASE_URL": "mysql://root:eqeqgoeCyyfaPFJXJEQrMyLkvlUlznFL@ballast.proxy.rlwy.net:22643/railway",
       "NEXTAUTH_SECRET": "c81668ff3bc0045d37d4f9e95b4d2b87a4c71360246b086351732a34b61c5d78"
     },
-    "buildCommand": "npx prisma generate && npm run build"
+    "buildCommand": "npm cache clean --force && rm -rf node_modules && npm install && npx prisma generate && npm run build"
   }
 }
