@@ -1,79 +1,77 @@
-// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
 
-// Konfigurasi datasource untuk MySQL
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-// Konfigurasi generator untuk Prisma Client
-generator client {
-  provider = "prisma-client-js"
-}
-
 model organization_units {
-  org_unit_id         BigInt    @id @default(autoincrement())
-  nama_wilayah        String?   @db.VarChar(255)
-  kode_bps            String?   @unique // <-- WAJIB UNIK
-  nama_satker_lengkap  String?   @db.VarChar(255) // <-- NAMA YANG BENAR
-  alamat_kantor       String?   @db.Text
-  telepon_kantor      String?   @db.VarChar(100)
-  homepage_satker     String?   @db.VarChar(255)
+  org_unit_id         BigInt               @id @default(autoincrement())
+  nama_wilayah        String?              @db.VarChar(255)
+  kode_bps            String?              @unique
+  nama_satker_lengkap String?              @db.VarChar(255)
+  alamat_kantor       String?              @db.Text
+  telepon_kantor      String?              @db.VarChar(100)
+  homepage_satker     String?              @db.VarChar(255)
   parent_unit_id      BigInt?
-  kepala_id           BigInt?   @unique
+  kepala_id           BigInt?              @unique
+  kepala              users?               @relation("KepalaUnit", fields: [kepala_id], references: [user_id])
+  parent              organization_units?  @relation("HirarkiUnit", fields: [parent_unit_id], references: [org_unit_id], onDelete: NoAction, onUpdate: NoAction)
+  children            organization_units[] @relation("HirarkiUnit")
+  teams               teams[]
+  pegawai             users[]              @relation("PegawaiDiUnit")
 
-  kepala   users?               @relation("KepalaUnit", fields: [kepala_id], references: [user_id], onDelete: SetNull, onUpdate: Cascade)
-  pegawai  users[]              @relation("PegawaiDiUnit")
-  parent   organization_units?  @relation("HirarkiUnit", fields: [parent_unit_id], references: [org_unit_id], onDelete: NoAction, onUpdate: NoAction)
-  children organization_units[] @relation("HirarkiUnit")
-  teams    teams[]
+  @@index([parent_unit_id], map: "organization_units_parent_unit_id_fkey")
 }
 
 model users {
-  user_id                    BigInt    @id @default(autoincrement())
-  nama_lengkap               String?   @db.VarChar(255)
-  nip_baru                   String?   @unique @db.VarChar(20)
-  nip_lama                   String?   @db.VarChar(20)
-  email                      String    @unique @db.VarChar(255)
+  user_id                    BigInt                   @id @default(autoincrement())
+  nama_lengkap               String?                  @db.VarChar(255)
+  nip_baru                   String?                  @unique @db.VarChar(20)
+  nip_lama                   String?                  @db.VarChar(20)
+  email                      String                   @unique @db.VarChar(255)
   unit_kerja_id              BigInt?
-  role                       String    @default("user") @db.VarChar(50)
-  foto_url                   String?   @db.Text
-  sso_id                     String?   @unique @db.VarChar(255)
-  tempat_lahir               String?   @db.VarChar(100)
-  tanggal_lahir              DateTime? @db.Date
-  jenis_kelamin              String?   @db.VarChar(20)
-  status_kepegawaian         String?   @db.VarChar(50)
-  tmt_pns                    DateTime? @db.Date
-  pangkat_golongan           String?   @db.VarChar(100)
-  tmt_pangkat_golongan       DateTime? @db.Date
-  jabatan_struktural         String?   @db.VarChar(255)
-  jenjang_jabatan_fungsional String?   @db.VarChar(255)
-  tmt_jabatan                DateTime? @db.Date
-  pendidikan_terakhir        String?   @db.VarChar(255)
-  masa_kerja_golongan        String?   @db.VarChar(50)
-  masa_kerja_total           String?   @db.VarChar(50)
-  tanggal_pensiun            DateTime? @db.Date
-  sisa_masa_kerja            String?   @db.VarChar(50)
-  grade                      String?   @db.VarChar(10)
-  unit_kerja_eselon1         String?   @db.VarChar(255)
-  unit_kerja_eselon2         String?   @db.VarChar(255)
-  username                   String    @unique @db.VarChar(255)
-  password                   String    @db.VarChar(255)
+  role                       String                   @default("user") @db.VarChar(50)
+  foto_url                   String?                  @db.Text
+  sso_id                     String?                  @unique @db.VarChar(255)
+  tempat_lahir               String?                  @db.VarChar(100)
+  tanggal_lahir              DateTime?                @db.Date
+  jenis_kelamin              String?                  @db.VarChar(20)
+  status_kepegawaian         String?                  @db.VarChar(50)
+  tmt_pns                    DateTime?                @db.Date
+  pangkat_golongan           String?                  @db.VarChar(100)
+  tmt_pangkat_golongan       DateTime?                @db.Date
+  jabatan_struktural         String?                  @db.VarChar(255)
+  jenjang_jabatan_fungsional String?                  @db.VarChar(255)
+  tmt_jabatan                DateTime?                @db.Date
+  pendidikan_terakhir        String?                  @db.VarChar(255)
+  masa_kerja_golongan        String?                  @db.VarChar(50)
+  masa_kerja_total           String?                  @db.VarChar(50)
+  tanggal_pensiun            DateTime?                @db.Date
+  sisa_masa_kerja            String?                  @db.VarChar(50)
+  grade                      String?                  @db.VarChar(10)
+  unit_kerja_eselon1         String?                  @db.VarChar(255)
+  unit_kerja_eselon2         String?                  @db.VarChar(255)
+  username                   String                   @unique @db.VarChar(255)
+  password                   String                   @db.VarChar(255)
+  bookmarks                  bookmarks[]
+  komentar                   comments[]
+  likes                      likes[]
+  berita_ditulis             news[]
+  unit_kerja_dipimpin        organization_units?      @relation("KepalaUnit")
+  bahan_bacaan_diunggah      reading_materials[]      @relation("UploaderToMaterials")
+  reviews                    reviews[]                @relation("UserReviews")
+  keanggotaan_tim            team_memberships[]
+  tim_dipimpin               teams[]
+  prestasi                   user_achievements[]
+  kompetensi                 user_competencies[]
+  riwayat_pendidikan         user_education_history[]
+  riwayat_jabatan            user_job_history[]
+  unit_kerja                 organization_units?      @relation("PegawaiDiUnit", fields: [unit_kerja_id], references: [org_unit_id])
 
-  unit_kerja            organization_units?      @relation("PegawaiDiUnit", fields: [unit_kerja_id], references: [org_unit_id])
-  berita_ditulis        news[]
-  bahan_bacaan_diunggah reading_materials[]      @relation("UploaderToMaterials")
-  komentar              comments[]
-  likes                 likes[]
-  bookmarks             bookmarks[]
-  unit_kerja_dipimpin   organization_units[]     @relation("KepalaUnit")
-  tim_dipimpin          teams[]
-  keanggotaan_tim       team_memberships[]
-  riwayat_pendidikan    user_education_history[]
-  riwayat_jabatan       user_job_history[]
-  kompetensi            user_competencies[]
-  prestasi              user_achievements[]
-  reviews               reviews[]                @relation("UserReviews")
+  @@index([unit_kerja_id], map: "users_unit_kerja_id_fkey")
 }
 
 model user_education_history {
@@ -85,6 +83,8 @@ model user_education_history {
   tahun_lulus            Int?
   tanggal_ijazah         DateTime? @db.Date
   pengguna               users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@index([user_id], map: "user_education_history_user_id_fkey")
 }
 
 model user_job_history {
@@ -96,8 +96,9 @@ model user_job_history {
   periode_selesai String?   @db.VarChar(50)
   no_sk           String?   @db.VarChar(255)
   tmt             DateTime? @db.Date
+  pengguna        users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  pengguna users @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  @@index([user_id], map: "user_job_history_user_id_fkey")
 }
 
 model user_competencies {
@@ -108,8 +109,9 @@ model user_competencies {
   penyelenggara    String?   @db.VarChar(255)
   nomor_sertifikat String?   @db.VarChar(255)
   berlaku_sampai   DateTime? @db.Date
+  pengguna         users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  pengguna users @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  @@index([user_id], map: "user_competencies_user_id_fkey")
 }
 
 model user_achievements {
@@ -119,8 +121,9 @@ model user_achievements {
   nama_prestasi       String? @db.VarChar(255)
   tingkat             String? @db.VarChar(100)
   pemberi_penghargaan String? @db.VarChar(255)
+  pengguna            users   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  pengguna users @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  @@index([user_id], map: "user_achievements_user_id_fkey")
 }
 
 model reviews {
@@ -129,30 +132,32 @@ model reviews {
   rating     Int
   comment    String   @db.Text
   created_at DateTime @default(now())
+  user       users?   @relation("UserReviews", fields: [user_id], references: [user_id])
 
-  user users? @relation("UserReviews", fields: [user_id], references: [user_id], onDelete: SetNull)
+  @@index([user_id], map: "reviews_user_id_fkey")
 }
 
 model news {
-  news_id      BigInt     @id @default(autoincrement())
-  judul        String     @db.Text
-  abstrak      String     @db.Text
+  news_id      BigInt      @id @default(autoincrement())
+  judul        String      @db.Text
+  abstrak      String      @db.Text
   kategori     String
   kata_kunci   Json
-  isi_berita   String     @db.Text
+  isi_berita   String      @db.Text
   status       String
   nama_penulis String
   gambar_urls  Json
   savedAt      DateTime
   publishedAt  DateTime?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
   penulisId    BigInt
+  bookmarks    bookmarks[]
+  komentar     comments[]
+  likes        likes[]
+  penulis      users       @relation(fields: [penulisId], references: [user_id], onDelete: Cascade)
 
-  penulis   users      @relation(fields: [penulisId], references: [user_id], onDelete: Cascade)
-  komentar  comments[]
-  likes     likes[]
-  bookmarks bookmarks[]
+  @@index([penulisId], map: "news_penulisId_fkey")
 }
 
 model reading_materials {
@@ -168,39 +173,43 @@ model reading_materials {
   slug           String    @unique
   bacaUrl        String    @map("baca_url") @db.Text
   unduhUrl       String    @map("unduh_url") @db.Text
+  uploader       users?    @relation("UploaderToMaterials", fields: [uploader_id], references: [user_id])
 
-  uploader users? @relation("UploaderToMaterials", fields: [uploader_id], references: [user_id], onDelete: SetNull)
+  @@index([uploader_id], map: "reading_materials_uploader_id_fkey")
 }
 
 model comments {
-  comment_id       BigInt    @id @default(autoincrement())
+  comment_id       BigInt     @id @default(autoincrement())
   news_id          BigInt?
   user_id          BigInt?
-  username         String?   @db.VarChar(255)
-  isi_komentar     String?   @db.Text
-  tanggal_komentar DateTime? @db.DateTime(0)
+  username         String?    @db.VarChar(255)
+  isi_komentar     String?    @db.Text
+  tanggal_komentar DateTime?  @db.DateTime(0)
   parent_id        BigInt?
+  berita           news?      @relation(fields: [news_id], references: [news_id], onDelete: Cascade)
+  parent           comments?  @relation("CommentReplies", fields: [parent_id], references: [comment_id], onDelete: Cascade)
+  replies          comments[] @relation("CommentReplies")
+  pengguna         users?     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
-  berita   news?     @relation(fields: [news_id], references: [news_id], onDelete: Cascade)
-  pengguna users?    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  parent   comments? @relation("CommentReplies", fields: [parent_id], references: [comment_id], onDelete: Cascade)
-  replies  comments[] @relation("CommentReplies")
+  @@index([news_id], map: "comments_news_id_fkey")
+  @@index([parent_id], map: "comments_parent_id_fkey")
+  @@index([user_id], map: "comments_user_id_fkey")
 }
 
 model teams {
-  team_id       BigInt    @id @default(autoincrement())
-  nama_tim      String?   @db.VarChar(255)
-  singkatan     String?   @db.VarChar(50)
-  deskripsi     String?   @db.Text
-  ketua_tim_id  BigInt?  
-  org_unit_id   BigInt?
+  team_id      BigInt              @id @default(autoincrement())
+  nama_tim     String?             @db.VarChar(255)
+  singkatan    String?             @db.VarChar(50)
+  deskripsi    String?             @db.Text
+  ketua_tim_id BigInt?
+  org_unit_id  BigInt?
+  anggota      team_memberships[]
+  ketua_tim    users?              @relation(fields: [ketua_tim_id], references: [user_id])
+  unit_kerja   organization_units? @relation(fields: [org_unit_id], references: [org_unit_id])
 
-  ketua_tim   users?                @relation(fields: [ketua_tim_id], references: [user_id], onDelete: SetNull)
-  unit_kerja  organization_units?   @relation(fields: [org_unit_id], references: [org_unit_id], onDelete: SetNull)
-  anggota     team_memberships[]
-
-
-  @@unique([nama_tim, org_unit_id]) 
+  @@unique([nama_tim, org_unit_id])
+  @@index([ketua_tim_id], map: "teams_ketua_tim_id_fkey")
+  @@index([org_unit_id], map: "teams_org_unit_id_fkey")
 }
 
 model team_memberships {
@@ -208,11 +217,11 @@ model team_memberships {
   team_id        BigInt
   user_id        BigInt
   posisi         String? @db.VarChar(100)
-
-  tim      teams @relation(fields: [team_id], references: [team_id], onDelete: Cascade)
-  pengguna users @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  tim            teams   @relation(fields: [team_id], references: [team_id], onDelete: Cascade)
+  pengguna       users   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([team_id, user_id])
+  @@index([user_id], map: "team_memberships_user_id_fkey")
 }
 
 model likes {
@@ -220,11 +229,11 @@ model likes {
   article_id BigInt
   user_id    BigInt
   timestamp  DateTime? @db.DateTime(0)
-
-  berita   news @relation(fields: [article_id], references: [news_id], onDelete: Cascade)
-  pengguna users @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  berita     news      @relation(fields: [article_id], references: [news_id], onDelete: Cascade)
+  pengguna   users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([article_id, user_id])
+  @@index([user_id], map: "likes_user_id_fkey")
 }
 
 model bookmarks {
@@ -232,9 +241,9 @@ model bookmarks {
   user_id     BigInt
   article_id  BigInt
   timestamp   DateTime? @db.DateTime(0)
-
-  pengguna users @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  berita   news @relation(fields: [article_id], references: [news_id], onDelete: Cascade)
+  berita      news      @relation(fields: [article_id], references: [news_id], onDelete: Cascade)
+  pengguna    users     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@unique([user_id, article_id])
+  @@index([article_id], map: "bookmarks_article_id_fkey")
 }
