@@ -8,12 +8,12 @@ let prisma: PrismaClient;
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient();
 } else {
-  // @ts-ignore: This is necessary for global object in dev
+
   if (!global.prisma) {
-    // @ts-ignore: This is necessary for global object in dev
+ 
     global.prisma = new PrismaClient();
   }
-  // @ts-ignore: Assign PrismaClient instance to global object
+  
   prisma = global.prisma;
 }
 // --- AKHIR PERBAIKAN INISIALISASI PRISMACLIENT ---
