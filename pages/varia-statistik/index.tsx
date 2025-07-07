@@ -106,7 +106,7 @@ const VariaStatistikPage = () => {
   useEffect(() => {
     const fetchMetaData = async () => {
       try {
-        const response = await fetch("/api/berita-meta");
+        const response = await fetch("/api/meta");
         if (!response.ok) throw new Error("Gagal mengambil data meta");
         const data = await response.json();
         if (data.categories) setMenuCategories(data.categories);
