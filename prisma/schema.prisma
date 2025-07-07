@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-   url      = env("DATABASE_URL") + "?connect_timeout=10&pool_timeout=10&idle_timeout=5"
+   url      = env("DATABASE_URL") + "?connect_timeout=10&pool_timeout=10&idle_timeout=3600"
 }
 
 model organization_units {
