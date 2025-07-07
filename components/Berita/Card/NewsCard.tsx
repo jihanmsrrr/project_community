@@ -1,11 +1,11 @@
-// /components/Berita/Card/NewsCard.tsx
+// components/Berita/Card/NewsCard.tsx
 "use client";
 
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Eye, MessageSquare, Share2 } from "lucide-react";
-import type { NewsCardItem } from "@/types/varia";
+import type { NewsCardItem } from "@/types/varia"; // Pastikan imageUrl & authorImageUrl di NewsCardItem adalah string | null | undefined
 
 const IconWrapper: React.FC<{
   IconComponent: React.ElementType;
@@ -18,20 +18,36 @@ const IconWrapper: React.FC<{
 );
 
 const NewsCard: React.FC<{ newsItem: NewsCardItem }> = ({ newsItem }) => {
+  // --- PERBAIKAN: Pastikan URL gambar selalu valid atau undefined ---
+  const imageUrlToUse =
+    newsItem.imageUrl &&
+    typeof newsItem.imageUrl === "string" &&
+    newsItem.imageUrl !== ""
+      ? newsItem.imageUrl
+      : "/images/image-placeholder.png"; // Fallback ke gambar placeholder umum yang valid
+
+  const authorImageUrlToUse =
+    newsItem.authorImageUrl &&
+    typeof newsItem.authorImageUrl === "string" &&
+    newsItem.authorImageUrl !== ""
+      ? newsItem.authorImageUrl
+      : "/images/default-avatar.png"; // Fallback ke gambar placeholder avatar
+  // --- AKHIR PERBAIKAN ---
+
   return (
     <article className="bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl overflow-hidden transition-all duration-300 ease-in-out flex flex-col h-full group">
       <Link href={newsItem.link} legacyBehavior>
         <a className="block relative aspect-[16/9] overflow-hidden">
           <Image
-            src={newsItem.imageUrl}
+            src={imageUrlToUse} // Menggunakan URL yang sudah diproses
             alt={newsItem.title}
             layout="fill"
             objectFit="cover"
             className="transition-transform duration-300 group-hover:scale-105"
+            // onError handler ini bisa dihapus atau disesuaikan, karena src sudah memiliki fallback
             onError={(e) => {
-              (
-                e.target as HTMLImageElement
-              ).src = `https://placehold.co/400x225/94a3b8/FFFFFF?text=Image+Error&font=Inter`;
+              (e.target as HTMLImageElement).src =
+                "/images/image-placeholder.png"; // Pastikan ini juga menunjuk ke path valid
             }}
           />
         </a>
@@ -58,7 +74,7 @@ const NewsCard: React.FC<{ newsItem: NewsCardItem }> = ({ newsItem }) => {
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-2 min-w-0">
               <Image
-                src={newsItem.authorImageUrl}
+                src={authorImageUrlToUse} // Menggunakan URL yang sudah diproses
                 alt={newsItem.author}
                 width={28}
                 height={28}

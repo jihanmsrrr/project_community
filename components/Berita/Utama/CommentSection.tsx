@@ -36,10 +36,10 @@ const CommentSection = () => {
           <div className="flex-shrink-0">
             {/* Replace img tag with Image component */}
             <Image
-              src="/path_to_avatar_image" // Make sure the path is correct
-              alt="User Avatar"
-              width={56} // Assuming w-14 in Tailwind corresponds to 56px (14 * 4)
-              height={56} // Assuming h-14 in Tailwind corresponds to 56px (14 * 4)
+              src="https://i.pravatar.cc/150?img=" // Anda bisa ganti angka di 'img=' untuk avatar berbeda
+              alt="Avatar Pengguna Acak"
+              width={56}
+              height={56}
               className="rounded-full object-cover"
             />
           </div>

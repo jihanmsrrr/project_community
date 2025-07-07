@@ -13,7 +13,6 @@ import {
   ChartBarIcon,
   ClockIcon,
   UserGroupIcon as UserGroupIconOutlineHero,
-  UserCircleIcon as UserCircleIconHero,
   InformationCircleIcon,
   ShieldCheckIcon,
   ChevronRightIcon,
@@ -99,7 +98,6 @@ const BeritaSatkerList: React.FC<{ berita?: NewsItem[] }> = ({ berita }) => {
     </div>
   );
 };
-
 const CollapsibleTimKerjaCard: React.FC<{ tim: TimKerja }> = ({ tim }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -162,17 +160,21 @@ const CollapsibleTimKerjaCard: React.FC<{ tim: TimKerja }> = ({ tim }) => {
                   Tim:
                 </p>
                 <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700 p-2 rounded">
-                  {tim.ketuaTim.fotoUrl ? (
-                    <Image
-                      src={tim.ketuaTim.fotoUrl}
-                      alt={tim.ketuaTim.nama}
-                      width={32}
-                      height={32}
-                      className="rounded-full object-cover"
-                    />
-                  ) : (
-                    <UserCircleIconHero className="w-8 h-8 text-slate-400 dark:text-slate-500" />
-                  )}
+                  {/* --- PERBAIKAN: Fallback untuk fotoUrl Ketua Tim --- */}
+                  <Image
+                    src={
+                      tim.ketuaTim.fotoUrl &&
+                      typeof tim.ketuaTim.fotoUrl === "string" &&
+                      tim.ketuaTim.fotoUrl !== ""
+                        ? tim.ketuaTim.fotoUrl
+                        : "/images/default-avatar.png" // Fallback ke gambar placeholder avatar
+                    }
+                    alt={tim.ketuaTim.nama}
+                    width={32}
+                    height={32}
+                    className="rounded-full object-cover"
+                  />
+                  {/* --- AKHIR PERBAIKAN --- */}
                   <div>
                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">
                       {tim.ketuaTim.nama}
@@ -194,17 +196,21 @@ const CollapsibleTimKerjaCard: React.FC<{ tim: TimKerja }> = ({ tim }) => {
                         key={anggota.id}
                         className="flex items-center gap-1.5 text-[0.7rem] py-1"
                       >
-                        {anggota.fotoUrl ? (
-                          <Image
-                            src={anggota.fotoUrl}
-                            alt={anggota.nama}
-                            width={20}
-                            height={20}
-                            className="rounded-full object-cover flex-shrink-0"
-                          />
-                        ) : (
-                          <UserCircleIconHero className="w-5 h-5 text-slate-300 dark:text-slate-500 flex-shrink-0" />
-                        )}
+                        {/* --- PERBAIKAN: Fallback untuk fotoUrl Anggota Tim --- */}
+                        <Image
+                          src={
+                            anggota.fotoUrl &&
+                            typeof anggota.fotoUrl === "string" &&
+                            anggota.fotoUrl !== ""
+                              ? anggota.fotoUrl
+                              : "/images/default-avatar.png" // Fallback ke gambar placeholder avatar
+                          }
+                          alt={anggota.nama}
+                          width={20}
+                          height={20}
+                          className="rounded-full object-cover flex-shrink-0"
+                        />
+                        {/* --- AKHIR PERBAIKAN --- */}
                         <div className="flex-grow">
                           <span className="font-medium text-slate-600 dark:text-slate-300">
                             {anggota.nama}

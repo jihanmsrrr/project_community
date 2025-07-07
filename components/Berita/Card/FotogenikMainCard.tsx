@@ -1,20 +1,28 @@
-// /components/Berita/Card/FotogenikMainCard.tsx
+// components/Berita/Card/FotogenikMainCard.tsx
 "use client";
 
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { NewsCardItem } from "@/types/varia";
+import type { NewsCardItem } from "@/types/varia"; // Pastikan imageUrl di NewsCardItem adalah string | null | undefined
 
 const FotogenikMainCard: React.FC<{ newsItem: NewsCardItem }> = ({
   newsItem,
 }) => {
   if (!newsItem || !newsItem.link) return null;
 
-  const isPlaceholder = newsItem.imageUrl.includes("placehold.co");
+  // --- PERBAIKAN: Pastikan URL gambar selalu valid atau undefined ---
+  const imageUrlToUse =
+    newsItem.imageUrl &&
+    typeof newsItem.imageUrl === "string" &&
+    newsItem.imageUrl !== ""
+      ? newsItem.imageUrl
+      : "/images/image-placeholder.png"; // Fallback ke gambar placeholder umum yang valid
+  // --- AKHIR PERBAIKAN ---
+
+  const isPlaceholder = newsItem.imageUrl.includes("placehold.co"); // Gunakan newsItem.imageUrl asli di sini, karena isPlaceholder hanya untuk gaya
 
   return (
-    // FIX 2: Memperbarui <Link> ke sintaks modern
     <Link
       href={newsItem.link}
       className="bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl overflow-hidden transition-all duration-300 ease-in-out group h-full flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 dark:focus-visible:ring-pink-400"
@@ -32,17 +40,17 @@ const FotogenikMainCard: React.FC<{ newsItem: NewsCardItem }> = ({
             {newsItem.title.length < 30 ? newsItem.title : newsItem.category}
           </h2>
         ) : (
-          // FIX 3: (Opsional) Memperbarui <Image> ke sintaks modern
           <Image
-            src={newsItem.imageUrl}
+            src={imageUrlToUse} // Menggunakan URL yang sudah diproses
             alt={newsItem.title}
             fill
             style={{ objectFit: "cover" }}
             className="transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            // onError handler ini bisa dihapus atau disesuaikan, karena src sudah memiliki fallback
             onError={(e) => {
               (e.target as HTMLImageElement).src =
-                "https://placehold.co/600x450/f472b6/FFFFFF?text=Error&font=Inter";
+                "/images/image-placeholder.png"; // Pastikan ini juga menunjuk ke path valid
             }}
           />
         )}
@@ -64,7 +72,6 @@ const FotogenikMainCard: React.FC<{ newsItem: NewsCardItem }> = ({
           {newsItem.author && (
             <span className="block truncate">Oleh: {newsItem.author}</span>
           )}
-          {/* FIX 1: Mengganti .date menjadi .displayDate */}
           <span>{newsItem.displayDate}</span>
         </div>
       </div>

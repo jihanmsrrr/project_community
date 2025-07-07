@@ -10,9 +10,9 @@ import { UploadCloud, X as CloseIcon, LoaderCircle } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
-// --- PERBAIKAN: Sesuaikan tipe gambarFiles ---
+// --- Pastikan DbImageUrl didefinisikan seperti ini ---
 interface DbImageUrl {
-  url: string | null; // URL bisa string atau null
+  url: string | null;
 }
 
 interface FormDataType {
@@ -22,9 +22,8 @@ interface FormDataType {
   abstrak: string;
   isiBerita: string;
   status: "draft" | "pending_review" | "published";
-  gambarFiles: (File | DbImageUrl)[]; // Array dari File atau objek dengan url: string | null
+  gambarFiles: (File | DbImageUrl)[];
 }
-// --- AKHIR PERBAIKAN TIPE ---
 
 const kategoriOptions = [
   "BPS Terkini",
@@ -80,11 +79,13 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
           const dataToEdit = await response.json();
 
           // --- PERBAIKAN: Memfilter URL gambar yang null/undefined saat memuat data ---
+          // Ini baris 85 sekarang
           const loadedGambarUrls: DbImageUrl[] = Array.isArray(
             dataToEdit.gambar_urls
           )
             ? (dataToEdit.gambar_urls as Array<{ url?: unknown }>).filter(
                 (item): item is DbImageUrl => {
+                  // <--- PASTI ADA (item): item is DbImageUrl => {
                   // Memastikan item adalah objek, bukan null, dan memiliki properti 'url' yang bertipe string
                   return (
                     typeof item === "object" &&
@@ -103,7 +104,7 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
             abstrak: dataToEdit.abstrak,
             isiBerita: dataToEdit.isi_berita,
             status: dataToEdit.status,
-            gambarFiles: loadedGambarUrls, // Gunakan gambar yang sudah difilter
+            gambarFiles: loadedGambarUrls,
           });
         } catch (error) {
           console.error("Fetch error:", (error as Error).message);
@@ -234,7 +235,6 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
         onSubmit={(e) => e.preventDefault()}
         noValidate
       >
-        {/* --- PERBAIKAN: Menampilkan nama penulis dari sesi --- */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-lg bg-surface-page border border-ui-border">
           <div>
             <p className="text-xs text-text-secondary">Penulis</p>

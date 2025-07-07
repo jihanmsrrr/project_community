@@ -1,4 +1,4 @@
-// /components/Berita/Utama/HeroDisplay.tsx
+// components/Berita/Utama/HeroDisplay.tsx
 "use client";
 
 import React from "react";
@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import Skeleton from "@/components/ui/Skeleton";
-import type { NewsCardItem } from "@/types/varia";
+import type { NewsCardItem } from "@/types/varia"; // Pastikan imageUrl di NewsCardItem adalah string | null | undefined
 
 const IconWrapper: React.FC<{
   IconComponent: React.ElementType;
@@ -40,24 +40,33 @@ const HeroDisplay: React.FC<{
     );
   }
 
+  // --- PERBAIKAN: Pastikan URL gambar selalu valid atau undefined ---
+  const imageUrlToUse =
+    newsItem.imageUrl &&
+    typeof newsItem.imageUrl === "string" &&
+    newsItem.imageUrl !== ""
+      ? newsItem.imageUrl
+      : "/images/image-placeholder.png"; // Fallback ke gambar placeholder umum yang valid
+  // --- AKHIR PERBAIKAN ---
+
   return (
     <article className="relative w-full h-auto aspect-[16/9] sm:aspect-[2/1] md:aspect-[2.5/1] lg:aspect-[3/1] rounded-2xl overflow-hidden shadow-2xl group focus-within:ring-2 focus-within:ring-blue-500 dark:focus-within:ring-blue-400">
-      {/* FIX 2: Menggunakan sintaks Link modern */}
       <Link
         href={newsItem.link || "#"}
         className="block w-full h-full relative"
       >
         <Image
-          src={newsItem.imageUrl}
+          src={imageUrlToUse} // Menggunakan URL yang sudah diproses
           alt={newsItem.title}
           fill
           style={{ objectFit: "cover" }}
           className="transition-transform duration-500 ease-in-out group-hover:scale-105"
-          priority // Penting untuk LCP (Largest Contentful Paint)
+          priority
+          // onError handler ini bisa dihapus atau disesuaikan, karena src sudah memiliki fallback
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.onerror = null;
-            target.src = `https://placehold.co/1200x600/334155/FFFFFF?text=Gagal+Muat+Gambar&font=Inter`;
+            target.src = "/images/image-placeholder.png"; // Pastikan ini juga menunjuk ke path valid
           }}
           sizes="(min-width: 1024px) 80vw, 100vw"
         />
@@ -72,7 +81,6 @@ const HeroDisplay: React.FC<{
             {newsItem.title}
           </h1>
 
-          {/* FIX 1: MENAMBAHKAN INFORMASI PENULIS DAN TANGGAL DENGAN CARA YANG BENAR */}
           <div className="flex items-center text-gray-300 text-xs sm:text-sm mb-2 sm:mb-3">
             <span className="font-medium">Oleh {newsItem.author}</span>
             <span className="mx-2">&bull;</span>

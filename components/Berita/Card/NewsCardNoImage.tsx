@@ -4,11 +4,20 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import type { NewsCardItem } from "@/types/varia";
+import type { NewsCardItem } from "@/types/varia"; // Pastikan authorImageUrl di NewsCardItem adalah string | null | undefined
 
 const NewsCardNoImage: React.FC<{ newsItem: NewsCardItem }> = ({
   newsItem,
 }) => {
+  // --- PERBAIKAN: Pastikan URL gambar avatar selalu valid atau undefined ---
+  const authorImageUrlToUse =
+    newsItem.authorImageUrl &&
+    typeof newsItem.authorImageUrl === "string" &&
+    newsItem.authorImageUrl !== ""
+      ? newsItem.authorImageUrl
+      : "/images/default-avatar.png"; // Fallback ke gambar placeholder avatar yang valid
+  // --- AKHIR PERBAIKAN ---
+
   return (
     <Link
       href={newsItem.link}
@@ -34,7 +43,7 @@ const NewsCardNoImage: React.FC<{ newsItem: NewsCardItem }> = ({
       <div className="text-xs text-gray-500 dark:text-gray-400 mt-auto pt-4 border-t border-gray-200 dark:border-slate-700">
         <div className="flex items-center gap-2">
           <Image
-            src={newsItem.authorImageUrl}
+            src={authorImageUrlToUse} // Menggunakan URL yang sudah diproses
             alt={newsItem.author}
             width={24}
             height={24}
