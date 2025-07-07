@@ -1,9 +1,9 @@
 {
     "build": {
         "env": {
-            "DATABASE_URL": "mysql://root:PASTE_PASSWORD_YANG_BENAR_DI_SINI@tramway.proxy.rlwy.net:42983/railway",
+            "DATABASE_URL": "mysql://root:eqeqgoeCyyfaPFJXJEQrMyLkvlUlznFL@ballast.proxy.rlwy.net:22643/railway",
             "NEXTAUTH_SECRET": "c81668ff3bc0045d37d4f9e95b4d2b87a4c71360246b086351732a34b61c5d78",
-            "NEXTAUTH_URL": "https://nama-aplikasi-anda.vercel.app"
+            "NEXTAUTH_URL": "projectcommunity.vercel.app"
         },
         "buildCommand": "npm cache clean --force && rm -rf node_modules && npm install && npx prisma generate && npm run build"
     }
