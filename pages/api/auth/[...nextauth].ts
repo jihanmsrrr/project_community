@@ -1,11 +1,30 @@
 // pages/api/auth/[...nextauth].ts
+
 import NextAuth, { NextAuthOptions, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
-import bcrypt from 'bcryptjs'; 
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+// --- TAMBAHKAN LOG DEBUG SANGAT AWAL INI ---
+console.log("--- DEBUG: Initializing pages/api/auth/[...nextauth].ts ---");
+
+// --- UBAH INISIALISASI PRISMACLIENT MENJADI PATTERN SERVERLESS INI ---
+let prisma: PrismaClient;
+
+if (process.env.NODE_ENV === 'production') {
+  prisma = new PrismaClient();
+} else {
+
+  if (!global.prisma) {
+  
+    global.prisma = new PrismaClient();
+  }
+ 
+  prisma = global.prisma;
+}
+
+// --- AKHIR PERUBAHAN INISIALISASI PRISMACLIENT ---
 
 // Tambahkan definisi tipe BPSProfile agar TypeScript mengenalinya
 type BPSProfile = {
@@ -38,7 +57,7 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma), // Tetap gunakan adapter Prisma jika Anda mengelola user di DB
+  adapter: PrismaAdapter(prisma), // Menggunakan instance prisma yang sudah diinisialisasi
   providers: [
     // Konfigurasi SSO BPS (tetap sama jika sudah berfungsi)
     {
@@ -53,13 +72,13 @@ export const authOptions: NextAuthOptions = {
       },
       token: "https://sso.bps.go.id/token",
       userinfo: "https://sso.bps.go.id/userinfo",
-      profile(profile: BPSProfile) { // ✅ PERBAIKAN: Menggunakan tipe BPSProfile yang spesifik
+      profile(profile: BPSProfile) {
         return {
           id: profile.sso_id,
           name: profile.nama_lengkap,
           email: profile.email,
           image: profile.foto_url,
-          role: profile.role || 'user', // Default role jika tidak ada dari SSO
+          role: profile.role || 'user',
         };
       },
     },
@@ -71,34 +90,44 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        // --- LOG DEBUG INI HARUSNYA SEKARANG MUNCUL ---
         console.log("--- DEBUG: Authorize callback started for username:", credentials?.username);
+
         if (!credentials?.username || !credentials?.password) {
-          // Penting: Gunakan throw new Error() agar pesan error bisa ditangkap oleh signIn({ redirect: false })
           throw new Error("Mohon masukkan username dan password.");
         }
 
+        // --- DEBUG: Log sebelum query database ---
+        console.log("--- DEBUG: Querying database for user:", credentials.username);
         const user = await prisma.users.findUnique({
           where: { username: credentials.username },
         });
+        // --- DEBUG: Log setelah query database ---
+        console.log("--- DEBUG: User found:", !!user);
 
-        if (!user || !user.password) { // Sesuaikan 'user.password' dengan nama kolom hash password Anda
-          // Jangan beri tahu penyerang apakah username ada atau tidak
+
+        if (!user || !user.password) {
+          // --- DEBUG: Log jika user tidak ditemukan atau password kosong ---
+          console.log("--- DEBUG: User not found or password not set for username:", credentials.username);
           throw new Error("Username atau password salah.");
         }
 
-        // ✅ INI ADALAH BAGIAN PALING PENTING: BANDINGKAN HASH PASSWORD
+        // --- DEBUG: Log sebelum bcrypt compare ---
+        console.log("--- DEBUG: Comparing passwords for user:", user.username);
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
-          user.password // ✅ PASTIKAN user.password DI SINI ADALAH HASH BUKAN PLAIN TEXT
+          user.password
         );
+        // --- DEBUG: Log setelah bcrypt compare ---
+        console.log("--- DEBUG: Password valid:", isPasswordValid);
+
 
         if (isPasswordValid) {
-          // Jika password valid, kembalikan objek user yang akan disimpan di sesi
           return {
-            id: user.user_id.toString(), // user_id (BigInt) harus dikonversi ke string
+            id: user.user_id.toString(),
             name: user.nama_lengkap,
             email: user.email,
-            role: user.role || 'user', // Ambil role dari database, default 'user' jika null
+            role: user.role || 'user',
           };
         } else {
           throw new Error("Username atau password salah.");
@@ -110,28 +139,27 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    // Callback ini menyisipkan data dari hasil 'authorize' ke dalam token
     async jwt({ token, user }) {
       if (user) {
-        // Pastikan 'user' dari provider memiliki properti 'id' dan 'role'
         token.id = user.id;
         token.role = user.role;
       }
+      console.log("--- DEBUG: JWT callback - token:", token); // Log JWT
       return token;
     },
-    // Callback ini menyisipkan data dari token ke dalam objek 'session' yang bisa diakses client
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id;
         session.user.role = token.role;
       }
+      console.log("--- DEBUG: Session callback - session.user:", session.user); // Log Session user
       return session;
     },
   },
   pages: {
-    signIn: '/login', // Pastikan ini mengarah ke halaman login Anda
+    signIn: '/login',
   },
-  secret: process.env.NEXTAUTH_SECRET, // Pastikan ini ada di file .env.local
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 export default NextAuth(authOptions);
