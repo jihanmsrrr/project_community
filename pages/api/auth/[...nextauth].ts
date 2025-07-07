@@ -3,7 +3,7 @@ import NextAuth, { NextAuthOptions, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
-import bcrypt from 'bcryptjs'; // ✅ PASTIKAN ANDA SUDAH MENGINSTALL 'bcryptjs' (npm install bcryptjs)
+import bcrypt from 'bcryptjs'; 
 
 const prisma = new PrismaClient();
 
@@ -71,6 +71,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("--- DEBUG: Authorize callback started for username:", credentials?.username);
         if (!credentials?.username || !credentials?.password) {
           // Penting: Gunakan throw new Error() agar pesan error bisa ditangkap oleh signIn({ redirect: false })
           throw new Error("Mohon masukkan username dan password.");
