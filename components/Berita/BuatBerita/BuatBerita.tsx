@@ -10,6 +10,11 @@ import { UploadCloud, X as CloseIcon, LoaderCircle } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
+// --- PERBAIKAN: Sesuaikan tipe gambarFiles ---
+interface DbImageUrl {
+  url: string | null; // URL bisa string atau null
+}
+
 interface FormDataType {
   judul: string;
   kategori: string;
@@ -17,8 +22,9 @@ interface FormDataType {
   abstrak: string;
   isiBerita: string;
   status: "draft" | "pending_review" | "published";
-  gambarFiles: (File | { url: string })[];
+  gambarFiles: (File | DbImageUrl)[]; // Array dari File atau objek dengan url: string | null
 }
+// --- AKHIR PERBAIKAN TIPE ---
 
 const kategoriOptions = [
   "BPS Terkini",
@@ -72,6 +78,24 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
           const response = await fetch(`/api/berita/${articleId}`);
           if (!response.ok) throw new Error("Gagal mengambil data artikel.");
           const dataToEdit = await response.json();
+
+          // --- PERBAIKAN: Memfilter URL gambar yang null/undefined saat memuat data ---
+          const loadedGambarUrls: DbImageUrl[] = Array.isArray(
+            dataToEdit.gambar_urls
+          )
+            ? (dataToEdit.gambar_urls as Array<{ url?: unknown }>).filter(
+                (item): item is DbImageUrl => {
+                  // Memastikan item adalah objek, bukan null, dan memiliki properti 'url' yang bertipe string
+                  return (
+                    typeof item === "object" &&
+                    item !== null &&
+                    typeof item.url === "string"
+                  );
+                }
+              )
+            : [];
+          // --- AKHIR PERBAIKAN LOADING GAMBAR ---
+
           reset({
             judul: dataToEdit.judul,
             kategori: dataToEdit.kategori,
@@ -79,10 +103,9 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
             abstrak: dataToEdit.abstrak,
             isiBerita: dataToEdit.isi_berita,
             status: dataToEdit.status,
-            gambarFiles: (dataToEdit.gambar_urls as { url: string }[]) || [],
+            gambarFiles: loadedGambarUrls, // Gunakan gambar yang sudah difilter
           });
         } catch (error) {
-          // --- PERBAIKAN: Menggunakan variabel 'error' di console.error ---
           console.error("Fetch error:", (error as Error).message);
           alert("Gagal memuat data artikel.");
           router.push("/admin/varia-statistik");
@@ -146,7 +169,6 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
     data: FormDataType,
     newStatus: FormDataType["status"]
   ) => {
-    // --- PERBAIKAN: Menggunakan variabel 'session' untuk keamanan ---
     if (!session?.user?.id || !session.user.name) {
       alert(
         "Sesi Anda tidak valid atau telah berakhir. Silakan login kembali."
@@ -335,7 +357,7 @@ const BuatBerita: React.FC<{ articleId?: string }> = ({ articleId }) => {
             rules={{ required: "Isi berita tidak boleh kosong." }}
             render={({ field }) => (
               <Editor
-                apiKey="YOUR_TINYMCE_API_KEY"
+                apiKey="tiny.cloud"
                 value={field.value}
                 onEditorChange={field.onChange}
                 init={{
