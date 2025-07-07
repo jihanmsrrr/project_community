@@ -52,7 +52,7 @@ const CardLayout = () => {
         {/* Author */}
         <div className="flex items-center space-x-3">
           <Image
-            src="https://i.pravatar.cc/150?img="
+            src="https://i.pravatar.cc/150?img=120"
             alt="Author Avatar"
             width={32}
             height={32}

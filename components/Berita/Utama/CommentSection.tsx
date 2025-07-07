@@ -36,7 +36,7 @@ const CommentSection = () => {
           <div className="flex-shrink-0">
             {/* Replace img tag with Image component */}
             <Image
-              src="https://i.pravatar.cc/150?img=" // Anda bisa ganti angka di 'img=' untuk avatar berbeda
+              src="https://i.pravatar.cc/150?img=99" // Anda bisa ganti angka di 'img=' untuk avatar berbeda
               alt="Avatar Pengguna Acak"
               width={56}
               height={56}
