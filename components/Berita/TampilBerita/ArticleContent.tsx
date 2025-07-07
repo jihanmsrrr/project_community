@@ -16,7 +16,7 @@ const ArticleContent = () => {
 
         {/* --- PERUBAHAN: Menggunakan komponen Image dari Next.js --- */}
         <Image
-          src="https://picsum.photos/1200/600?meet=1"
+          src="https://picsum.photos/1200/600?meet="
           alt="Rapat kerja pemerintah"
           className="w-full max-w-[720px] mx-auto rounded-xl mb-8 object-cover"
           width={720}

@@ -24,7 +24,7 @@ const BeritaInfo: React.FC = () => {
       <div className="flex items-center gap-4">
         {/* --- PERUBAHAN: Menggunakan komponen Image dari Next.js --- */}
         <Image
-          src="https://i.pravatar.cc/150?img=9"
+          src="https://i.pravatar.cc/150?img="
           alt="Penulis"
           className="rounded-full object-cover"
           width={56} // w-14 di Tailwind secara default adalah 56px
