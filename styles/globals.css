@@ -82,6 +82,14 @@
   --kategori-warna-11: 147 184 221; /* brand-secondary */
   --kategori-warna-12: 112 156 199; /* brand-accent */
   --kategori-warna-default: 156 163 175; /* placeholder */
+
+  --menu-bg: 241 245 249; /* slate-100 */
+  --menu-text: 100 116 139; /* slate-500 */
+  --menu-bg-hover: 226 232 240; /* slate-200 */
+  --menu-text-hover: 30 41 59; /* slate-800 */
+
+  --menu-bg-active: 224 242 254; /* sky-100 */
+  --menu-text-active: 14 116 144; /* sky-600 */
 }
 
 /* Tema Gelap (.dark) */
@@ -130,6 +138,13 @@
   --color-scale-low: 30 64 175;
   --color-scale-medium: 59 130 246;
   --color-scale-high: 147 197 253;
+  --card-bg: 255 255 255; /* white */
+  --card-border: 226 232 240; /* slate-200 */
+  --input-bg: 248 250 252; /* slate-50 */
+  --input-border: 203 213 225; /* slate-300 */
+  --brand-text: 2 132 199; /* sky-600 */
+  --brand-bg: 3 105 161; /* sky-700 */
+
   --page-title-bg-image: url("/titlebg-dark.png");
   /* .dark */
   --kategori-warna-1: 30 58 138; /* blue-900 */
@@ -145,6 +160,20 @@
   --kategori-warna-11: 112 156 199; /* brand-secondary */
   --kategori-warna-12: 147 184 221; /* brand-accent */
   --kategori-warna-default: 70 70 70; /* ui-border-input */
+
+  --menu-bg: 51 65 85; /* slate-700 */
+  --menu-text: 148 163 184; /* slate-400 */
+  --menu-bg-hover: 71 85 105; /* slate-600 */
+  --menu-text-hover: 248 250 252; /* slate-50 */
+
+  --menu-bg-active: 12 74 110; /* sky-800 */
+  --menu-text-active: 125 211 252; /* sky-300 */
+  --card-bg: 30 41 59; /* slate-800 */
+  --card-border: 51 65 85; /* slate-700 */
+  --input-bg: 51 65 85; /* slate-700 */
+  --input-border: 71 85 105; /* slate-600 */
+  --brand-text: 56 189 248; /* sky-400 */
+  --brand-bg: 14 116 144; /* sky-600 */
 }
 
 /* Tema Pink (.theme-pink) */
@@ -205,6 +234,26 @@
   --kategori-warna-11: 249 168 212; /* brand-accent */
   --kategori-warna-12: 190 24 93; /* brand-primary-hover */
   --kategori-warna-default: 251 179 209; /* ui-border */
+
+  --menu-bg: 252 231 243; /* pink-100 */
+  --menu-text: 131 24 67; /* pink-800 */
+  --menu-bg-hover: 251 207 232; /* pink-200 */
+  --menu-text-hover: 131 24 67; /* pink-800 */
+
+  --menu-bg-active: 236 72 153; /* pink-500 */
+  --menu-text-active: 255 255 255; /* white */
+  --card-bg: 255 255 255; /* white */
+  --card-border: 226 232 240; /* slate-200 */
+  --input-bg: 248 250 252; /* slate-50 */
+  --input-border: 203 213 225; /* slate-300 */
+  --brand-text: 2 132 199; /* sky-600 */
+  --brand-bg: 3 105 161; /* sky-700 */
+  --card-bg: 255 255 255; /* white (atau bisa disesuaikan, misal pink-50) */
+  --card-border: 251 207 232; /* pink-200 */
+  --input-bg: 253 242 248; /* pink-50 */
+  --input-border: 251 207 232; /* pink-200 */
+  --brand-text: 219 39 119; /* pink-600 */
+  --brand-bg: 190 24 93; /* pink-700 */
 }
 
 /* ================================================ */

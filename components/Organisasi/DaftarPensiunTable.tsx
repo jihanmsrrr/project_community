@@ -80,8 +80,7 @@ const DaftarPensiunTable: React.FC<DaftarPensiunTableProps> = ({
         ...pegawai, // Pertahankan semua properti asli
         id: pegawai.user_id.toString(), // ID unik untuk key tabel (string)
         namaPegawai: pegawai.nama_lengkap || "-", // Fallback jika null
-        satuanKerja:
-          pegawai.unit_kerja_eselon2 || pegawai.unit_kerja_eselon1 || "-", // Fallback jika null
+        satuanKerja: pegawai.unit_kerja?.nama_satker_lengkap ?? "-",
         tanggalLahirDisplay: tanggalLahirObj
           ? format(tanggalLahirObj, "dd MMMM yyyy", { locale: id }) // Format objek Date
           : "-",
@@ -178,10 +177,7 @@ const DaftarPensiunTable: React.FC<DaftarPensiunTableProps> = ({
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-xl rounded-xl p-4 sm:p-6">
-      <h2
-        className="text-xl sm:text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-white"
-        style={{ color: "#5A3D8A" }}
-      >
+      <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6 text-purple-700 dark:text-purple-300">
         {tableTitle.toUpperCase()}
       </h2>
       {/* Toolbar */}

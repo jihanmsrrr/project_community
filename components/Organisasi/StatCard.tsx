@@ -1,16 +1,16 @@
-// components/dashboard/StatCard.tsx
+// components/Organisasi/StatCard.tsx
 import React from "react";
-import { LucideProps } from "lucide-react"; // Untuk tipe ikon
+import { LucideProps } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface StatCardProps {
   icon: React.ReactElement<LucideProps>;
   title: string;
   value: string;
-  subtext?: string;
-  infoText?: string; // Teks kecil di bawah seperti "Kapka No 182..."
-  bgColorClass: string; // Misal: "bg-metric-card-bg-1"
-  textColorClass: string; // Misal: "text-metric-card-text-1"
-  iconBgClass?: string; // Opsional, jika ikon punya background sendiri
+  subtext?: string | null;
+  // Properti warna sekarang opsional
+  bgColorClass?: string;
+  textColorClass?: string;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -18,39 +18,47 @@ const StatCard: React.FC<StatCardProps> = ({
   title,
   value,
   subtext,
-  infoText,
-  bgColorClass,
+  bgColorClass, // Tidak ada nilai default di sini
   textColorClass,
-  iconBgClass,
 }) => {
+  // Tentukan kelas default jika tidak ada properti warna yang diberikan
+  const finalBgColor = bgColorClass || "bg-card";
+  const finalTextColor = textColorClass || "text-text-primary";
+  const finalSubtextColor = textColorClass
+    ? "opacity-80"
+    : "text-text-secondary";
+  const finalIconColor = textColorClass || "text-brand-text";
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  };
+
   return (
-    <div
-      className={`rounded-xl shadow-lg p-4 sm:p-5 flex flex-col justify-between min-h-[160px] sm:min-h-[180px] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${bgColorClass} ${textColorClass}`}
+    <motion.div
+      variants={cardVariants}
+      className={`p-4 sm:p-5 rounded-xl shadow-lg flex flex-col h-full ${finalBgColor}`}
     >
-      <div className="flex justify-between items-start">
-        <div
-          className={`p-2 sm:p-2.5 rounded-lg ${
-            iconBgClass
-              ? iconBgClass
-              : `${bgColorClass} bg-opacity-20 backdrop-blur-sm`
-          }`}
-        >
-          {React.cloneElement(icon, {
-            size: 24,
-            className: `sm:w-7 sm:h-7 ${textColorClass}`,
-          })}
+      <div className="flex items-start justify-between">
+        <div className={`p-2.5 rounded-lg bg-white/10`}>
+          {/* Hanya render jika ikonnya ada */}
+          {icon &&
+            React.cloneElement(icon, {
+              size: 24,
+              className: `sm:w-7 sm:h-7 ${finalIconColor}`, // Menggunakan nama variabel dari kode terakhir
+            })}
         </div>
-        {/* Anda bisa tambahkan ikon info kecil di sini jika perlu, seperti di kartu ABK */}
       </div>
-      <div>
-        <p className="text-xs sm:text-sm opacity-80 mb-0.5">{title}</p>
-        <p className="text-2xl sm:text-3xl font-bold mb-1">{value}</p>
-        {subtext && <p className="text-xs opacity-90">{subtext}</p>}
+      <div className="mt-auto pt-4">
+        <p className={`text-sm font-medium ${finalSubtextColor}`}>{title}</p>
+        <p className={`text-2xl sm:text-3xl font-bold ${finalTextColor}`}>
+          {value}
+        </p>
+        {subtext && (
+          <p className={`text-xs mt-1 ${finalSubtextColor}`}>{subtext}</p>
+        )}
       </div>
-      {infoText && (
-        <p className="text-[0.7rem] opacity-70 mt-auto pt-1">{infoText}</p>
-      )}
-    </div>
+    </motion.div>
   );
 };
 

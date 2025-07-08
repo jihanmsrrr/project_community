@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import "leaflet/dist/leaflet.css";
 import "slick-carousel/slick/slick.css"; // Jalur sudah diperbaiki
 import "slick-carousel/slick/slick-theme.css"; // Jalur sudah diperbaiki
+import AccessibilityMenu from "@/components/ui/AccessibilityMenu";
 
 import type { AppProps } from "next/app";
 import { NextPage } from "next";
@@ -157,6 +158,7 @@ function MyApp({
           >
             {/* Bungkus renderWithLayout dengan AuthWrapper */}
             <AuthWrapper>{renderWithLayout()}</AuthWrapper>
+            <AccessibilityMenu />
           </div>
         </AuthProvider>
       </ThemeProvider>

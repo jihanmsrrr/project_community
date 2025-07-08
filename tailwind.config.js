@@ -64,7 +64,12 @@ const config = {
         "surface-name-badge": "rgb(var(--surface-name-badge) / <alpha-value>)",
         // Untuk --surface-button-transparent, biasanya lebih baik diterapkan langsung di CSS
         // atau sebagai bagian dari kelas komponen karena melibatkan alpha channel secara spesifik.
-
+        "menu-bg": "rgb(var(--menu-bg) / <alpha-value>)",
+        "menu-text": "rgb(var(--menu-text) / <alpha-value>)",
+        "menu-bg-hover": "rgb(var(--menu-bg-hover) / <alpha-value>)",
+        "menu-text-hover": "rgb(var(--menu-text-hover) / <alpha-value>)",
+        "menu-bg-active": "rgb(var(--menu-bg-active) / <alpha-value>)",
+        "menu-text-active": "rgb(var(--menu-text-active) / <alpha-value>)",
         // Warna Teks/Foreground
         "text-on-header": "rgb(var(--text-on-header) / <alpha-value>)",
         "text-primary": "rgb(var(--text-primary) / <alpha-value>)",
@@ -72,7 +77,12 @@ const config = {
         "text-on-brand": "rgb(var(--text-on-brand) / <alpha-value>)",
         "text-on-accent": "rgb(var(--text-on-accent) / <alpha-value>)",
         "text-placeholder": "rgb(var(--text-placeholder) / <alpha-value>)",
-
+        card: "rgb(var(--card-bg) / <alpha-value>)",
+        "card-border": "rgb(var(--card-border) / <alpha-value>)",
+        "input-bg": "rgb(var(--input-bg) / <alpha-value>)",
+        "input-border": "rgb(var(--input-border) / <alpha-value>)",
+        "brand-text": "rgb(var(--brand-text) / <alpha-value>)",
+        "brand-bg": "rgb(var(--brand-bg) / <alpha-value>)",
         // Warna Interaksi & Merek (Brand)
         "brand-primary": "rgb(var(--brand-primary) / <alpha-value>)",
         "brand-primary-hover":

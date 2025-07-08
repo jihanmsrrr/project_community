@@ -81,6 +81,21 @@ export type KompetensiItem = Prisma.user_competenciesGetPayload<{
   }
 }>;
 
+export type PegawaiSearchResult = Prisma.usersGetPayload<{
+  select: {
+    user_id: true;
+    nama_lengkap: true;
+    nip_baru: true;
+    foto_url: true;
+    unit_kerja: { select: { nama_satker_lengkap: true } };
+  };
+}>;
+
+export type SatkerOption = {
+  org_unit_id: string;
+  nama_wilayah: string | null;
+  kode_bps: string | null;
+};
 // Tipe untuk Prestasi
 export type PrestasiItem = Prisma.user_achievementsGetPayload<{
   select: {
@@ -123,28 +138,38 @@ export type DetailPegawaiData = Prisma.usersGetPayload<{
     nip_baru: true;
     nip_lama: true;
     email: true;
-    unit_kerja_id: true;
     role: true;
     foto_url: true;
     tempat_lahir: true;
     tanggal_lahir: true;
     jenis_kelamin: true;
     status_kepegawaian: true;
-    tmt_pns: true;
-    pangkat_golongan: true;
-    tmt_pangkat_golongan: true;
-    jabatan_struktural: true;
-    jenjang_jabatan_fungsional: true;
-    tmt_jabatan: true;
-    pendidikan_terakhir: true;
-    masa_kerja_golongan: true;
-    masa_kerja_total: true;
-    tanggal_pensiun: true;
-    sisa_masa_kerja: true;
-    grade: true;
-    unit_kerja_eselon1: true;
-    unit_kerja_eselon2: true;
-    username: true;
+    tmt_pns: true,
+    pangkat_golongan: true,
+    tmt_pangkat_golongan: true,
+    jabatan_struktural: true,
+    jenjang_jabatan_fungsional: true,
+    tmt_jabatan: true,
+    pendidikan_terakhir: true,
+    masa_kerja_golongan: true,
+    masa_kerja_total: true,
+    tanggal_pensiun: true,
+    sisa_masa_kerja: true,
+    grade: true,
+    unit_kerja_eselon1: true,
+    unit_kerja_eselon2: true,
+    username: true,
+    riwayat_pendidikan: true, // Ambil semua kolom untuk relasi ini
+    riwayat_jabatan: true,
+    kompetensi: true,
+    prestasi: true,
+    unit_kerja: {
+      select: {
+        nama_satker_lengkap: true, // Pastikan ini ada
+        // Anda bisa menambahkan kolom lain jika perlu
+      }
+    }
+  };
 
     riwayat_pendidikan: { select: { education_id: true; jenjang: true; nama_sekolah_institusi: true; jurusan: true; tahun_lulus: true; tanggal_ijazah: true; } };
     riwayat_jabatan: { select: { job_history_id: true; jabatan: true; unit_kerja: true; periode_mulai: true; periode_selesai: true; no_sk: true; tmt: true; } };
@@ -162,7 +187,7 @@ export type DetailPegawaiData = Prisma.usersGetPayload<{
         nama_wilayah_singkat: true;
       }
     }
-  };
+  
 }>;
 
 // **2. AggregatedUnitData:** Tipe untuk data statistik agregat per unit organisasi.
@@ -253,6 +278,7 @@ export type PegawaiDetail = Prisma.usersGetPayload<{
         org_unit_id: true;
         nama_wilayah_singkat: true;
         kode_bps: true;
+        nama_satker_lengkap: true; 
       };
     };
   };

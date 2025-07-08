@@ -210,21 +210,20 @@ const StrukturOrganisasiPage: React.FC = () => {
         <div className="relative z-10"></div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 shadow-md sticky top-16 z-40">
+      <div className="bg-white dark:bg-slate-800 shadow-md sticky top-16 z-40 border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap gap-2 sm:gap-4 justify-center py-3 sm:py-4">
+          <div className="flex items-center justify-center space-x-2 sm:space-x-4 py-2">
             {menuItems.map((item) => {
               const isActive = router.pathname === item.path;
               return (
                 <button
                   key={item.label}
                   onClick={() => router.push(item.path)}
-                  className={`${menuButtonBaseStyle} 
-                    ${
-                      isActive
-                        ? "bg-[#adcbe3] dark:bg-[#8ab6d6] text-slate-900 dark:text-slate-100 font-semibold shadow-md ring-2 ring-offset-1 ring-offset-white dark:ring-offset-slate-800 ring-blue-500 dark:ring-sky-400"
-                        : "bg-[#e0eaf4] dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-[#d0ddeb] dark:hover:bg-slate-600 shadow-sm"
-                    }`}
+                  className={`${menuButtonBaseStyle} ${
+                    isActive
+                      ? "bg-menu-bg-active text-menu-text-active font-semibold shadow" // <-- Gaya aktif
+                      : "bg-menu-bg text-menu-text hover:bg-menu-bg-hover hover:text-menu-text-hover" // <-- Gaya tidak aktif
+                  }`}
                 >
                   {item.label}
                 </button>

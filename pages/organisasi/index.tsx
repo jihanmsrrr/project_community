@@ -1,222 +1,142 @@
-// pages/organisasi.tsx
+// pages/organisasi/index.tsx
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
-
 import PageTitle from "@/components/ui/PageTitle";
 import StatsRow from "@/components/Organisasi/StatsRow";
 import MapVisualizationCard from "@/components/Organisasi/MapVisualizationCard";
 import ProvinceInfoPopup from "@/components/Organisasi/ProvinceInfoPopup";
-import DaftarPensiunTable from "@/components/Organisasi/DaftarPensiunTable";
 import InformasiOrganisasi from "@/components/Organisasi/InformasiOrganisasi";
+import DaftarPensiunTable from "@/components/Organisasi/DaftarPensiunTable";
 
-import type {
-  StatistikData,
-  PegawaiDetail,
-  AggregatedUnitData,
-  DashboardDataApi,
-} from "@/types/pegawai";
-
-type WilayahKey = string;
-
-interface WilayahDropdownOption {
-  id: WilayahKey;
-  nama: string;
-}
+import type { StatistikPetaData } from "@/pages/api/organisasi/statistik-peta";
+import type { AggregatedUnitData, PegawaiDetail } from "@/types/pegawai";
 
 const Organisasi: React.FC = () => {
   const router = useRouter();
 
-  // --- State untuk Data ---
-  const [dataStatistikLengkapAPI, setDataStatistikLengkapAPI] = useState<{
-    [key: string]: AggregatedUnitData;
-  } | null>(null);
-  const [daftarPegawaiPensiunAPI, setDaftarPegawaiPensiunAPI] = useState<
-    PegawaiDetail[]
-  >([]);
-  const [dataUntukPetaAPI, setDataUntukPetaAPI] = useState<
-    StatistikData | undefined
-  >(undefined);
-
-  // --- State untuk UI dan Loading ---
-  const [isLoadingData, setIsLoadingData] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-
-  // Perubahan 1: Menggunakan '0000' sebagai kunci default untuk nasional
-  const [selectedWilayahKey, setSelectedWilayahKey] =
-    useState<WilayahKey>("0000");
-
+  const [dataPeta, setDataPeta] = useState<StatistikPetaData[]>([]);
+  const [selectedWilayahKey, setSelectedWilayahKey] = useState<string>("0000");
   const [displayedStats, setDisplayedStats] =
     useState<AggregatedUnitData | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isProvincePopupOpen, setIsProvincePopupOpen] = useState(false);
-  const [selectedProvinceDataForPopup, setSelectedProvinceDataForPopup] =
-    useState<AggregatedUnitData | undefined>(undefined);
-  const [selectedProvinceCodeForLink, setSelectedProvinceCodeForLink] =
-    useState<string | undefined>(undefined);
-  const [animationsDisabled, setAnimationsDisabled] = useState(false);
+  const [daftarPegawaiPensiun, setDaftarPegawaiPensiun] = useState<
+    PegawaiDetail[]
+  >([]);
 
+  // useEffect 1: Mengambil data awal (peta & statistik nasional)
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoadingData(true);
-      setFetchError(null);
-      console.log("🚀 Memulai pengambilan data...");
-
+    const fetchInitialData = async () => {
+      setIsPageLoading(true);
       try {
-        const response = await fetch("/api/organisasi/dashboard-data");
-        console.log("✅ Respons API diterima:", response);
-
-        if (!response.ok) {
-          const errorText = `Gagal mengambil data: ${response.status} ${response.statusText}`;
-          console.error("❌ Respons API tidak OK!", {
-            status: response.status,
-            statusText: response.statusText,
-          });
-          setFetchError(errorText);
-          throw new Error(errorText);
-        }
-
-        const data: DashboardDataApi = await response.json();
-        console.log("📊 Data JSON berhasil di-parse:", data);
-
-        if (!data || !data.dataStatistikLengkap) {
-          console.error("Struktur data tidak valid atau kosong.");
-          setFetchError("Format data dari server tidak sesuai.");
-          return;
-        }
-
-        setDataStatistikLengkapAPI(data.dataStatistikLengkap);
-        setDaftarPegawaiPensiunAPI(data.daftarPegawaiPensiun || []);
-        setDataUntukPetaAPI(data.dataUntukPeta);
-
-        // Perubahan 2: Mengecek kunci '0000' untuk statistik default
-        if (data.dataStatistikLengkap?.["0000"]) {
-          setDisplayedStats(data.dataStatistikLengkap["0000"]);
-        }
-
-        console.log("👍 State berhasil diperbarui dengan data dari API.");
-      } catch (error) {
-        console.error(
-          "🔥 Terjadi error saat mengambil data organisasi:",
-          error
-        );
-        if (!fetchError) {
-          setFetchError("Gagal terhubung ke server. Silakan coba lagi nanti.");
-        }
-        setDataStatistikLengkapAPI(null);
-        setDaftarPegawaiPensiunAPI([]);
-        setDataUntukPetaAPI(undefined);
-        setDisplayedStats(null);
+        const [mapRes, nasionalRes] = await Promise.all([
+          fetch("/api/organisasi/statistik-peta"),
+          fetch("/api/organisasi/detail-unit/0000"),
+        ]);
+        if (!mapRes.ok || !nasionalRes.ok)
+          throw new Error("Gagal memuat data awal organisasi.");
+        const mapData: StatistikPetaData[] = await mapRes.json();
+        const nasionalData: AggregatedUnitData = await nasionalRes.json();
+        setDataPeta(mapData);
+        setDisplayedStats(nasionalData);
+      } catch (err) {
+        if (err instanceof Error) setError(err.message);
+        else setError("Terjadi kesalahan tidak diketahui.");
       } finally {
-        console.log("🏁 Proses pengambilan data selesai.");
-        setIsLoadingData(false);
+        setIsPageLoading(false);
       }
     };
-
-    fetchData();
-  }, [fetchError]); // Perbaikan: Dependensi harus kosong agar hanya berjalan sekali saat komponen mount
-
-  useEffect(() => {
-    if (dataStatistikLengkapAPI) {
-      const newStats = dataStatistikLengkapAPI[selectedWilayahKey];
-      if (newStats) {
-        setDisplayedStats(newStats);
-      } else if (dataStatistikLengkapAPI["0000"]) {
-        // Perubahan 3: Fallback ke '0000'
-        setDisplayedStats(dataStatistikLengkapAPI["0000"]);
-      } else {
-        setDisplayedStats(null);
-      }
-    }
-  }, [selectedWilayahKey, dataStatistikLengkapAPI]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setAnimationsDisabled(
-        document.documentElement.classList.contains("animations-disabled")
-      );
-    }
+    fetchInitialData();
   }, []);
 
-  const availableWilayahsForDropdown: WilayahDropdownOption[] = useMemo(() => {
-    if (!dataStatistikLengkapAPI) return [];
-    return (Object.keys(dataStatistikLengkapAPI) as WilayahKey[])
-      .map((key) => ({
-        id: key,
-        nama: dataStatistikLengkapAPI[key].namaWilayahAsli || key,
-      }))
-      .sort((a, b) => {
-        if (a.id === "0000") return -1;
-        if (b.id === "0000") return 1;
-        return a.nama.localeCompare(b.nama);
-      });
-  }, [dataStatistikLengkapAPI]);
+  // useEffect 2: Mengambil data detail provinsi saat dipilih
+  useEffect(() => {
+    if (selectedWilayahKey === "0000" || !selectedWilayahKey) {
+      if (displayedStats?.id !== "0000" && !isPageLoading) {
+        fetch("/api/organisasi/detail-unit/0000")
+          .then((res) => res.json())
+          .then((data) => setDisplayedStats(data));
+      }
+      return;
+    }
+
+    const fetchDetailUnit = async () => {
+      setIsDetailLoading(true);
+      try {
+        const res = await fetch(
+          `/api/organisasi/detail-unit/${selectedWilayahKey}`
+        );
+        if (!res.ok)
+          throw new Error(`Gagal memuat detail untuk ${selectedWilayahKey}`);
+        const detailData: AggregatedUnitData = await res.json();
+        setDisplayedStats(detailData);
+        setIsProvincePopupOpen(true);
+      } catch (err) {
+        if (err instanceof Error)
+          setError(`Gagal memuat data provinsi: ${err.message}`);
+        console.error(err);
+      } finally {
+        setIsDetailLoading(false);
+      }
+    };
+    fetchDetailUnit();
+  }, [displayedStats?.id, isPageLoading, selectedWilayahKey]);
+
+  // useEffect 3: Mengambil data daftar pensiun secara terpisah
+  useEffect(() => {
+    const fetchDaftarPensiun = async () => {
+      try {
+        const res = await fetch("/api/organisasi/daftar-pensiun");
+        if (!res.ok) return;
+        const data = await res.json();
+        setDaftarPegawaiPensiun(data);
+      } catch (err) {
+        console.error("Gagal mengambil data pensiun:", err);
+      }
+    };
+    fetchDaftarPensiun();
+  }, []);
 
   const handleMapProvinceClick = (
-    _provinceName: string,
+    provinceName: string,
     provinceCode: string
   ) => {
-    if (dataStatistikLengkapAPI && provinceCode in dataStatistikLengkapAPI) {
-      const key = provinceCode as WilayahKey;
-      const provinsiData: AggregatedUnitData = dataStatistikLengkapAPI[key];
-      if (provinsiData) {
-        setSelectedWilayahKey(key);
-        setSelectedProvinceDataForPopup(provinsiData);
-        setSelectedProvinceCodeForLink(key);
-        setIsProvincePopupOpen(true);
-      }
-    } else {
-      const fallbackKey = dataStatistikLengkapAPI?.["0000"]
-        ? "0000"
-        : dataStatistikLengkapAPI
-        ? Object.keys(dataStatistikLengkapAPI)[0]
-        : "0000";
-      setSelectedWilayahKey(fallbackKey);
-      setIsProvincePopupOpen(false);
-    }
-  };
-
-  const handleStatsRowWilayahChange = (newWilayahKey: string) => {
-    if (dataStatistikLengkapAPI && newWilayahKey in dataStatistikLengkapAPI) {
-      setSelectedWilayahKey(newWilayahKey as WilayahKey);
-    }
+    setSelectedWilayahKey(provinceCode);
   };
 
   const handleCloseProvincePopup = () => {
     setIsProvincePopupOpen(false);
-    setTimeout(() => {
-      setSelectedProvinceDataForPopup(undefined);
-      setSelectedProvinceCodeForLink(undefined);
-    }, 300);
+    setSelectedWilayahKey("0000");
   };
 
-  const menuButtonBaseStyle =
-    "py-3 px-4 sm:px-6 rounded-lg text-primary font-poppins text-sm sm:text-base text-center transition-all duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-opacity-50";
+  const availableWilayahsForDropdown = useMemo(() => {
+    const options = [{ id: "0000", nama: "Nasional" }];
+    dataPeta.forEach((p) => options.push({ id: p.id, nama: p.label }));
+    return options.sort((a, b) => a.nama.localeCompare(b.nama));
+  }, [dataPeta]);
 
-  if (isLoadingData) {
+  const menuItems = [
+    { label: "Peta & Statistik", path: "/organisasi" },
+    { label: "Struktur Organisasi", path: "/organisasi/struktur" },
+    { label: "Cari Pegawai", path: "/organisasi/pegawai" },
+  ];
+
+  if (isPageLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-surface-page text-text-secondary">
-        <p>Memuat data organisasi...</p>
+      <div className="flex justify-center items-center min-h-screen">
+        Memuat Peta Organisasi...
       </div>
     );
   }
 
-  if (fetchError) {
+  if (error && !dataPeta.length) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-surface-page text-text-danger">
-        <p>{fetchError}</p>
-      </div>
-    );
-  }
-
-  if (
-    !dataStatistikLengkapAPI ||
-    Object.keys(dataStatistikLengkapAPI).length === 0 ||
-    !displayedStats
-  ) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-surface-page text-text-secondary">
-        <p>Data statistik organisasi belum tersedia.</p>
+      <div className="flex justify-center items-center min-h-screen text-red-500">
+        Error: {error}
       </div>
     );
   }
@@ -230,29 +150,23 @@ const Organisasi: React.FC = () => {
             backgroundImage="/title.png"
           />
         </div>
-        <div className="absolute inset-0 bg-black opacity-50 md:opacity-60 z-0"></div>
-        <div className="relative z-10"></div>
+        <div className="absolute inset-0 bg-black opacity-50 z-0"></div>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 shadow-md sticky top-16 z-40">
+      <div className="bg-white dark:bg-slate-800 shadow-md sticky top-16 z-40 border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap gap-2 sm:gap-4 justify-center py-3 sm:py-4">
-            {[
-              { label: "Peta & Statistik", path: "/organisasi" },
-              { label: "Struktur Organisasi", path: "/organisasi/struktur" },
-              { label: "Cari Pegawai", path: "/organisasi/pegawai" },
-            ].map((item) => {
+          <div className="flex items-center justify-center space-x-2 sm:space-x-4 py-2">
+            {menuItems.map((item) => {
               const isActive = router.pathname === item.path;
               return (
                 <button
                   key={item.label}
                   onClick={() => router.push(item.path)}
-                  className={`${menuButtonBaseStyle} ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                     isActive
-                      ? "bg-[#adcbe3] dark:bg-[#8ab6d6] font-semibold shadow-md ring-2 ring-offset-1 ring-offset-white dark:ring-offset-slate-800 ring-blue-500 dark:ring-sky-400"
-                      : "bg-[#e0eaf4] dark:bg-slate-700 font-medium hover:bg-[#d0ddeb] dark:hover:bg-slate-600 shadow-sm"
+                      ? "bg-menu-bg-active text-menu-text-active font-semibold"
+                      : "text-menu-text hover:bg-menu-bg-hover hover:text-menu-text-hover"
                   }`}
-                  aria-current={isActive ? "page" : undefined}
                 >
                   {item.label}
                 </button>
@@ -262,33 +176,40 @@ const Organisasi: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-screen-xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow">
+      <main className="max-w-screen-xl mx-auto w-full px-4 py-8 flex-grow">
         <StatsRow
           stats={displayedStats}
+          isLoading={isDetailLoading}
           wilayah={selectedWilayahKey}
           availableWilayahs={availableWilayahsForDropdown}
-          onWilayahChange={handleStatsRowWilayahChange}
+          onWilayahChange={setSelectedWilayahKey}
         />
-        <div className="mt-6 md:mt-8 grid grid-cols-1 items-start">
-          <div className="h-full">
-            <MapVisualizationCard
-              onMapProvinceClickProp={handleMapProvinceClick}
-              statistikDataForChoropleth={dataUntukPetaAPI}
-            />
-          </div>
+        <div className="mt-8">
+          <MapVisualizationCard
+            onMapProvinceClickProp={handleMapProvinceClick}
+            statistikDataForChoropleth={dataPeta.reduce((acc, item) => {
+              acc[item.id] = {
+                nilai: item.value,
+                detail: `${item.value} Pegawai`,
+              };
+              return acc;
+            }, {} as Record<string, { nilai: number; detail: string }>)}
+          />
         </div>
+
         <ProvinceInfoPopup
           isOpen={isProvincePopupOpen}
           onClose={handleCloseProvincePopup}
-          provinsiData={selectedProvinceDataForPopup}
-          provinceCode={selectedProvinceCodeForLink}
-          animationsDisabled={animationsDisabled}
+          provinsiData={displayedStats || undefined}
+          provinceCode={
+            selectedWilayahKey !== "0000" ? selectedWilayahKey : undefined
+          }
         />
-      </div>
+      </main>
 
       <div className="py-8 md:py-12 bg-surface-page">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 md:space-y-12">
-          <DaftarPensiunTable pegawaiList={daftarPegawaiPensiunAPI} />
+        <div className="max-w-screen-xl mx-auto px-4 space-y-8 md:space-y-12">
+          <DaftarPensiunTable pegawaiList={daftarPegawaiPensiun} />
           <InformasiOrganisasi />
         </div>
       </div>

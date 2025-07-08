@@ -73,39 +73,25 @@ export default async function handler(
   }
 
   try {
-    // ---- START: Penambahan Console Log untuk Debugging Backend ----
-
-    console.log("🚀 [API DEBUG] Memulai proses di /api/organisasi/dashboard-data");
-
-    console.log("  [API DEBUG] 1. Menjalankan query untuk organization_units...");
+    // 1. Ambil data utama dengan relasi yang dibutuhkan dalam satu query
     const organizationUnits = await prisma.organization_units.findMany({
       include: {
         kepala: true,
-        pegawai: {
+        pegawai: { // Ini adalah satu-satunya sumber data pegawai
           include: {
-            unit_kerja: true,
+            unit_kerja: true, // Sertakan detail unit kerja jika perlu
           },
         },
       },
     });
-    console.log(`  ✅ [API DEBUG] 1. Selesai. Ditemukan: ${organizationUnits.length} unit organisasi.`);
-    // Untuk debug lebih dalam, cek apakah relasi 'pegawai' berisi data
-    if (organizationUnits.length > 0) {
-        console.log(`     -> Unit pertama (${organizationUnits[0].nama_wilayah}) memiliki ${organizationUnits[0].pegawai.length} pegawai.`);
-    }
 
-
-    console.log("  [API DEBUG] 2. Menjalankan query untuk teams...");
     const allTeams = await prisma.teams.findMany({
       include: {
         ketua_tim: true,
         anggota: { include: { pengguna: true } },
       },
     });
-    console.log(`  ✅ [API DEBUG] 2. Selesai. Ditemukan: ${allTeams.length} tim.`);
 
-
-    console.log("  [API DEBUG] 3. Menjalankan query untuk news...");
     const allNews = await prisma.news.findMany({
       include: {
         penulis: {
@@ -119,12 +105,6 @@ export default async function handler(
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    console.log(`  ✅ [API DEBUG] 3. Selesai. Ditemukan: ${allNews.length} berita.`);
-    
-    console.log("  [API DEBUG] Semua query database selesai. Memulai proses agregasi data...");
-
-    // ---- END: Penambahan Console Log ----
-
 
     // --- PROSES TRANSFORMASI & AGREGASI DATA PER UNIT ---
     const aggregatedStats: { [key: string]: AggregatedUnitDataWithTemp } = {};
@@ -235,6 +215,7 @@ export default async function handler(
     }
 
     // --- PERBAIKAN: DATA NASIONAL ---
+    // Gabungkan semua pegawai dari semua unit menjadi satu array
     const allPersonnelFromUnits = organizationUnits.flatMap(ou => ou.pegawai);
     const nationalCategorized = categorizePersonnel(allPersonnelFromUnits as PegawaiDetail[]);
 
@@ -279,7 +260,7 @@ export default async function handler(
     aggregatedStats['0000'] = nationalStats;
 
     // --- PERBAIKAN: DAFTAR PEGAWAI PENSIUN ---
-    const daftarPegawaiPensiun = allPersonnelFromUnits
+    const daftarPegawaiPensiun = allPersonnelFromUnits // Gunakan sumber data yang sudah ada
       .filter((user) => {
         if (!user.tanggal_pensiun) return false;
         const pensionYear = new Date(user.tanggal_pensiun).getFullYear();
@@ -291,8 +272,6 @@ export default async function handler(
         unit_kerja: p.unit_kerja,
         tanggal_pensiun_formatted: p.tanggal_pensiun ? format(p.tanggal_pensiun, 'dd MMMM yyyy', { locale: id }) : null,
       })) as PegawaiDetail[];
-
-    console.log("  [API DEBUG] Agregasi data selesai. Mengirim respons ke client...");
 
     // --- KIRIM RESPON ---
     const serializedResponse = JSON.parse(JSON.stringify({
@@ -306,7 +285,7 @@ export default async function handler(
     return res.status(200).json(serializedResponse);
 
   } catch (error) {
-    console.error("🔥 [API ERROR] Terjadi kesalahan fatal:", error);
+    console.error("API /organisasi/dashboard-data error:", error);
     if (error instanceof Error) {
       return res.status(500).json({ message: `Gagal mengambil data organisasi: ${error.message}` });
     }

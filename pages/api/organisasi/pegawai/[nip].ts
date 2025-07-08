@@ -1,32 +1,41 @@
-// pages/api/pegawai/[nipBaru].ts
+// pages/api/organisasi/pegawai/[nip].ts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
-import type { DetailPegawaiData } from '@/types/pegawai'; // Import tipe yang diperbarui
 
 const prisma = new PrismaClient();
 
+// Helper untuk mengubah BigInt menjadi String saat proses JSON
+const bigIntToString = (value: unknown) => {
+    if (typeof value === 'bigint') {
+        return value.toString();
+    }
+    return value;
+};
+
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<DetailPegawaiData | { message: string }>
+  res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).end('Method Not Allowed');
   }
 
-  const { nipBaru } = req.query; // Ambil nipBaru dari URL
+  // Mengambil 'nip' dari URL, sesuai dengan nama file [nip].ts
+  const { nip } = req.query;
 
-  if (!nipBaru || typeof nipBaru !== 'string') {
-    return res.status(400).json({ message: 'NIP Baru diperlukan.' });
+  if (!nip || typeof nip !== 'string') {
+    return res.status(400).json({ message: 'NIP diperlukan.' });
   }
 
   try {
     const pegawai = await prisma.users.findUnique({
       where: {
-        nip_baru: nipBaru, // Cari berdasarkan nip_baru
+        nip_baru: nip, // Mencari berdasarkan nip
       },
-      select: { // PASTIKAN SELECT INI SAMA PERSIS DENGAN YANG DI DEFINISI DetailPegawaiData DI types/pegawai.ts
+      // Menggunakan select untuk mengambil semua data yang dibutuhkan frontend
+      select: {
         user_id: true,
         nama_lengkap: true,
         nip_baru: true,
@@ -45,7 +54,7 @@ export default async function handler(
         jabatan_struktural: true,
         jenjang_jabatan_fungsional: true,
         tmt_jabatan: true,
-        pendidikan_terakhir: true, // This field is on the users model
+        pendidikan_terakhir: true,
         masa_kerja_golongan: true,
         masa_kerja_total: true,
         tanggal_pensiun: true,
@@ -54,7 +63,6 @@ export default async function handler(
         unit_kerja_eselon1: true,
         unit_kerja_eselon2: true,
         username: true,
-
         riwayat_pendidikan: {
           select: {
             education_id: true,
@@ -97,13 +105,13 @@ export default async function handler(
         },
         unit_kerja: {
           select: {
-            org_unit_id: true, // Added: Ensure org_unit_id is selected for potential use
+            org_unit_id: true,
             nama_wilayah: true,
             kode_bps: true,
-            nama_satker_lengkap: true, // Directly from your schema
-            alamat_kantor: true, // Directly from your schema
-            telepon_kantor: true, // Directly from your schema
-            homepage_satker: true, // Directly from your schema
+            nama_satker_lengkap: true,
+            alamat_kantor: true,
+            telepon_kantor: true,
+            homepage_satker: true,
           }
         }
       },
@@ -112,17 +120,19 @@ export default async function handler(
     if (!pegawai) {
       return res.status(404).json({ message: 'Pegawai tidak ditemukan.' });
     }
-
-    const serializedPegawai = JSON.parse(JSON.stringify(pegawai, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    )) as DetailPegawaiData;
+    
+    // Serialisasi data untuk mengatasi masalah BigInt
+    const serializedPegawai = JSON.parse(JSON.stringify(pegawai, (_, value) => bigIntToString(value)));
 
     return res.status(200).json(serializedPegawai);
 
   } catch (error) {
-    console.error("API /organisasi/pegawai/[nipBaru] error:", error);
+    console.error(`API /organisasi/pegawai/${nip} error:`, error);
     return res.status(500).json({ message: 'Gagal mengambil data detail pegawai.' });
   } finally {
-    await prisma.$disconnect();
+    // Disconnect dari prisma di lingkungan non-production untuk mencegah koneksi menumpuk
+    if (process.env.NODE_ENV !== 'production') {
+      await prisma.$disconnect();
+    }
   }
 }
