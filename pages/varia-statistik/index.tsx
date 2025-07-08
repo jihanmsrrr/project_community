@@ -46,18 +46,10 @@ const getCategoryColorClasses = (kategori: string) => {
 const mapArtikelToNewsCardItem = (artikel: ArtikelBerita): NewsCardItem => {
   const originalDate = new Date(artikel.savedAt);
   const styles = getCategoryColorClasses(artikel.kategori);
-  const safeBgColor = styles.categoryBgColor.replace("bg-", "");
-  const safePlaceholderTextColor = styles.placeholderTextColor.replace(
-    "text-",
-    ""
-  );
-  const gambarUrls = artikel.gambar_urls as { url: string }[] | null;
-  const imageUrl =
-    gambarUrls && gambarUrls.length > 0
-      ? gambarUrls[0].url
-      : `https://placehold.co/800x500/${safeBgColor}/${safePlaceholderTextColor}?text=${encodeURIComponent(
-          artikel.judul
-        )}&font=Inter`;
+
+  // --- UBAH BAGIAN INI ---
+  const staticPlaceholderImage = "/image.png"; // PASTIKAN FILE INI ADA DI public/image.png
+
   return {
     id: artikel.news_id.toString(),
     title: artikel.judul,
@@ -71,10 +63,8 @@ const mapArtikelToNewsCardItem = (artikel: ArtikelBerita): NewsCardItem => {
       year: "numeric",
     }),
     link: `/varia-statistik/artikel/${artikel.news_id}`,
-    imageUrl: imageUrl,
-    authorImageUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      artikel.nama_penulis
-    )}&background=random&size=32&color=fff&font-size=0.45`,
+    imageUrl: staticPlaceholderImage, // PAKSAKAN KE GAMBAR STATIS
+    authorImageUrl: staticPlaceholderImage, // PAKSAKAN KE GAMBAR STATIS (atau jika ingin avatar berbeda: "/images/default-avatar.png")
     views: Math.floor(Math.random() * 250) + 20,
     comments: Math.floor(Math.random() * 30) + 5,
     ...styles,

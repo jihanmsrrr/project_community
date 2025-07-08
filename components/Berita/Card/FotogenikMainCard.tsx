@@ -17,7 +17,7 @@ const FotogenikMainCard: React.FC<{ newsItem: NewsCardItem }> = ({
     typeof newsItem.imageUrl === "string" &&
     newsItem.imageUrl !== ""
       ? newsItem.imageUrl
-      : "/images/image-placeholder.png"; // Fallback ke gambar placeholder umum yang valid
+      : "/image.png"; // Fallback ke gambar placeholder umum yang valid
   // --- AKHIR PERBAIKAN ---
 
   const isPlaceholder = newsItem.imageUrl.includes("placehold.co"); // Gunakan newsItem.imageUrl asli di sini, karena isPlaceholder hanya untuk gaya
@@ -49,8 +49,7 @@ const FotogenikMainCard: React.FC<{ newsItem: NewsCardItem }> = ({
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             // onError handler ini bisa dihapus atau disesuaikan, karena src sudah memiliki fallback
             onError={(e) => {
-              (e.target as HTMLImageElement).src =
-                "/images/image-placeholder.png"; // Pastikan ini juga menunjuk ke path valid
+              (e.target as HTMLImageElement).src = "/image.png"; // Pastikan ini juga menunjuk ke path valid
             }}
           />
         )}

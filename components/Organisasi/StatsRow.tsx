@@ -13,9 +13,7 @@ import {
   ChevronDown,
   Check,
 } from "lucide-react";
-// We are explicitly importing NewsItem from types/pegawai to ensure consistency
 import type { AggregatedUnitData } from "@/types/pegawai";
-
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
 interface WilayahOption {
@@ -71,7 +69,7 @@ const StatsRow: React.FC<StatsRowProps> = ({
   const currentWilayahNama =
     availableWilayahs.find((w) => w.id === wilayah)?.nama || wilayah;
 
-  const currentStats: AggregatedUnitData = stats || {
+  const currentStats: AggregatedUnitData = {
     id: "default",
     namaWilayahAsli: "Keseluruhan",
     jumlahPegawai: 0,
@@ -82,19 +80,18 @@ const StatsRow: React.FC<StatsRowProps> = ({
     rataKJKSatker: { jam: 0, menit: 0 },
     pejabatStruktural: [],
     namaSatkerLengkap: "Data Tidak Tersedia",
-    berita: [], // Ensure this is an empty array of NewsItem
+    berita: [],
     subtextABK: "Target Tahunan",
     jumlahPegawaiPNS: 0,
     jumlahPegawaiNonPNS: 0,
     totalABK: 0,
     daftarTimKerja: [],
-    // Add other missing properties that AggregatedUnitData might require
     alamat: null,
     telepon: null,
     web: null,
     kepalaNama: null,
     kepalaNIP: null,
-    // Ensure all optional properties are explicitly defined if using `|| {}` or similar initialization
+    ...stats,
   };
 
   const statsForDisplay = [
@@ -110,16 +107,16 @@ const StatsRow: React.FC<StatsRowProps> = ({
       title: "Pegawai thd. ABK",
       value: `${(currentStats.persenTerhadapABK ?? 0).toFixed(2)} %`,
       subtext: currentStats.subtextABK ?? undefined,
-      infoText: "Some info",
-      bgColorClass: "bg-blue-500" as string,
-      textColorClass: "text-white" as string,
+      infoText: "Target formasi dalam ABK tahunan.",
+      bgColorClass: "bg-blue-500",
+      textColorClass: "text-white",
     },
     {
       id: 3,
       icon: <TrendingDown size={22} />,
       title: "Pensiun Tahun Ini",
       value: (currentStats.jumlahPensiunTahunIni ?? 0).toLocaleString(),
-      infoText: "More info",
+      infoText: "Jumlah pegawai yang akan pensiun tahun berjalan.",
     },
     {
       id: 4,
@@ -204,15 +201,11 @@ const StatsRow: React.FC<StatsRowProps> = ({
           aria-label={
             showNewsFeed ? "Sembunyikan Berita" : "Tampilkan Berita Terkini"
           }
-          className={`
-            inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium
-            ${
-              showNewsFeed
-                ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-800/20 dark:text-red-400 dark:hover:bg-red-800/40"
-                : "bg-brand-50 text-brand-primary hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-primary-dark dark:hover:bg-brand-900/40"
-            }
-            transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-focus focus:ring-offset-2 dark:focus:ring-offset-background-dark
-          `}
+          className={`inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium ${
+            showNewsFeed
+              ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-800/20 dark:text-red-400 dark:hover:bg-red-800/40"
+              : "bg-brand-50 text-brand-primary hover:bg-brand-100 dark:bg-brand-900/20 dark:text-brand-primary-dark dark:hover:bg-brand-900/40"
+          } transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-focus focus:ring-offset-2 dark:focus:ring-offset-background-dark`}
         >
           {showNewsFeed ? (
             <>
@@ -254,7 +247,6 @@ const StatsRow: React.FC<StatsRowProps> = ({
             exit="exit"
             className="overflow-hidden rounded-lg shadow-lg dark:shadow-2xl mt-6"
           >
-            {/* newsItems prop here uses the imported NewsItem type from types/pegawai */}
             <NewsFeedCard newsItems={currentStats.berita || []} />
           </motion.div>
         )}
@@ -263,16 +255,17 @@ const StatsRow: React.FC<StatsRowProps> = ({
   );
 };
 
-// --- Varian Animasi (Framer Motion) ---
 const newsFeedVariants: Variants = {
   hidden: { opacity: 0, height: 0 },
   visible: { opacity: 1, height: "auto", transition: { duration: 0.3 } },
   exit: { opacity: 0, height: 0, transition: { duration: 0.3 } },
 };
+
 const dropdownVariants: Variants = {
   hidden: { opacity: 0, y: -10, transition: { duration: 0.2 } },
   visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
 };
+
 const SkeletonStatCard: React.FC = () => (
   <div className="bg-ui-background dark:bg-ui-background-dark p-4 sm:p-5 rounded-lg shadow-sm animate-pulse h-28 flex flex-col justify-between">
     <div className="flex items-center mb-3">

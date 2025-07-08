@@ -6,18 +6,16 @@ import dynamic from "next/dynamic";
 import { MapPin } from "lucide-react";
 import type {
   StatistikData,
-  ProvinceProperties, // Pastikan tipe ini diekspor dari IndonesiaLeafletMap.tsx
-} from "@/components/Organisasi/maps/IndonesiaLeafletMap"; // Sesuaikan path jika perlu
+  ProvinceProperties,
+} from "@/components/Organisasi/maps/IndonesiaLeafletMap";
 import type { FeatureCollection, Geometry } from "geojson";
 
-// Interface untuk Props Komponen Ini
 interface MapVisualizationCardProps {
   onMapProvinceClickProp: (provinceName: string, provinceCode: string) => void;
-  statistikDataForChoropleth?: StatistikData; // Data untuk pewarnaan peta
-  activeSelectedCode?: string | null; // Kode provinsi yang sedang aktif/dipilih dari parent
+  statistikDataForChoropleth?: StatistikData;
+  activeSelectedCode?: string | null;
 }
 
-// Impor peta secara dinamis
 const IndonesiaMapWithNoSSR = dynamic(
   () => import("@/components/Organisasi/maps/IndonesiaLeafletMap"),
   {
@@ -53,7 +51,7 @@ const IndonesiaMapWithNoSSR = dynamic(
 const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
   onMapProvinceClickProp,
   statistikDataForChoropleth,
-  activeSelectedCode, // Terima prop ini
+  activeSelectedCode,
 }) => {
   const [geojsonData, setGeojsonData] = useState<FeatureCollection<
     Geometry,
@@ -69,9 +67,7 @@ const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
       try {
         const response = await fetch("/data/provinsi.json");
         if (!response.ok) {
-          const errorText = await response
-            .text()
-            .catch(() => response.statusText);
+          const errorText = await response.text();
           throw new Error(
             `Gagal memuat GeoJSON: ${
               response.status
@@ -86,11 +82,9 @@ const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
       } catch (err: unknown) {
         console.error("Terjadi kesalahan saat mengambil data GeoJSON:", err);
         if (err instanceof Error) {
-          setErrorLoading(err.message || "Gagal memuat data peta.");
+          setErrorLoading(err.message);
         } else {
-          setErrorLoading(
-            "Terjadi kesalahan tidak diketahui saat memuat data peta."
-          );
+          setErrorLoading("Kesalahan tidak diketahui saat memuat data peta.");
         }
       } finally {
         setIsLoading(false);
@@ -100,15 +94,8 @@ const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
     fetchGeojsonData();
   }, []);
 
-  // Handler ini hanya meneruskan event klik ke parent (ExecutiveDashboardPage)
-  const handleMapInteraction = (
-    provinceName: string,
-    provinceCode: string
-    // Anda bisa tambahkan parameter `data?: ProvinceStatistic` jika IndonesiaMap mengirimkannya dan Anda memerlukannya di sini
-  ) => {
-    if (onMapProvinceClickProp) {
-      onMapProvinceClickProp(provinceName, provinceCode);
-    }
+  const handleMapInteraction = (provinceName: string, provinceCode: string) => {
+    onMapProvinceClickProp(provinceName, provinceCode);
   };
 
   return (
@@ -124,8 +111,6 @@ const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
       </div>
 
       <div className="flex-grow min-h-[300px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[450px] relative rounded-md overflow-hidden bg-ui-border/10">
-        {" "}
-        {/* Min-height sedikit disesuaikan */}
         {isLoading && !geojsonData && !errorLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-page rounded-lg select-none">
             <svg
@@ -164,8 +149,7 @@ const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
             statistikData={statistikDataForChoropleth}
             onProvinceClick={handleMapInteraction}
             height="100%"
-            selectedProvinceCode={activeSelectedCode} // <-- TERUSKAN KODE PROVINSI AKTIF
-            // currentThemeName prop tidak lagi diperlukan jika IndonesiaLeafletMap menggunakan MutationObserver
+            selectedProvinceCode={activeSelectedCode}
           />
         )}
       </div>

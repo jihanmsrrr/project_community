@@ -46,7 +46,7 @@ const HeroDisplay: React.FC<{
     typeof newsItem.imageUrl === "string" &&
     newsItem.imageUrl !== ""
       ? newsItem.imageUrl
-      : "/images/image-placeholder.png"; // Fallback ke gambar placeholder umum yang valid
+      : "/image.png"; // Fallback ke gambar placeholder umum yang valid
   // --- AKHIR PERBAIKAN ---
 
   return (
@@ -66,7 +66,7 @@ const HeroDisplay: React.FC<{
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.onerror = null;
-            target.src = "/images/image-placeholder.png"; // Pastikan ini juga menunjuk ke path valid
+            target.src = "/image.png"; // Pastikan ini juga menunjuk ke path valid
           }}
           sizes="(min-width: 1024px) 80vw, 100vw"
         />

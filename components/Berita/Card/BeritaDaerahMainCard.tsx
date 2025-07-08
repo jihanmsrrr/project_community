@@ -25,7 +25,7 @@ const BeritaDaerahMainCard: React.FC<{ newsItem: NewsCardItem | null }> = ({
     typeof newsItem.imageUrl === "string" &&
     newsItem.imageUrl !== ""
       ? newsItem.imageUrl
-      : "/images/image-placeholder.png"; // Fallback ke gambar placeholder umum
+      : "/image.png"; // Fallback ke gambar placeholder umum
 
   const authorImageUrlToUse =
     newsItem.authorImageUrl &&

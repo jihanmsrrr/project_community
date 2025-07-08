@@ -2,7 +2,11 @@
 const nextConfig = {
     
     reactStrictMode: true, // Ini praktik yang bagus untuk pengembangan React
-    images: {
+    env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  },
+  images: {
         // Ini adalah konfigurasi untuk mengizinkan gambar dari domain eksternal tertentu.
         // Penting untuk keamanan dan performa.
         remotePatterns: [

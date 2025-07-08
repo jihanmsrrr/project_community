@@ -1,10 +1,9 @@
-// components/Organisasi/InformasiOrganisasi.tsx (atau CardGrid.tsx)
+// components/Organisasi/InformasiOrganisasi.tsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Contoh data (tetap sama)
 const dataKategori = [
   {
     kategori: "Poliklinik",
@@ -59,7 +58,6 @@ const CardGrid: React.FC = () => {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
       const isAtAbsoluteStart = scrollLeft <= 0;
       const isAtAbsoluteEnd = scrollLeft >= scrollWidth - clientWidth - 1;
-
       setCanScrollLeft(!isAtAbsoluteStart);
       setCanScrollRight(!isAtAbsoluteEnd && scrollWidth > clientWidth);
     }
@@ -103,8 +101,7 @@ const CardGrid: React.FC = () => {
         window.removeEventListener("resize", checkInitialScroll);
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataKategori]);
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (carouselRef.current) {
@@ -116,22 +113,16 @@ const CardGrid: React.FC = () => {
   };
 
   return (
-    // Menggunakan variabel tema Anda untuk background section
     <section className="w-full bg-surface-page p-4 sm:p-6 rounded-xl select-none shadow-sm">
-      {/* Judul tidak lagi di tengah, menggunakan warna tema Anda */}
       <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-6">
         Informasi Organisasi
       </h2>
 
       <div className="flex items-center">
-        {" "}
-        {/* Menghapus 'group' jika panah selalu terlihat */}
-        {/* Tombol Navigasi Kiri */}
         <button
           onClick={() => scroll("left")}
           aria-label="Geser ke Kiri"
           disabled={!canScrollLeft}
-          // Menggunakan variabel tema Anda dan styling yang lebih baik
           className={`p-2 rounded-full bg-surface-card text-text-primary shadow-md hover:bg-brand-primary hover:text-text-on-brand focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-1 focus-visible:ring-offset-surface-page transition-opacity duration-200 disabled:opacity-30 disabled:cursor-not-allowed mr-2 sm:mr-3 z-10`}
         >
           <ChevronLeft size={24} />
@@ -145,17 +136,13 @@ const CardGrid: React.FC = () => {
           {dataKategori.map((kategori, index) => (
             <article
               key={index}
-              // Menggunakan variabel tema Anda untuk kartu
               className="flex-shrink-0 snap-center w-[250px] sm:w-[270px] bg-surface-card border border-ui-border rounded-xl shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 flex flex-col"
             >
-              {/* Header Kartu menggunakan warna tema Anda */}
               <h3 className="text-base sm:text-lg font-semibold text-center bg-brand-accent text-text-on-accent rounded-t-lg py-2.5 sm:py-3 px-3 break-words">
                 {kategori.kategori}
               </h3>
-              {/* Konten Kartu */}
               <div className="pt-3 px-3 sm:px-4 pb-3 flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-ui-border/70 scrollbar-track-surface-page scrollbar-thumb-rounded-full">
                 {kategori.items.length > 0 ? (
-                  // Menggunakan variabel tema Anda untuk separator dan teks item
                   <ul className="divide-y divide-ui-border/70">
                     {kategori.items.map((item, idx) => (
                       <li
@@ -171,8 +158,6 @@ const CardGrid: React.FC = () => {
                   </ul>
                 ) : (
                   <p className="text-xs text-text-secondary text-center py-4">
-                    {" "}
-                    {/* Menggunakan text-text-secondary */}
                     Tidak ada item.
                   </p>
                 )}
@@ -180,7 +165,6 @@ const CardGrid: React.FC = () => {
             </article>
           ))}
         </div>
-        {/* Tombol Navigasi Kanan */}
         <button
           onClick={() => scroll("right")}
           aria-label="Geser ke Kanan"
