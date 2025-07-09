@@ -4,7 +4,7 @@
 import React, { useState, SVGProps, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-// --- PERUBAHAN KUNCI: Impor hook dari NextAuth ---
+
 import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
@@ -12,7 +12,7 @@ import {
   Briefcase,
   BookOpen,
   Settings,
-  Users,
+  Megaphone,
   LogOut,
   ChevronDown,
   ShieldCheck,
@@ -30,7 +30,7 @@ const adminMenuItems = [
   },
   { label: "Organisasi", href: "/admin/organisasi", icon: <Briefcase /> },
   { label: "Ruang Baca", href: "/admin/ruang-baca", icon: <BookOpen /> },
-  { label: "Pengguna", href: "/admin/pengguna", icon: <Users /> },
+  { label: "Pengumuman", href: "/admin/pengumuman", icon: <Megaphone /> },
   { label: "Pengaturan", href: "/admin/pengaturan", icon: <Settings /> },
 ];
 

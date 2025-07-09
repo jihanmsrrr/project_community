@@ -1,25 +1,18 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const newsItems = [
-  { title: "Biroren", image: "/popup1.jpg" },
-  { title: "Sync Email Iphone", image: "/popup2.jpg" },
-  { title: "Koneksi Wifi", image: "/popup3.jpg" },
-  { title: "Waspada Pishing", image: "/popup4.jpg" },
-  { title: "Email Terblokir", image: "/popup5.jpg" },
-  { title: "Manajemen Perubahan", image: "/popup6.jpg" },
-];
+import { Pengumuman } from "@/types/pengumuman"; // Assuming you create this interface
 
 const Carousel = () => {
   const [index, setIndex] = useState(0);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
-  const total = newsItems.length;
+  const [pengumumanList, setPengumumanList] = useState<Pengumuman[]>([]);
+  const total = pengumumanList.length;
 
   const prevSlide = useCallback(() => {
     setIndex((prev) => (prev - 1 + total) % total);
@@ -33,8 +26,29 @@ const Carousel = () => {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    const fetchPengumuman = async () => {
+      try {
+        const response = await fetch("/api/pengumuman");
+        if (response.ok) {
+          const data = await response.json();
+          setPengumumanList(data);
+        } else {
+          console.error("Gagal mengambil data pengumuman");
+        }
+      } catch (error) {
+        console.error(
+          "Terjadi kesalahan saat mengambil data pengumuman:",
+          error
+        );
+      }
+    };
+
+    fetchPengumuman();
+  }, []);
+
   const getSlide = (offset: number) => {
-    return newsItems[(index + offset + total) % total];
+    return pengumumanList[(index + offset + total) % total];
   };
 
   const handleImageClick = (image: string) => setSelectedImage(image);
@@ -60,37 +74,41 @@ const Carousel = () => {
             const isActive = offset === 0;
 
             return (
-              <motion.div
-                key={item.title}
-                onClick={() => handleImageClick(item.image)}
-                className="cursor-pointer rounded-2xl overflow-hidden shadow-lg border-2 border-gray-300 flex flex-col items-center justify-start"
-                style={{
-                  width: isActive ? 380 : 300,
-                  height: isActive ? 450 : 380,
-                  opacity: isActive ? 1 : 0.5,
-                  filter: isActive ? "none" : "grayscale(70%) brightness(70%)",
-                  transition: "all 0.4s ease",
-                  borderRadius: 20,
-                  boxShadow: isActive
-                    ? "0 8px 20px rgba(0,0,0,0.3)"
-                    : "0 4px 10px rgba(0,0,0,0.15)",
-                  backgroundColor: "white",
-                  overflow: "hidden",
-                }}
-                layout
-              >
-                <Image
-                  src={item.image}
-                  alt={item.title}
-                  width={isActive ? 400 : 320}
-                  height={isActive ? 450 : 380}
-                  className="object-cover rounded-2xl"
-                  priority
-                />
-                <h3 className="mt-2 text-center text-gray-800 text-base select-none">
-                  {item.title}
-                </h3>
-              </motion.div>
+              item && (
+                <motion.div
+                  key={item.id}
+                  onClick={() => handleImageClick(item.gambarUrl)}
+                  className="cursor-pointer rounded-2xl overflow-hidden shadow-lg border-2 border-gray-300 flex flex-col items-center justify-start"
+                  style={{
+                    width: isActive ? 380 : 300,
+                    height: isActive ? 450 : 380,
+                    opacity: isActive ? 1 : 0.5,
+                    filter: isActive
+                      ? "none"
+                      : "grayscale(70%) brightness(70%)",
+                    transition: "all 0.4s ease",
+                    borderRadius: 20,
+                    boxShadow: isActive
+                      ? "0 8px 20px rgba(0,0,0,0.3)"
+                      : "0 4px 10px rgba(0,0,0,0.15)",
+                    backgroundColor: "white",
+                    overflow: "hidden",
+                  }}
+                  layout
+                >
+                  <Image
+                    src={item.gambarUrl}
+                    alt={item.judul}
+                    width={isActive ? 400 : 320}
+                    height={isActive ? 450 : 380}
+                    className="object-cover rounded-2xl"
+                    priority
+                  />
+                  <h3 className="mt-2 text-center text-gray-800 text-base select-none">
+                    {item.judul}
+                  </h3>
+                </motion.div>
+              )
             );
           })}
         </div>

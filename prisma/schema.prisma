@@ -247,3 +247,16 @@ model bookmarks {
   @@unique([user_id, article_id])
   @@index([article_id], map: "bookmarks_article_id_fkey")
 }
+
+model pengumuman {
+  id             Int      @id @default(autoincrement())
+  judul          String
+  gambarUrl      String   @db.Text
+  isiPengumuman  String   @db.Text
+  targetUrl      String   @db.Text
+  tanggalMulai   DateTime @db.Date
+  tanggalBerakhir DateTime @db.Date
+  aktif          Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

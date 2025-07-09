@@ -1,10 +1,9 @@
-// prisma/seed.ts
 import { PrismaClient } from '@prisma/client';
-import { seedOrganizationsAndUsers } from './seeds/01_organizations_users';
-import { seedContentAndInteractions } from './seeds/02_content_and_interactions';
-import { seedUserDetailsAndReviews } from './seeds/03_details_reviews';
-import { seedReadingMaterials } from './seeds/04_reading_materials';
-
+// import { seedOrganizationsAndUsers } from './seeds/01_organizations_users';
+// import { seedContentAndInteractions } from './seeds/02_content_and_interactions';
+// import { seedUserDetailsAndReviews } from './seeds/03_details_reviews';
+// import { seedReadingMaterials } from './seeds/04_reading_materials';
+import { seedPopup } from './seeds/05_popup';
 
 const prisma = new PrismaClient();
 
@@ -16,20 +15,21 @@ async function main() {
   await prisma.$transaction(async (tx) => {
     // NOTE: `tx` adalah Prisma Client khusus untuk transaksi ini.
     // Kita akan meneruskannya ke setiap fungsi seed.
-    
+
     // Urutan sangat penting!
     // 1. Buat struktur organisasi, user, dan tim terlebih dahulu.
-    await seedOrganizationsAndUsers(tx);
+    // await seedOrganizationsAndUsers(tx);
 
     // 2. Setelah user dan berita ada, buat konten dan interaksinya.
-    await seedContentAndInteractions(tx);
+    // await seedContentAndInteractions(tx);
 
     // 3. Terakhir, tambahkan detail untuk setiap user.
-    await seedUserDetailsAndReviews(tx);
-      await seedReadingMaterials(tx);
+    // await seedUserDetailsAndReviews(tx);
+    // await seedReadingMaterials(tx);
+    await seedPopup(tx); // Biarkan ini tetap ada
   });
 
-  console.log(`\n🎉 Semua proses seeding telah selesai dengan sukses!`);
+  console.log(`\n🎉 Proses seeding popup telah selesai!`);
 }
 
 main()
