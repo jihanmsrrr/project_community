@@ -88,6 +88,10 @@ const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
     fetchGeoData();
   }, []);
 
+  console.log("isLoading:", isLoading);
+  console.log("error:", error);
+  console.log("geojsonData:", geojsonData);
+
   return (
     <div className="bg-card border border-card-border rounded-xl shadow-lg p-4 sm:p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
@@ -102,13 +106,11 @@ const MapVisualizationCard: React.FC<MapVisualizationCardProps> = ({
 
       <div className="flex-grow min-h-[450px] relative rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700/50">
         {isLoading && <MapLoadingSkeleton />}
-
         {error && (
           <div className="absolute inset-0 flex items-center justify-center p-4 text-center bg-red-100 text-red-700">
             <p>{error}</p>
           </div>
         )}
-
         {!isLoading && !error && geojsonData && (
           <IndonesiaMapWithNoSSR
             geojsonData={geojsonData}

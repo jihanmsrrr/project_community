@@ -37,12 +37,63 @@ const COLOR_SCALE = {
 
 const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
   geojsonData,
-  statistikData,
   onProvinceClick,
   selectedProvinceCode,
 }) => {
+  console.log("IndonesiaMap - geojsonData:", geojsonData);
+
+  const pulauWarna = {
+    Sumatera: "lightblue",
+    Jawa: "lightgreen",
+    Kalimantan: "lightyellow",
+    Sulawesi: "lightpink",
+    "Bali & Nusa Tenggara": "lightcoral",
+    Maluku: "lightsalmon",
+    Papua: "lightseagreen",
+  };
+
+  const provinsiPulau = {
+    "1100": "Sumatera", // Aceh
+    "1200": "Sumatera", // Sumatera Utara
+    "1300": "Sumatera", // Sumatera Barat
+    "1400": "Sumatera", // Riau
+    "1500": "Sumatera", // Jambi
+    "1600": "Sumatera", // Sumatera Selatan
+    "1700": "Sumatera", // Bengkulu
+    "1800": "Sumatera", // Lampung
+    "1900": "Sumatera", // Kep. Bangka Belitung
+    "2100": "Sumatera", // Kepulauan Riau
+    "3100": "Jawa", // DKI Jakarta
+    "3200": "Jawa", // Jawa Barat
+    "3300": "Jawa", // Jawa Tengah
+    "3400": "Jawa", // DI Yogyakarta
+    "3500": "Jawa", // Jawa Timur
+    "3600": "Jawa", // Banten
+    "5100": "Bali & Nusa Tenggara", // Bali
+    "5200": "Bali & Nusa Tenggara", // Nusa Tenggara Barat
+    "5300": "Bali & Nusa Tenggara", // Nusa Tenggara Timur
+    "6100": "Kalimantan", // Kalimantan Barat
+    "6200": "Kalimantan", // Kalimantan Tengah
+    "6300": "Kalimantan", // Kalimantan Selatan
+    "6400": "Kalimantan", // Kalimantan Timur
+    "6500": "Kalimantan", // Kalimantan Utara
+    "7100": "Sulawesi", // Sulawesi Utara
+    "7200": "Sulawesi", // Sulawesi Tengah
+    "7300": "Sulawesi", // Sulawesi Selatan
+    "7400": "Sulawesi", // Sulawesi Tenggara
+    "7500": "Sulawesi", // Gorontalo
+    "7600": "Sulawesi", // Sulawesi Barat
+    "8100": "Maluku", // Maluku
+    "8200": "Maluku", // Maluku Utara
+    "9100": "Papua", // Papua Barat
+    "9400": "Papua", // Papua (induk)
+    "9405": "Papua", // Papua Selatan (kode perkiraan)
+    "9403": "Papua", // Papua Tengah (kode perkiraan)
+    "9404": "Papua", // Papua Pegunungan (kode perkiraan)
+    "9102": "Papua", // Papua Barat Daya (kode perkiraan)
+  };
+
   const getProvinceStyle = (feature?: GeoJSON.Feature): PathOptions => {
-    // PERBAIKAN 1: Tambahkan pengecekan di sini
     if (!feature?.properties) {
       return {
         fillColor: COLOR_SCALE.defaultFill,
@@ -52,26 +103,13 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
     }
 
     const provinceCode = feature.properties.id;
-    let fillColor = COLOR_SCALE.defaultFill;
-
-    if (provinceCode && provinceCode === selectedProvinceCode) {
-      return {
-        fillColor: COLOR_SCALE.selected,
-        weight: 2.5,
-        color: COLOR_SCALE.selected,
-        fillOpacity: 0.8,
-      };
-    }
-
-    if (statistikData && provinceCode && statistikData[provinceCode]) {
-      const value = statistikData[provinceCode].nilai;
-      if (value > 75) fillColor = COLOR_SCALE.high;
-      else if (value > 40) fillColor = COLOR_SCALE.medium;
-      else if (value >= 0) fillColor = COLOR_SCALE.low;
-    }
+    const pulau =
+      provinsiPulau[provinceCode as keyof typeof provinsiPulau] || "Lainnya";
+    const warna =
+      pulauWarna[pulau as keyof typeof pulauWarna] || COLOR_SCALE.defaultFill;
 
     return {
-      fillColor,
+      fillColor: warna,
       weight: 1,
       opacity: 1,
       color: COLOR_SCALE.defaultBorder,
@@ -80,13 +118,10 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
   };
 
   const onEachFeature = (feature: GeoJSON.Feature, layer: Layer) => {
-    // PERBAIKAN 2: Tambahkan guard clause utama di sini
-    // Jika tidak ada properties, jangan lakukan apa-apa pada layer ini.
     if (!feature.properties) {
       return;
     }
 
-    // Dari sini ke bawah, kita bisa dengan aman mengakses feature.properties
     const provinceName = feature.properties.name;
     const provinceCode = feature.properties.id;
 
@@ -125,9 +160,18 @@ const IndonesiaMap: React.FC<IndonesiaMapProps> = ({
       center={[-2.5, 118]}
       zoom={5}
       scrollWheelZoom={true}
-      style={{ height: "100%", width: "100%", backgroundColor: "transparent" }}
+      style={{ height: "450px", width: "100%" }}
       className="rounded-lg z-0"
       zoomControl={false}
+      maxBounds={[
+        [-11, 95],
+        [6, 141],
+      ]} // Restrict zooming/panning outside Indonesia
+      bounds={[
+        [-11, 95],
+        [6, 141],
+      ]} // Set initial view to fit Indonesia
+      boundsOptions={{ padding: [20, 20] }} // Optional padding
     >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
