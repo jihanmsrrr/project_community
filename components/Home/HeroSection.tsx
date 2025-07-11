@@ -3,12 +3,11 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { useTheme } from "next-themes"; // Diimpor untuk manajemen tema
 import { LoaderCircle } from "lucide-react";
 import Carousel from "./Carousel"; // Asumsi Carousel.tsx ada di folder yang sama
 
-// --- Komponen Greeting (Disederhanakan & digabung di sini) ---
-
-// DITAMBAHKAN KEMBALI: Daftar kutipan atau fakta menarik
+// --- Komponen Greeting ---
 const motivationalQuotes = [
   "“In God we trust, all others must bring data.” - W. Edwards Deming",
   "“Data is the new oil.” - Clive Humby",
@@ -21,7 +20,7 @@ const Greeting: React.FC = () => {
   const { data: session, status } = useSession();
   const [greeting, setGreeting] = useState("Selamat Datang");
   const [currentDate, setCurrentDate] = useState("");
-  const [quote, setQuote] = useState(""); // State baru untuk kutipan
+  const [quote, setQuote] = useState("");
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -39,7 +38,6 @@ const Greeting: React.FC = () => {
       })
     );
 
-    // Memilih kutipan acak saat komponen dimuat
     setQuote(
       motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
     );
@@ -48,7 +46,7 @@ const Greeting: React.FC = () => {
   if (status === "loading") {
     return (
       <div className="flex justify-center items-center h-24">
-        <LoaderCircle className="w-8 h-8 animate-spin text-text-on-brand" />
+        <LoaderCircle className="w-8 h-8 animate-spin text-white" />
       </div>
     );
   }
@@ -56,35 +54,76 @@ const Greeting: React.FC = () => {
   const userName = session?.user?.name?.split(" ")[0] || "Insan BPS";
 
   return (
+    // Teks di sini menggunakan warna putih agar kontras dengan backdrop
     <div className="text-center text-white">
       <p className="text-md font-semibold mb-2 opacity-80">{currentDate}</p>
-      <h1 className="text-4xl md:text-5xl font-bold mb-2 whitespace-nowrap">
+      <h1 className="text-4xl md:text-5xl font-bold mb-2 whitespace-nowrap drop-shadow-lg">
         {`${greeting}, ${userName}!`}
       </h1>
-      <p className="text-lg opacity-90">
+      <p className="text-lg opacity-90 drop-shadow-md">
         Selamat datang di pusat kolaborasi dan data BPS Community.
       </p>
-      {/* DITAMBAHKAN KEMBALI: Kutipan motivasi */}
-      <p className="text-sm opacity-70 italic mt-4 max-w-xl mx-auto">{quote}</p>
+      <p className="text-sm opacity-70 italic mt-4 max-w-xl mx-auto drop-shadow-sm">
+        {quote}
+      </p>
     </div>
   );
 };
 
 // --- Komponen HeroSection Utama (Desain Baru) ---
 const HeroSection: React.FC = () => {
-  return (
-    // Section utama dengan background gradasi yang adaptif tema
-    <section className="relative w-full rounded-3xl bg-gradient-to-br from-brand-primary to-brand-accent p-4 md:p-6 overflow-hidden">
-      {/* Pola geometris halus sebagai background texture */}
-      <div
-        className="absolute inset-0 bg-[url('/bg2.png')] bg-cover bg-center opacity-10"
-        style={{ filter: "invert(1)" }}
-      />
+  // DIPERBAIKI: Menggunakan resolvedTheme untuk deteksi yang lebih andal
+  const { resolvedTheme } = useTheme();
+  const [backdropSrc, setBackdropSrc] = useState("/backdrop.png");
+  const [isMounted, setIsMounted] = useState(false);
 
-      {/* Konten utama */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-8">
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      // DIPERBAIKI: Menggunakan resolvedTheme dalam logika switch
+      switch (resolvedTheme) {
+        case "dark":
+          setBackdropSrc("/backdrop-dark.png");
+          break;
+        case "pink":
+          setBackdropSrc("/backdrop-pink.png");
+          break;
+        default:
+          setBackdropSrc("/backdrop.png");
+          break;
+      }
+    }
+  }, [resolvedTheme, isMounted]); // Dependency diubah ke resolvedTheme
+
+  if (!isMounted) {
+    // Placeholder untuk menjaga layout saat loading di client
+    return <div className="w-full h-[78vh] bg-surface-card rounded-3xl" />;
+  }
+
+  return (
+    // DIKEMBALIKAN: Menggunakan layout dengan tinggi viewport dan konten di atasnya
+    <section className="relative w-full rounded-xl overflow-visible">
+      {/* Backdrop dengan tinggi 78vh dan full rounded */}
+      <div className="absolute top-0 left-0 right-0 h-[78vh] rounded-3xl overflow-hidden z-0">
+        <Image
+          key={backdropSrc} // Key diubah agar Next.js memicu transisi gambar
+          src={backdropSrc}
+          alt="Backdrop BPS Community"
+          fill
+          style={{ objectFit: "cover" }}
+          className="transition-opacity duration-700 ease-in-out"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-black/10 to-transparent" />
+      </div>
+
+      {/* Konten utama diposisikan di atas backdrop */}
+      <div className="relative z-10 max-w-[1200px] mx-auto px-6 sm:px-8 md:px-12 pt-8 pb-2 flex flex-col items-center gap-6">
         <Greeting />
-        <div className="w-full max-w-5xl">
+        <div className="w-full max-w-4xl xl:max-w-5xl">
           <Carousel />
         </div>
       </div>
