@@ -1,46 +1,37 @@
-// components/Admin/RekapCard.tsx
+// components/Admin/Berita/RekapCard.tsx
 "use client";
 
-import React from "react";
+import React, { ReactElement } from "react";
 
 interface RekapCardProps {
   title: string;
-  value: number | string; // Bisa menerima angka atau string
-  icon: React.ReactNode;
-  colorClass: string; // Contoh: "border-status-blue text-status-blue-dark"
-  link?: string; // Opsional jika kartu ingin bisa diklik
+  value: number;
+  icon: ReactElement;
+  colorClass: string;
 }
 
 const RekapCard: React.FC<RekapCardProps> = ({
   title,
   value,
   icon,
-  link,
   colorClass,
 }) => {
-  const content = (
-    <div className="bg-surface-card p-5 rounded-xl shadow-sm border-l-4 hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-text-secondary">{title}</p>
-          <p className="text-2xl font-bold text-text-primary">
-            {typeof value === "number" ? value.toLocaleString("id-ID") : value}
-          </p>
-        </div>
-        <div className={`opacity-50 ${colorClass}`}>{icon}</div>
+  return (
+    <div
+      className={`bg-surface-card border-l-4 rounded-lg p-4 flex items-center gap-4 shadow-sm ${colorClass}`}
+    >
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {React.cloneElement(icon as React.ReactElement<any>, {
+        className: "w-8 h-8 flex-shrink-0",
+      })}
+      <div>
+        <p className="text-2xl font-bold text-text-primary">
+          {value.toLocaleString("id-ID")}
+        </p>
+        <p className="text-sm font-medium text-text-secondary">{title}</p>
       </div>
     </div>
   );
-
-  if (link) {
-    return (
-      <a href={link} className="block">
-        {content}
-      </a>
-    );
-  }
-
-  return content;
 };
 
 export default RekapCard;

@@ -1,50 +1,57 @@
-// pages/Home.tsx (atau file Anda)
-"use client"; // Jika menggunakan App Router di Next.js 13+
+"use client";
 
 import React, { useState, useEffect } from "react";
-import Skeleton from "@/components/ui/Skeleton"; // Pastikan path ini benar
-import HeroSection from "@/components/Home/HeroSection"; // Pastikan path ini benar
-import FeedbackSection from "@/components/Home/FeedbackSection"; // Pastikan path ini benar
-
-import DashboardComponent from "@/components/Home/DashboardComponent"; // Pastikan path ini benar
-import GuideCarousel from "@/components/Home/GuideCarousel"; // Pastikan path ini benar
-import InfoCardGrid from "@/components/Home/InfoCardGrid"; // Pastikan path ini benar
+import Skeleton from "@/components/ui/Skeleton";
+import HeroSection from "@/components/Home/HeroSection";
+import FeedbackSection from "@/components/Home/FeedbackSection";
+import DashboardComponent from "@/components/Home/DashboardComponent";
+import GuideCarousel from "@/components/Home/GuideCarousel";
+import InfoCardGrid from "@/components/Home/InfoCardGrid";
+import QuickStats from "@/components/Home/Quickstats";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulasi loading
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1500); // Durasi loading bisa disesuaikan
-
+    }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="flex flex-col gap-10 p-4 pt-0 sm:pt-4 relative overflow-x-hidden">
-      {" "}
-      {/* Dihilangkan padding atas di mobile agar HeroSection bisa lebih fleksibel */}
+    // DIUBAH: Menghapus gap-10 agar tidak ada jarak vertikal ekstra di level ini
+    <div className="flex flex-col relative overflow-x-hidden">
       {/* Background wave */}
       <div
         className="absolute bottom-0 left-0 right-0 h-[1064px] 
                    bg-[url('/bg2.png')] bg-cover bg-bottom bg-no-repeat -z-10"
       />
-      {/* Hero Section with offset bottom */}
-      <div className="relative -mb-[100px] sm:-mb-[120px] md:-mb-[140px] z-20">
-        {" "}
-        {/* Offset disesuaikan sedikit */}
+
+      {/* Hero Section dengan offset bottom */}
+      {/* DIUBAH: Padding horizontal dan margin atas ditambahkan di sini untuk HeroSection */}
+      <div className="relative mt-4 -mb-[100px] sm:-mb-[120px] md:-mb-[140px] z-20 w-full px-4 md:px-8">
         <HeroSection />
       </div>
+
       {/* Content Section */}
-      {/* Penyesuaian pt agar ada ruang setelah HeroSection yang overlap */}
       <main
         className="relative z-10 pt-[120px] sm:pt-[140px] md:pt-[160px] 
                    flex flex-col 
-                   space-y-8 md:space-y-12 // CONTOH: Menggunakan space-y yang lebih kecil
-                   max-w-screen-xl mx-auto w-full px-2 sm:px-0"
+                   space-y-8 md:space-y-12
+                   w-full px-4 md:px-8" // DIUBAH: Menghapus max-w-screen-xl dan mx-auto, menyesuaikan padding
       >
+        {/* Quick Stats */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Skeleton height="h-24" radius="rounded-xl" />
+            <Skeleton height="h-24" radius="rounded-xl" />
+            <Skeleton height="h-24" radius="rounded-xl" />
+          </div>
+        ) : (
+          <QuickStats />
+        )}
+
         {/* Dashboard Component */}
         <section aria-labelledby="dashboard-title">
           <h2 id="dashboard-title" className="sr-only">
@@ -52,12 +59,7 @@ export default function Home() {
           </h2>
           {loading ? (
             <div className="w-full">
-              {" "}
-              {/* Div pembungkus untuk mengatur lebar */}
-              <Skeleton
-                height="h-96 sm:h-[500px]" // Asumsi height dan radius adalah prop valid di Skeleton
-                radius="rounded-xl"
-              />
+              <Skeleton height="h-96 sm:h-[500px]" radius="rounded-xl" />
             </div>
           ) : (
             <DashboardComponent />
@@ -70,10 +72,7 @@ export default function Home() {
             Informasi Umum
           </h2>
           {loading ? (
-            <Skeleton
-              height="h-96 sm:h-[500px]" // Asumsi height dan radius adalah prop valid di Skeleton
-              radius="rounded-xl"
-            />
+            <Skeleton height="h-96 sm:h-[500px]" radius="rounded-xl" />
           ) : (
             <InfoCardGrid />
           )}
@@ -85,10 +84,7 @@ export default function Home() {
             Panduan Pengguna
           </h2>
           {loading ? (
-            <Skeleton
-              height="h-96 sm:h-[500px]" // Asumsi height dan radius adalah prop valid di Skeleton
-              radius="rounded-xl"
-            />
+            <Skeleton height="h-96 sm:h-[500px]" radius="rounded-xl" />
           ) : (
             <GuideCarousel />
           )}
@@ -100,10 +96,7 @@ export default function Home() {
             Umpan Balik Pengguna
           </h2>
           {loading ? (
-            <Skeleton
-              height="h-96 sm:h-[500px]" // Asumsi height dan radius adalah prop valid di Skeleton
-              radius="rounded-xl"
-            />
+            <Skeleton height="h-96 sm:h-[500px]" radius="rounded-xl" />
           ) : (
             <FeedbackSection />
           )}

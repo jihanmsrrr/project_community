@@ -1,4 +1,4 @@
-// components/Admin/BeritaTable.tsx
+// components/Admin/Berita/BeritaTable.tsx
 "use client";
 
 import React from "react";
@@ -8,18 +8,28 @@ import {
   Clock,
   CheckCircle,
   FileWarning,
-  Eye,
+  Send,
 } from "lucide-react";
-import type { ArtikelBerita } from "@/types/varia"; // Pastikan path ini benar
 
-type BeritaStatus = "pending_review" | "published" | "draft" | "revision";
+// Tipe ini bisa diimpor dari file tipe global Anda
+interface ArtikelBerita {
+  news_id: bigint;
+  judul: string;
+  updatedAt: string;
+  status: "pending_review" | "published" | "revision" | "draft";
+  penulis: {
+    nama_lengkap: string | null;
+  } | null;
+}
+type BeritaStatus = Exclude<ArtikelBerita["status"], "draft">;
 
 interface BeritaTableProps {
   data: ArtikelBerita[];
   isLoading?: boolean;
-  onEdit: (id: bigint) => void; // Changed to bigint
-  onDelete: (id: bigint) => void; // Changed to bigint
-  onApprove: (id: bigint) => void; // Changed to bigint
+  onEdit: (berita: ArtikelBerita) => void;
+  onDelete: (id: bigint) => void;
+  onApprove: (id: bigint) => void;
+  onRequestRevision: (id: bigint) => void;
 }
 
 const BeritaTable: React.FC<BeritaTableProps> = ({
@@ -28,157 +38,130 @@ const BeritaTable: React.FC<BeritaTableProps> = ({
   onEdit,
   onDelete,
   onApprove,
+  onRequestRevision,
 }) => {
-  const getDisplayValue = (value: string | string[] | undefined): string => {
-    return Array.isArray(value) ? value[0] || "" : value || "";
-  };
-
-  const getStatusChip = (status: BeritaStatus) => {
+  const getStatusBadge = (status: BeritaStatus) => {
     switch (status) {
-      case "published":
-        return (
-          <span className="px-2 py-1 text-xs font-medium text-status-green-dark bg-status-green/20 rounded-full flex items-center gap-1.5">
-            <CheckCircle size={14} /> Tayang
-          </span>
-        );
       case "pending_review":
         return (
-          <span className="px-2 py-1 text-xs font-medium text-status-blue-dark bg-status-blue/20 rounded-full flex items-center gap-1.5">
-            <Clock size={14} /> Menunggu Review
+          <span className="flex items-center gap-1.5 text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">
+            <Clock size={14} /> Menunggu
           </span>
         );
-      case "draft":
+      case "published":
         return (
-          <span className="px-2 py-1 text-xs font-medium text-text-secondary bg-ui-border rounded-full flex items-center gap-1.5">
-            <Edit size={14} /> Draf
+          <span className="flex items-center gap-1.5 text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+            <CheckCircle size={14} /> Tayang
           </span>
         );
       case "revision":
         return (
-          <span className="px-2 py-1 text-xs font-medium text-status-red-dark bg-status-red/20 rounded-full flex items-center gap-1.5">
-            <FileWarning size={14} /> Perlu Revisi
+          <span className="flex items-center gap-1.5 text-xs font-medium text-red-600 bg-red-100 px-2 py-1 rounded-full">
+            <FileWarning size={14} /> Revisi
           </span>
         );
       default:
-        return (
-          <span className="px-2 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-full">
-            {status}
-          </span>
-        );
+        return null;
     }
   };
 
-  // Tampilan Skeleton saat loading
   if (isLoading) {
     return (
       <div className="space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="h-16 bg-surface-hover animate-pulse rounded-md"
-          ></div>
+            className="flex items-center p-4 bg-surface-page rounded-lg animate-pulse"
+          >
+            <div className="h-5 w-2/5 bg-ui-border rounded-md"></div>
+            <div className="ml-auto h-5 w-1/5 bg-ui-border rounded-md"></div>
+            <div className="ml-4 h-5 w-1/5 bg-ui-border rounded-md"></div>
+          </div>
         ))}
       </div>
     );
   }
 
+  if (data.length === 0) {
+    return (
+      <p className="text-center text-text-secondary py-8">
+        Tidak ada berita yang cocok dengan filter ini.
+      </p>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full bg-surface-card divide-y divide-ui-border">
-        <thead className="bg-surface-page">
+      <table className="w-full text-sm text-left">
+        <thead className="text-xs text-text-secondary uppercase bg-surface-page">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Judul Artikel
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Penulis
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Tanggal Dibuat
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Status
-            </th>
-            <th className="px-4 py-3 text-center text-xs font-semibold text-text-secondary uppercase tracking-wider">
-              Aksi
-            </th>
+            <th className="px-6 py-3">Judul</th>
+            <th className="px-6 py-3">Penulis</th>
+            <th className="px-6 py-3">Status</th>
+            <th className="px-6 py-3">Terakhir Diubah</th>
+            <th className="px-6 py-3 text-right">Aksi</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-ui-border">
-          {data.length > 0 ? (
-            data.map((item) => (
-              <tr key={Number(item.news_id)} className="hover:bg-surface-hover">
-                <td className="px-4 py-3 whitespace-normal text-sm font-medium text-text-primary max-w-xs">
-                  {getDisplayValue(item.judul)}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                  {item.nama_penulis || "N/A"}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-text-secondary">
-                  {new Date(item.savedAt).toLocaleDateString("id-ID", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm">
-                  <div className="flex">
-                    {getStatusChip(
-                      getDisplayValue(item.status) as BeritaStatus
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-center">
-                  <div className="flex items-center justify-center gap-1 sm:gap-2">
-                    {getDisplayValue(item.status) === "pending_review" && (
-                      <button
-                        onClick={() => onApprove(item.news_id)}
-                        title="Setujui & Tayangkan"
-                        className="p-2 text-text-secondary hover:text-status-green hover:bg-status-green/10 rounded-full transition-colors"
-                      >
-                        <CheckCircle size={16} />
-                      </button>
-                    )}
+        <tbody>
+          {data.map((item) => (
+            <tr
+              key={String(item.news_id)}
+              className="bg-surface-card border-b border-ui-border hover:bg-surface-hover"
+            >
+              <td className="px-6 py-4 font-medium text-text-primary">
+                {item.judul}
+              </td>
+              <td className="px-6 py-4 text-text-secondary">
+                {item.penulis?.nama_lengkap || "N/A"}
+              </td>
+              <td className="px-6 py-4">
+                {getStatusBadge(item.status as BeritaStatus)}
+              </td>
+              <td className="px-6 py-4 text-text-secondary">
+                {new Date(item.updatedAt).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex justify-end items-center gap-2">
+                  {item.status !== "published" && (
                     <button
-                      onClick={() => onEdit(item.news_id)}
-                      title="Edit Berita"
-                      className="p-2 text-text-secondary hover:text-brand-primary hover:bg-brand-primary/10 rounded-full transition-colors"
+                      onClick={() => onApprove(item.news_id)}
+                      title="Setujui & Publikasikan"
+                      className="p-2 text-green-600 hover:bg-green-100 rounded-md"
                     >
-                      <Edit size={16} />
+                      <Send size={16} />
                     </button>
-                    <a
-                      href={`/varia-statistik/artikel/${Number(item.news_id)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Lihat Berita"
-                      className="p-2 text-text-secondary hover:text-status-blue hover:bg-status-blue/10 rounded-full transition-colors"
-                    >
-                      <Eye size={16} />
-                    </a>
+                  )}
+                  {item.status !== "revision" && (
                     <button
-                      onClick={() => onDelete(item.news_id)}
-                      title="Hapus Berita"
-                      className="p-2 text-text-secondary hover:text-status-red hover:bg-status-red/10 rounded-full transition-colors"
+                      onClick={() => onRequestRevision(item.news_id)}
+                      title="Minta Revisi"
+                      className="p-2 text-yellow-600 hover:bg-yellow-100 rounded-md"
                     >
-                      <Trash2 size={16} />
+                      <FileWarning size={16} />
                     </button>
-                  </div>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td
-                colSpan={5}
-                className="text-center py-16 text-text-secondary italic"
-              >
-                <p>Tidak ada berita pada tab ini.</p>
-                <p className="text-xs mt-1">
-                  Coba pilih tab lain atau bersihkan pencarian.
-                </p>
+                  )}
+                  <button
+                    onClick={() => onEdit(item)}
+                    title="Edit"
+                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-md"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    onClick={() => onDelete(item.news_id)}
+                    title="Hapus"
+                    className="p-2 text-red-600 hover:bg-red-100 rounded-md"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
     </div>

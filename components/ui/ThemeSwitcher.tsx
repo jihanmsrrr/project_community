@@ -2,7 +2,7 @@
 "use client";
 
 import { JSX, useEffect, useState } from "react";
-import { Sun, Moon, Monitor, ChevronDown, Palette, Heart } from "lucide-react";
+import { Sun, Moon, Monitor, ChevronDown, Heart } from "lucide-react";
 
 type Theme = "light" | "dark" | "system" | "pink";
 
@@ -16,25 +16,6 @@ export default function ThemeSwitcher() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const applyTheme = (selectedTheme: Theme) => {
-    if (typeof window === "undefined") return;
-    document.documentElement.classList.remove(
-      "dark",
-      "theme-soft",
-      "theme-pink"
-    );
-    let themeToApply: Theme = selectedTheme;
-    if (selectedTheme === "system") {
-      themeToApply = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
-    const newClass = themeClasses[themeToApply as keyof typeof themeClasses];
-    if (newClass) {
-      document.documentElement.classList.add(newClass);
-    }
-  };
-
   useEffect(() => {
     setMounted(true);
     const savedTheme = (localStorage.getItem("theme") as Theme) || "system";
@@ -45,20 +26,35 @@ export default function ThemeSwitcher() {
       setTheme("system");
       localStorage.setItem("theme", "system");
     }
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || !theme) return;
+
+    const applyTheme = (selectedTheme: Theme) => {
+      document.documentElement.classList.remove("dark", "theme-pink");
+      let themeToApply: Theme = selectedTheme;
+      if (selectedTheme === "system") {
+        themeToApply = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
+      const newClass = themeClasses[themeToApply];
+      if (newClass) {
+        document.documentElement.classList.add(newClass);
+      }
+    };
+
+    applyTheme(theme);
+
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
       if (localStorage.getItem("theme") === "system") {
-        setTheme("system");
+        applyTheme("system");
       }
     };
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && theme) {
-      applyTheme(theme);
-    }
   }, [theme, mounted]);
 
   const selectTheme = (newTheme: Theme) => {
@@ -75,54 +71,43 @@ export default function ThemeSwitcher() {
   ];
 
   const getCurrentThemeIcon = () => {
-    const buttonIconSize = 20;
-    if (!mounted || !theme) {
-      return <Monitor size={buttonIconSize} />;
-    }
-    if (theme === "system") {
-      return <Monitor size={buttonIconSize} />;
-    }
+    const iconSize = 20;
+    if (!theme) return <Monitor size={iconSize} />;
     switch (theme) {
       case "light":
-        return <Sun size={buttonIconSize} />;
+        return <Sun size={iconSize} />;
       case "dark":
-        return <Moon size={buttonIconSize} />;
+        return <Moon size={iconSize} />;
       case "pink":
-        return <Heart size={buttonIconSize} />;
+        return <Heart size={iconSize} />;
       default:
-        return <Palette size={buttonIconSize} />;
+        return <Monitor size={iconSize} />;
     }
   };
 
   if (!mounted) {
     return (
-      <div className="relative inline-block text-left">
-        <button
-          aria-label="Pilih Tema"
-          disabled
-          className="flex items-center gap-2 p-2 rounded-lg bg-gray-200 text-gray-500 opacity-50 cursor-not-allowed"
-        >
-          <Monitor size={20} /> <ChevronDown size={16} />
-        </button>
-      </div>
+      <div className="w-full h-[40px] bg-white/10 rounded-lg animate-pulse" />
     );
   }
 
   return (
-    <div className="relative inline-block text-left">
+    <div className="relative w-full text-left">
+      {/* Tombol utama dibuat transparan */}
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
         aria-label="Pilih Tema"
-        className="flex items-center gap-2 p-2 rounded-lg bg-surface-card text-text-primary shadow-md hover:bg-surface-header 
-                   transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary 
-                   focus-visible:ring-offset-2 focus-visible:ring-offset-surface-page
-                   // PERUBAHAN: Tambahkan kelas ini untuk hover khusus di mode light
-                   group" // Tambahkan group agar bisa menggunakan group-hover pada ikon
+        className="group flex items-center justify-between w-full gap-2 p-2 rounded-lg bg-transparent text-text-on-header hover:bg-white/10 transition-colors duration-300"
       >
-        {/* PERUBAHAN: Tambahkan group-hover pada ikon */}
-        <span className="group-hover:text-nav-active-indicator transition-colors duration-200">
-          {getCurrentThemeIcon()}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="group-hover:text-nav-active-indicator transition-colors duration-200">
+            {getCurrentThemeIcon()}
+          </span>
+          {/* DIUBAH: Menampilkan nama tema yang aktif, bukan teks statis */}
+          <span className="group-hover:text-nav-active-indicator transition-colors duration-200 text-sm font-semibold capitalize">
+            {theme}
+          </span>
+        </div>
         <ChevronDown
           size={16}
           className={`transition-transform duration-200 ${
@@ -131,25 +116,18 @@ export default function ThemeSwitcher() {
         />
       </button>
       {dropdownOpen && (
-        <div
-          className="absolute right-0 mt-2 w-40 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10 focus:outline-none py-1 z-50"
-          role="menu"
-          aria-orientation="vertical"
-          aria-labelledby="options-menu"
-        >
+        <div className="absolute right-0 mt-2 w-48 origin-top-right bg-surface-card rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none py-1 z-50">
           {themeOptions.map((option) => {
             const isActive = theme === option.value;
             return (
               <button
                 key={option.value}
                 onClick={() => selectTheme(option.value)}
-                className={`flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left transition-colors duration-150
-                             ${
-                               isActive
-                                 ? "font-semibold bg-gray-100 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400"
-                                 : "font-normal text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-white"
-                             }`}
-                role="menuitem"
+                className={`flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left transition-colors duration-150 ${
+                  isActive
+                    ? "font-semibold bg-brand-primary/10 text-brand-primary"
+                    : "font-normal text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+                }`}
               >
                 {option.icon} {option.label}
               </button>

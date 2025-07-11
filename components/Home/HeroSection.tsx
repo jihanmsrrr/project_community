@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useTheme } from "next-themes"; // Diimpor untuk manajemen tema
+import { useTheme } from "next-themes";
 import { LoaderCircle } from "lucide-react";
-import Carousel from "./Carousel"; // Asumsi Carousel.tsx ada di folder yang sama
+import Carousel from "./Carousel";
 
 // --- Komponen Greeting ---
 const motivationalQuotes = [
@@ -54,27 +54,29 @@ const Greeting: React.FC = () => {
   const userName = session?.user?.name?.split(" ")[0] || "Insan BPS";
 
   return (
-    // Teks di sini menggunakan warna putih agar kontras dengan backdrop
     <div className="text-center text-white">
-      <p className="text-md font-semibold mb-2 opacity-80">{currentDate}</p>
-      <h1 className="text-4xl md:text-5xl font-bold mb-2 whitespace-nowrap drop-shadow-lg">
+      <p className="text-md font-semibold mb-2 opacity-90 [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">
+        {currentDate}
+      </p>
+      {/* DIUBAH: Ukuran font sapaan utama dikecilkan */}
+      <h1 className="text-3xl md:text-4xl font-bold mb-2 whitespace-nowrap text-white [text-shadow:0_2px_5px_rgba(0,0,0,0.5)]">
         {`${greeting}, ${userName}!`}
       </h1>
-      <p className="text-lg opacity-90 drop-shadow-md">
+      {/* DIUBAH: Ukuran font tagline disesuaikan */}
+      <p className="text-base md:text-lg opacity-90 [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">
         Selamat datang di pusat kolaborasi dan data BPS Community.
       </p>
-      <p className="text-sm opacity-70 italic mt-4 max-w-xl mx-auto drop-shadow-sm">
+      <p className="text-sm opacity-80 italic mt-4 max-w-xl mx-auto [text-shadow:0_1px_2px_rgba(0,0,0,0.4)]">
         {quote}
       </p>
     </div>
   );
 };
 
-// --- Komponen HeroSection Utama (Desain Baru) ---
+// --- Komponen HeroSection Utama ---
 const HeroSection: React.FC = () => {
-  // DIPERBAIKI: Menggunakan resolvedTheme untuk deteksi yang lebih andal
   const { resolvedTheme } = useTheme();
-  const [backdropSrc, setBackdropSrc] = useState("/backdrop.png");
+  const [backdropSrc, setBackdropSrc] = useState("/backdrop.png"); // Default ke .jpg
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -83,33 +85,29 @@ const HeroSection: React.FC = () => {
 
   useEffect(() => {
     if (isMounted) {
-      // DIPERBAIKI: Menggunakan resolvedTheme dalam logika switch
       switch (resolvedTheme) {
         case "dark":
           setBackdropSrc("/backdrop-dark.png");
           break;
         case "pink":
-          setBackdropSrc("/backdrop-pink.png");
+          setBackdropSrc("/backdrop-pink.png"); // Menggunakan .jpg sesuai file baru
           break;
         default:
           setBackdropSrc("/backdrop.png");
           break;
       }
     }
-  }, [resolvedTheme, isMounted]); // Dependency diubah ke resolvedTheme
+  }, [resolvedTheme, isMounted]);
 
   if (!isMounted) {
-    // Placeholder untuk menjaga layout saat loading di client
     return <div className="w-full h-[78vh] bg-surface-card rounded-3xl" />;
   }
 
   return (
-    // DIKEMBALIKAN: Menggunakan layout dengan tinggi viewport dan konten di atasnya
     <section className="relative w-full rounded-xl overflow-visible">
-      {/* Backdrop dengan tinggi 78vh dan full rounded */}
       <div className="absolute top-0 left-0 right-0 h-[78vh] rounded-3xl overflow-hidden z-0">
         <Image
-          key={backdropSrc} // Key diubah agar Next.js memicu transisi gambar
+          key={backdropSrc}
           src={backdropSrc}
           alt="Backdrop BPS Community"
           fill
@@ -120,10 +118,9 @@ const HeroSection: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-black/10 to-transparent" />
       </div>
 
-      {/* Konten utama diposisikan di atas backdrop */}
-      <div className="relative z-10 max-w-[1200px] mx-auto px-6 sm:px-8 md:px-12 pt-8 pb-2 flex flex-col items-center gap-6">
+      <div className="relative z-10 max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8 pt-8 pb-2 flex flex-col items-center gap-6">
         <Greeting />
-        <div className="w-full max-w-4xl xl:max-w-5xl">
+        <div className="w-full max-w-4xl xl:max-w-5xl pt-4">
           <Carousel />
         </div>
       </div>
