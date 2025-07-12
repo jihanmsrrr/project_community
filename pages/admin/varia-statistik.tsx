@@ -24,7 +24,6 @@ import {
   Loader2,
 } from "lucide-react";
 
-// Asumsi komponen ini ada di path yang benar
 import type { NextPageWithLayout } from "../_app";
 import AdminLayout from "@/components/ui/AdminLayout";
 import RekapCard from "@/components/Admin/Berita/RekapCard";
@@ -36,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 
 // --- Tipe Data ---
-// DIPERBAIKI: Mengubah news_id dari bigint ke string agar kompatibel dengan JSON
+// DIPERBARUI: Tambahkan field opsional untuk data lengkap
 interface ArtikelBerita {
   news_id: string;
   judul: string;
@@ -47,6 +46,9 @@ interface ArtikelBerita {
   penulis: {
     nama_lengkap: string | null;
   } | null;
+  // Field untuk data lengkap (opsional)
+  isi_berita?: string;
+  gambar?: string;
 }
 type BeritaStatus = Exclude<ArtikelBerita["status"], "draft">;
 
@@ -54,12 +56,12 @@ type BeritaStatus = Exclude<ArtikelBerita["status"], "draft">;
 
 const BeritaTable: React.FC<{
   data: ArtikelBerita[];
-  onEdit: (berita: ArtikelBerita) => void;
-  // DIPERBAIKI: Mengubah tipe id ke string
+  onEdit: (id: string) => void; // Hanya perlu ID untuk memulai proses edit
   onDelete: (id: string) => void;
   onUpdateStatus: (id: string, status: BeritaStatus) => void;
   isLoading: boolean;
 }> = ({ data, onEdit, onDelete, onUpdateStatus, isLoading }) => {
+  // ... (Isi komponen BeritaTable tetap sama, hanya prop onEdit yang berubah)
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -82,7 +84,6 @@ const BeritaTable: React.FC<{
         Tidak ada berita yang cocok dengan filter ini.
       </p>
     );
-
   const getStatusBadge = (status: BeritaStatus) => {
     switch (status) {
       case "pending_review":
@@ -107,7 +108,6 @@ const BeritaTable: React.FC<{
         return null;
     }
   };
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm text-left">
@@ -163,7 +163,7 @@ const BeritaTable: React.FC<{
                     </button>
                   )}
                   <button
-                    onClick={() => onEdit(item)}
+                    onClick={() => onEdit(item.news_id)}
                     title="Edit"
                     className="p-2 text-blue-600 hover:bg-blue-100 rounded-md"
                   >
@@ -221,21 +221,22 @@ const ConfirmationDialog: React.FC<{
           disabled={isDeleting}
           className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold flex items-center gap-2 disabled:opacity-50"
         >
-          {isDeleting && <Loader2 className="animate-spin" size={16} />}
-          Ya, Hapus
+          {isDeleting && <Loader2 className="animate-spin" size={16} />}Ya,
+          Hapus
         </button>
       </div>
     </DialogContent>
   </Dialog>
 );
 
+// DIPERBARUI: Edit dialog sekarang bisa menangani semua field
 const EditBeritaDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   berita: ArtikelBerita | null;
-  // DIPERBAIKI: Mengubah tipe id ke string
   onSave: (id: string, updatedData: Partial<ArtikelBerita>) => Promise<void>;
-}> = ({ isOpen, onClose, berita, onSave }) => {
+  isFetchingDetails: boolean;
+}> = ({ isOpen, onClose, berita, onSave, isFetchingDetails }) => {
   const [formData, setFormData] = useState<Partial<ArtikelBerita>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -246,9 +247,11 @@ const EditBeritaDialog: React.FC<{
         abstrak: berita.abstrak,
         kategori: berita.kategori,
         status: berita.status,
+        isi_berita: berita.isi_berita || "",
+        gambar: berita.gambar || "",
       });
     } else {
-      setFormData({}); // Reset form when dialog is closed
+      setFormData({});
     }
   }, [berita]);
 
@@ -266,7 +269,7 @@ const EditBeritaDialog: React.FC<{
     setIsSaving(true);
     try {
       await onSave(berita.news_id, formData);
-      onClose(); // Close dialog on success
+      onClose();
     } catch (error) {
       console.error("Failed to save changes:", error);
     } finally {
@@ -276,7 +279,7 @@ const EditBeritaDialog: React.FC<{
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl p-0">
+      <DialogContent className="sm:max-w-4xl p-0">
         <div className="flex flex-col max-h-[90vh]">
           <div className="flex-shrink-0 p-6 border-b border-ui-border flex justify-between items-center">
             <DialogTitle>Edit Artikel Berita</DialogTitle>
@@ -286,97 +289,136 @@ const EditBeritaDialog: React.FC<{
               </button>
             </DialogClose>
           </div>
-          <form
-            id="edit-berita-form"
-            onSubmit={handleSubmit}
-            className="flex-grow overflow-y-auto p-6 space-y-4"
-          >
-            <div>
-              <label
-                htmlFor="judul"
-                className="text-sm font-medium text-text-secondary"
-              >
-                Judul
-              </label>
-              <input
-                id="judul"
-                name="judul"
-                value={formData.judul || ""}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
-              />
+          {isFetchingDetails ? (
+            <div className="flex items-center justify-center p-20">
+              <Loader2 className="animate-spin" size={32} />
             </div>
-            <div>
-              <label
-                htmlFor="abstrak"
-                className="text-sm font-medium text-text-secondary"
+          ) : (
+            <>
+              <form
+                id="edit-berita-form"
+                onSubmit={handleSubmit}
+                className="flex-grow overflow-y-auto p-6 space-y-4"
               >
-                Abstrak
-              </label>
-              <textarea
-                id="abstrak"
-                name="abstrak"
-                value={formData.abstrak || ""}
-                onChange={handleChange}
-                rows={5}
-                className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="kategori"
-                className="text-sm font-medium text-text-secondary"
-              >
-                Kategori
-              </label>
-              <input
-                id="kategori"
-                name="kategori"
-                value={formData.kategori || ""}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="status"
-                className="text-sm font-medium text-text-secondary"
-              >
-                Status
-              </label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status || ""}
-                onChange={handleChange}
-                className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
-              >
-                <option value="pending_review">Menunggu Review</option>
-                <option value="published">Tayang (Published)</option>
-                <option value="revision">Perlu Revisi</option>
-              </select>
-            </div>
-          </form>
-          <div className="flex-shrink-0 flex justify-end gap-3 p-4 border-t border-ui-border">
-            <DialogClose asChild>
-              <button
-                type="button"
-                disabled={isSaving}
-                className="px-4 py-2 rounded-lg bg-ui-border/50 text-text-secondary hover:bg-ui-border/80 font-semibold disabled:opacity-50"
-              >
-                Batal
-              </button>
-            </DialogClose>
-            <button
-              type="submit"
-              form="edit-berita-form"
-              disabled={isSaving}
-              className="px-4 py-2 rounded-lg bg-brand-primary text-text-on-brand hover:bg-brand-primary-hover font-semibold flex items-center gap-2 disabled:opacity-50"
-            >
-              {isSaving && <Loader2 className="animate-spin" size={16} />}
-              Simpan Perubahan
-            </button>
-          </div>
+                <div>
+                  <label
+                    htmlFor="judul"
+                    className="text-sm font-medium text-text-secondary"
+                  >
+                    Judul
+                  </label>
+                  <input
+                    id="judul"
+                    name="judul"
+                    value={formData.judul || ""}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="abstrak"
+                    className="text-sm font-medium text-text-secondary"
+                  >
+                    Abstrak
+                  </label>
+                  <textarea
+                    id="abstrak"
+                    name="abstrak"
+                    value={formData.abstrak || ""}
+                    onChange={handleChange}
+                    rows={3}
+                    className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="isi_berita"
+                    className="text-sm font-medium text-text-secondary"
+                  >
+                    Isi Berita
+                  </label>
+                  <textarea
+                    id="isi_berita"
+                    name="isi_berita"
+                    value={formData.isi_berita || ""}
+                    onChange={handleChange}
+                    rows={10}
+                    className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="kategori"
+                    className="text-sm font-medium text-text-secondary"
+                  >
+                    Kategori
+                  </label>
+                  <input
+                    id="kategori"
+                    name="kategori"
+                    value={formData.kategori || ""}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="gambar"
+                    className="text-sm font-medium text-text-secondary"
+                  >
+                    URL Gambar
+                  </label>
+                  <input
+                    id="gambar"
+                    name="gambar"
+                    value={formData.gambar || ""}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="status"
+                    className="text-sm font-medium text-text-secondary"
+                  >
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status || ""}
+                    onChange={handleChange}
+                    className="mt-1 w-full p-2 border border-ui-border-input bg-surface-page rounded-lg focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none"
+                  >
+                    <option value="pending_review">Menunggu Review</option>
+                    <option value="published">Tayang (Published)</option>
+                    <option value="revision">Perlu Revisi</option>
+                  </select>
+                </div>
+              </form>
+              <div className="flex-shrink-0 flex justify-end gap-3 p-4 border-t border-ui-border">
+                <DialogClose asChild>
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    className="px-4 py-2 rounded-lg bg-ui-border/50 text-text-secondary hover:bg-ui-border/80 font-semibold disabled:opacity-50"
+                  >
+                    Batal
+                  </button>
+                </DialogClose>
+                <button
+                  type="submit"
+                  form="edit-berita-form"
+                  disabled={isSaving}
+                  className="px-4 py-2 rounded-lg bg-brand-primary text-text-on-brand hover:bg-brand-primary-hover font-semibold flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isSaving && <Loader2 className="animate-spin" size={16} />}
+                  Simpan Perubahan
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -392,23 +434,20 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
   const [beritaList, setBeritaList] = useState<ArtikelBerita[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
-  // DIPERBAIKI: Mengubah tipe state id ke string
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // State untuk dialog edit
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [editingBerita, setEditingBerita] = useState<ArtikelBerita | null>(
     null
   );
 
-  const fetchData = useCallback(async () => {
+  const fetchBeritaList = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/berita");
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(
-          `Gagal mengambil data: ${response.status} ${response.statusText}. Body: ${errorBody}`
-        );
-      }
+      const response = await fetch("/api/admin/berita"); // Ini akan mengambil daftar
+      if (!response.ok) throw new Error("Gagal mengambil daftar berita");
       const data: ArtikelBerita[] = await response.json();
       setBeritaList(data.filter((item) => item.status !== "draft"));
     } catch (error) {
@@ -420,8 +459,8 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchBeritaList();
+  }, [fetchBeritaList]);
 
   const rekapData = useMemo(
     () => ({
@@ -449,17 +488,24 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
 
   // --- Handlers ---
 
-  const handleOpenEditDialog = (berita: ArtikelBerita) => {
-    setEditingBerita(berita);
+  // DIPERBARUI: Handler untuk memulai proses edit
+  const handleEdit = async (id: string) => {
     setIsEditDialogOpen(true);
+    setIsFetchingDetails(true);
+    setEditingBerita(null); // Kosongkan data lama
+    try {
+      const response = await fetch(`/api/admin/berita?id=${id}`); // Ambil data lengkap
+      if (!response.ok) throw new Error("Gagal mengambil detail berita");
+      const dataLengkap: ArtikelBerita = await response.json();
+      setEditingBerita(dataLengkap);
+    } catch (error) {
+      console.error("Error fetching details:", error);
+      setIsEditDialogOpen(false); // Tutup dialog jika gagal
+    } finally {
+      setIsFetchingDetails(false);
+    }
   };
 
-  // DIPERBAIKI: Mengubah tipe id ke string
-  const handleOpenDeleteDialog = (id: string) => {
-    setConfirmDeleteId(id);
-  };
-
-  // DIPERBAIKI: Mengubah tipe id ke string
   const handleUpdate = async (
     id: string,
     dataToUpdate: Partial<ArtikelBerita>
@@ -468,16 +514,10 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
       const response = await fetch("/api/admin/berita", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        // DIPERBAIKI: Tidak perlu konversi ke String() lagi karena id sudah string
         body: JSON.stringify({ id, ...dataToUpdate }),
       });
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(
-          `Gagal memperbarui berita: ${response.status}. Body: ${errorBody}`
-        );
-      }
-      await fetchData();
+      if (!response.ok) throw new Error("Gagal memperbarui berita");
+      await fetchBeritaList(); // Refresh daftar setelah update
     } catch (error) {
       console.error("Error during update:", error);
       throw error;
@@ -488,20 +528,13 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
     if (!confirmDeleteId) return;
     setIsDeleting(true);
     try {
-      const response = await fetch("/api/admin/berita", {
+      await fetch("/api/admin/berita", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        // DIPERBAIKI: Tidak perlu konversi ke String() lagi
         body: JSON.stringify({ id: confirmDeleteId }),
       });
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(
-          `Gagal menghapus berita: ${response.status}. Body: ${errorBody}`
-        );
-      }
       setConfirmDeleteId(null);
-      await fetchData();
+      await fetchBeritaList();
     } catch (error) {
       console.error("Error during delete:", error);
     } finally {
@@ -531,6 +564,7 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
         onClose={() => setIsEditDialogOpen(false)}
         berita={editingBerita}
         onSave={handleUpdate}
+        isFetchingDetails={isFetchingDetails}
       />
 
       <div className="space-y-8">
@@ -550,7 +584,6 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
             </a>
           </Link>
         </div>
-
         <section>
           <h2 className="text-lg font-semibold text-text-primary mb-3">
             Rekap Berita
@@ -582,7 +615,6 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
             />
           </div>
         </section>
-
         <div className="bg-surface-card p-4 sm:p-6 rounded-xl shadow-md">
           <div className="border-b border-ui-border mb-4">
             <nav className="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto">
@@ -613,11 +645,10 @@ const AdminVariaStatistikPage: NextPageWithLayout = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-placeholder" />
             </div>
           </div>
-
           <BeritaTable
             data={filteredBerita}
-            onEdit={handleOpenEditDialog}
-            onDelete={handleOpenDeleteDialog}
+            onEdit={handleEdit}
+            onDelete={setConfirmDeleteId}
             onUpdateStatus={(id, status) => handleUpdate(id, { status })}
             isLoading={isLoading}
           />

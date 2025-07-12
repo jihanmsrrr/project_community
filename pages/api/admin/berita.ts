@@ -5,15 +5,11 @@ import { PrismaClient, Prisma } from "@prisma/client";
 const prisma = new PrismaClient();
 
 // --- Fungsi Bantuan untuk Serialisasi BigInt ---
-// JSON.stringify tidak mendukung BigInt, jadi kita perlu mengubahnya menjadi string.
-// DIPERBAIKI: Mengganti 'any' dengan 'unknown' untuk type safety yang lebih baik.
 const jsonStringifyBigInt = (data: unknown) => {
-  const a = JSON.stringify(data, (_, value) =>
+  return JSON.stringify(data, (_, value) =>
     typeof value === 'bigint' ? value.toString() : value
   );
-  return a;
 };
-
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,36 +18,65 @@ export default async function handler(
   const { method } = req;
 
   switch (method) {
-    // MENGAMBIL SEMUA BERITA UNTUK ADMIN
     case "GET":
       try {
-        const berita = await prisma.news.findMany({
-          orderBy: {
-            updatedAt: "desc",
-          },
-          include: {
-            penulis: {
-              select: {
-                nama_lengkap: true,
+        // DIPERBARUI: Tambahkan logika untuk mengambil satu berita berdasarkan ID
+        const { id } = req.query;
+
+        if (id) {
+          // JIKA ADA ID, AMBIL SATU BERITA LENGKAP
+          const singleBerita = await prisma.news.findUnique({
+            where: { news_id: BigInt(id as string) },
+            // Sertakan semua field yang dibutuhkan untuk form edit
+            include: {
+              penulis: {
+                select: {
+                  nama_lengkap: true,
+                },
               },
             },
-          },
-        });
-        
-        // Kirim respons menggunakan fungsi bantuan
-        res.setHeader('Content-Type', 'application/json');
-        res.status(200).send(jsonStringifyBigInt(berita));
+          });
 
+          if (!singleBerita) {
+            return res.status(404).json({ error: "Berita tidak ditemukan." });
+          }
+          res.setHeader('Content-Type', 'application/json');
+          return res.status(200).send(jsonStringifyBigInt(singleBerita));
+
+        } else {
+          // JIKA TIDAK ADA ID, AMBIL DAFTAR BERITA (RINGKASAN)
+          const allBerita = await prisma.news.findMany({
+            orderBy: {
+              updatedAt: "desc",
+            },
+            // Hanya pilih data yang perlu untuk tabel agar cepat
+            select: {
+              news_id: true,
+              judul: true,
+              abstrak: true,
+              kategori: true,
+              updatedAt: true,
+              status: true,
+              penulis: {
+                select: {
+                  nama_lengkap: true,
+                },
+              },
+            },
+          });
+          res.setHeader('Content-Type', 'application/json');
+          return res.status(200).send(jsonStringifyBigInt(allBerita));
+        }
       } catch (error) {
         console.error("API Error [GET /api/admin/berita]:", error);
         res.status(500).json({ error: "Gagal mengambil data berita." });
       }
       break;
 
-    // MEMPERBARUI BERITA (STATUS, JUDUL, DLL.)
     case "PATCH":
       try {
-        const { id, status, judul, abstrak, isi_berita, kategori } = req.body;
+        // DIPERBARUI: Tambahkan field gambar dan isi_berita
+        const { id, status, judul, abstrak, isi_berita, kategori, gambar } = req.body;
 
         if (!id) {
           return res.status(400).json({ error: "ID dibutuhkan." });
@@ -63,6 +88,7 @@ export default async function handler(
         if (abstrak) dataToUpdate.abstrak = abstrak;
         if (isi_berita) dataToUpdate.isi_berita = isi_berita;
         if (kategori) dataToUpdate.kategori = kategori;
+        if (gambar) dataToUpdate.gambar = gambar; // Tambahkan gambar
         
         if (status === 'published') {
           dataToUpdate.publishedAt = new Date();
@@ -73,7 +99,6 @@ export default async function handler(
           data: dataToUpdate,
         });
 
-        // Kirim respons menggunakan fungsi bantuan
         res.setHeader('Content-Type', 'application/json');
         res.status(200).send(jsonStringifyBigInt(updatedBerita));
 
@@ -83,7 +108,6 @@ export default async function handler(
       }
       break;
 
-    // MENGHAPUS BERITA
     case "DELETE":
       try {
         const { id } = req.body;
